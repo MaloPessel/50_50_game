@@ -431,8 +431,10 @@
       });
       document.addEventListener('focusout', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-          this.isTyping = false;
-          this.render();
+          setTimeout(() => {
+            this.isTyping = false;
+            this.render();
+          }, 200); // Délai pour laisser le temps au clic (onclick) de s'exécuter
         }
       });
     }
