@@ -395,6 +395,28 @@
 
   const PHASE_DURATION = { propose: 120000, vote: 180000 };
 
+  const SCENARIOS = [
+    "Vous gagnez 10 millions d'euros",
+    "Vous pouvez voler comme un oiseau",
+    "Vous avez la capacité de lire dans les pensées",
+    "Vous découvrez le secret de l'immortalité",
+    "Vous pouvez remonter le temps à volonté",
+    "Vous devenez instantanément célèbre dans le monde entier",
+    "Vous avez une santé de fer jusqu'à la fin de vos jours",
+    "Vous pouvez manger tout ce que vous voulez sans jamais grossir",
+    "Vous possédez le pouvoir de vous téléporter n'importe où",
+    "Vous maîtrisez instantanément toutes les langues humaines",
+    "Vous réussissez absolument tout ce que vous entreprenez",
+    "Vous trouvez instantanément l'âme sœur parfaite",
+    "Vous ne ressentez plus jamais ni fatigue ni besoin de dormir",
+    "Vous accomplissez le plus grand rêve de votre vie",
+    "Vous trouvez une valise inépuisable remplie de billets de 100€"
+  ];
+
+  function getRandomScenario() {
+    return SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
+  }
+
   // 🔥 FONCTION MANQUANTE
   function generateId() {
     return Math.random().toString(36).substring(2, 9);
@@ -458,18 +480,11 @@
       return true;
     }
 
-    async createRoom(scenario) {
-      const sanitizedScenario = sanitizeText(scenario);
-      if (!sanitizedScenario) {
-        this.errorMessage = 'Scénario invalide';
-        this.render();
-        return;
-      }
-  
+    async createRoom() {
       const id = Math.random().toString(36).substring(2, 8).toUpperCase();
   
       const gameData = {
-        scenario: sanitizedScenario,
+        scenario: getRandomScenario(),
         phase: 'propose',
         phaseStartTime: Date.now(),
         proposals: [],
@@ -581,6 +596,23 @@
       this.errorMessage = null;
       localStorage.removeItem('game50_currentRoom');
       this.render();
+    }
+
+    async nextRound() {
+      if (!this.roomId) return;
+      const gameData = {
+        scenario: getRandomScenario(),
+        phase: 'propose',
+        phaseStartTime: Date.now(),
+        proposals: [],
+        votes: {},
+        createdAt: Date.now()
+      };
+      try {
+        await set(ref(db, 'rooms/' + this.roomId), gameData);
+      } catch (err) {
+        console.error("Erreur nouvelle manche:", err);
+      }
     }
 
     checkPhaseTimeout() {
@@ -732,10 +764,7 @@
           ${this.errorMessage ? `<div class="error-box">${escapeHtml(this.errorMessage)}</div>` : ''}
           <div style="margin-bottom:30px;">
             <h3 style="margin-bottom:15px;color:#667eea;">🎲 Créer une partie</h3>
-            <div class="input-group">
-              <label>Scénario de départ</label>
-              <textarea id="scenario" placeholder="Ex: Vous gagnez 10 millions d'euros..." maxlength="500">Vous gagnez 10 millions d'euros</textarea>
-            </div>
+            <div class="info-box">Un scénario aléatoire sera généré pour vous et vos amis !</div>
             <button id="createGame">Créer un salon</button>
           </div>
           <div style="border-top:1px solid #e0e0e0; padding-top:20px;">
@@ -826,7 +855,8 @@
           <div class="card">
             <div class="phase-indicator"><div class="phase-step">1. Propositions</div><div class="phase-step">2. Votes</div><div class="phase-step active">3. Résultats</div></div>
             <div class="empty-state"><div class="empty-state-icon">🤷</div><p>Aucun vote n'a été enregistré...</p></div>
-            <button id="newGame">Nouvelle partie</button>
+            <button id="newGame" style="margin-bottom: 10px;">Manche suivante</button>
+            <button id="leaveGameResults" class="secondary">Quitter le salon</button>
           </div>
         `;
       }
@@ -850,7 +880,8 @@
               </div>
             `;
           }).join('')}
-          <button id="newGame">Nouvelle partie</button>
+          <button id="newGame" style="margin-bottom: 10px;">Manche suivante</button>
+          <button id="leaveGameResults" class="secondary">Quitter le salon</button>
         </div>
       `;
     }
@@ -863,17 +894,6 @@
           if (e.key === 'Enter') {
             e.preventDefault();
             this.savePlayerName(nameInput.value);
-          }
-        };
-      }
-
-      // ENTER scenario
-      const scenarioInput = document.getElementById('scenario');
-      if (scenarioInput) {
-        scenarioInput.onkeydown = (e) => {
-          if (e.key === 'Enter' && e.ctrlKey) {
-            e.preventDefault();
-            this.createRoom(scenarioInput.value);
           }
         };
       }
@@ -915,10 +935,7 @@
       const createGame = document.getElementById('createGame');
       if (createGame) {
         createGame.onclick = () => {
-          const scenario = document.getElementById('scenario').value;
-          if (scenario.trim()) {
-            this.createRoom(scenario);
-          }
+          this.createRoom();
         };
       }
 
@@ -947,7 +964,14 @@
       // Nouvelle partie (après résultats)
       const newGame = document.getElementById('newGame');
       if (newGame) {
-        newGame.onclick = () => this.resetGame();
+        newGame.onclick = () => this.nextRound();
+      }
+      
+      const leaveGameResults = document.getElementById('leaveGameResults');
+      if (leaveGameResults) {
+        leaveGameResults.onclick = () => {
+          if (confirm('Quitter la partie définitivement ?')) this.resetGame();
+        };
       }
 
       // Quitter la partie
