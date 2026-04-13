@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>50/50 - Le Jeu du Dilemme Parfait (Multijoueur sécurisé)</title>
+  <title>50/50 - Le Jeu du Dilemme Parfait (Multijoueur)</title>
   <style>
-    /* ===== TON STYLE EXISTANT (garde-le exactement comme avant) ===== */
+    /* ===== TON STYLE EXISTANT ===== */
     * {
       margin: 0;
       padding: 0;
@@ -338,7 +338,7 @@
 <div class="container">
   <div class="header">
     <h1>50/50</h1>
-    <div class="subtitle">Le jeu du dilemme parfait - Multijoueur sécurisé</div>
+    <div class="subtitle">Le jeu du dilemme parfait - Multijoueur</div>
   </div>
   <div id="app"></div>
 </div>
@@ -346,8 +346,6 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
   import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-analytics.js";
-  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBPbFNDsn5CVF-4krrYtw1z2IzwkkILLoE",
@@ -361,25 +359,26 @@
   };
 
   const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
   const db = getDatabase(app);
-  const auth = getAuth(app);
 
-  // ========== SECURITE ==========
+  // ========== SÉCURITÉ ==========
   function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
+
   function sanitizeUsername(name) {
     if (typeof name !== 'string') return '';
     return name.trim().slice(0, 20).replace(/\s+/g, ' ');
   }
+
   function sanitizeText(text) {
     if (typeof text !== 'string') return '';
     return text.trim().slice(0, 500).replace(/\s+/g, ' ');
   }
+
   function validateGameData(game) {
     if (!game || typeof game !== 'object') return false;
     if (typeof game.scenario !== 'string' || game.scenario.length > 500) return false;
@@ -393,7 +392,6 @@
 
   class Game {
     constructor() {
-      this.userId = null;
       this.displayName = null;
       this.currentGame = null;
       this.roomId = null;
@@ -401,45 +399,35 @@
       this.errorMessage = null;
       this.phaseInterval = null;
       this.isTyping = false;
-      this.initAuth();
+      this.init();
     }
 
-    async initAuth() {
-      try {
-        const userCred = await signInAnonymously(auth);
-        this.userId = userCred.user.uid;
-        console.log("✅ Authentifié avec UID:", this.userId);
-        
-        const savedName = localStorage.getItem('game50_playerName');
-        if (savedName) {
-          this.displayName = sanitizeUsername(savedName);
-          console.log("📛 Pseudo chargé:", this.displayName);
-        }
-        
-        const savedRoom = localStorage.getItem('game50_currentRoom');
-        if (savedRoom && this.displayName) {
-          console.log("🏠 Salon en cours détecté, tentative de reconnexion...");
-          await this.joinRoomById(savedRoom);
-        } else {
-          this.render();
-        }
-        
-        this.phaseInterval = setInterval(() => this.checkPhaseTimeout(), 1000);
-        
-        document.addEventListener('focusin', (e) => {
-          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') this.isTyping = true;
-        });
-        document.addEventListener('focusout', (e) => {
-          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            this.isTyping = false;
-            this.render();
-          }
-        });
-      } catch (err) {
-        console.error("❌ Erreur d'authentification:", err);
-        this.errorMessage = "Impossible de se connecter au serveur. Vérifie ta connexion internet.";
+    init() {
+      // Charger le pseudo depuis localStorage
+      const savedName = localStorage.getItem('game50_playerName');
+      if (savedName) {
+        this.displayName = sanitizeUsername(savedName);
+      }
+      // Vérifier si un salon était en cours
+      const savedRoom = localStorage.getItem('game50_currentRoom');
+      if (savedRoom && this.displayName) {
+        this.joinRoomById(savedRoom);
+      } else {
         this.render();
       }
+
+      this.phaseInterval = setInterval(() => this.checkPhaseTimeout(), 1000);
+
+      // Éviter les re-renders intempestifs pendant la saisie
+      document.addEventListener('focusin', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') this.isTyping = true;
+      });
+      document.addEventListener('focusout', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+          this.isTyping = false;
+          this.render();
+        }
+      });
     }
 
     async savePlayerName(name) {
@@ -452,8 +440,7 @@
       this.displayName = sanitized;
       localStorage.setItem('game50_playerName', sanitized);
       this.errorMessage = null;
-      console.log("✅ Pseudo enregistré:", this.displayName);
-      this.render(); // ← passe du formulaire au lobby
+      this.render(); // ← Affiche le lobby
       return true;
     }
 
@@ -594,7 +581,7 @@
     }
 
     async submitProposal(counterpart) {
-      if (!this.userId || !this.displayName || !this.currentGame) return;
+      if (!this.displayName || !this.currentGame) return;
       if (this.currentGame.phase !== 'propose') {
         this.errorMessage = 'La phase de proposition est terminée.';
         this.render();
@@ -606,9 +593,9 @@
         this.render();
         return;
       }
-      const existingIndex = this.currentGame.proposals.findIndex(p => p.userId === this.userId);
+      // Vérifier si l'utilisateur a déjà proposé (via son pseudo)
+      const existingIndex = this.currentGame.proposals.findIndex(p => p.author === this.displayName);
       const proposal = {
-        userId: this.userId,
         author: this.displayName,
         text: sanitized,
         id: existingIndex >= 0 ? this.currentGame.proposals[existingIndex].id : Date.now()
@@ -624,7 +611,7 @@
     }
 
     async submitVote(proposalId, vote) {
-      if (!this.userId || !this.currentGame) return;
+      if (!this.displayName || !this.currentGame) return;
       if (this.currentGame.phase !== 'vote') {
         this.errorMessage = 'La phase de vote est terminée.';
         this.render();
@@ -635,10 +622,12 @@
         this.currentGame.votes[proposalId] = { yes: [], no: [] };
       }
       const votesObj = this.currentGame.votes[proposalId];
-      votesObj.yes = votesObj.yes.filter(uid => uid !== this.userId);
-      votesObj.no = votesObj.no.filter(uid => uid !== this.userId);
-      if (vote === 'yes') votesObj.yes.push(this.userId);
-      else votesObj.no.push(this.userId);
+      // Retirer l'utilisateur des deux listes
+      votesObj.yes = votesObj.yes.filter(name => name !== this.displayName);
+      votesObj.no = votesObj.no.filter(name => name !== this.displayName);
+      // Ajouter le vote
+      if (vote === 'yes') votesObj.yes.push(this.displayName);
+      else votesObj.no.push(this.displayName);
       await this.saveGame();
       if (!this.isTyping) this.render();
     }
@@ -665,10 +654,6 @@
     render() {
       try {
         const appDiv = document.getElementById('app');
-        if (!this.userId) {
-          appDiv.innerHTML = `<div class="card"><div class="info-box">🔐 Connexion au serveur en cours...</div></div>`;
-          return;
-        }
         if (!this.displayName) {
           appDiv.innerHTML = this.renderNameEntry();
         } else if (!this.currentGame) {
@@ -704,11 +689,6 @@
     }
 
     renderLobby() {
-      // Vérification supplémentaire : si l'utilisateur n'a pas de pseudo, on ne doit pas arriver ici.
-      if (!this.displayName) {
-        console.warn("renderLobby appelé alors que displayName est null");
-        return this.renderNameEntry();
-      }
       return `
         <div class="card">
           <h2 style="margin-bottom:20px;">Menu principal</h2>
@@ -735,7 +715,7 @@
     }
 
     renderProposePhase() {
-      const myProposal = this.currentGame.proposals.find(p => p.userId === this.userId);
+      const myProposal = this.currentGame.proposals.find(p => p.author === this.displayName);
       const timeRemaining = this.getTimeRemaining();
       return `
         <div class="card scenario-card">
@@ -784,7 +764,7 @@
             <div class="empty-state"><div class="empty-state-icon">🤷</div><p>Aucune proposition n'a été faite...</p></div>
           ` : this.currentGame.proposals.map(proposal => {
             const votes = this.currentGame.votes[proposal.id] || { yes: [], no: [] };
-            const myVote = votes.yes.includes(this.userId) ? 'yes' : votes.no.includes(this.userId) ? 'no' : null;
+            const myVote = votes.yes.includes(this.displayName) ? 'yes' : votes.no.includes(this.displayName) ? 'no' : null;
             return `
               <div class="proposal-item">
                 <div class="proposal-author">${escapeHtml(proposal.author)}</div>
@@ -838,46 +818,85 @@
     }
 
     attachEventListeners() {
+      // Bouton "Commencer"
       const submitName = document.getElementById('submitName');
       if (submitName) {
-        submitName.onclick = async () => {
+        // Remplacer tout ancien écouteur pour éviter les doublons
+        const newSubmit = submitName.cloneNode(true);
+        submitName.parentNode.replaceChild(newSubmit, submitName);
+        newSubmit.onclick = async () => {
           const nameInput = document.getElementById('playerName');
           if (nameInput) {
             await this.savePlayerName(nameInput.value);
           }
         };
       }
+
+      // Créer un salon
       const createGame = document.getElementById('createGame');
-      if (createGame) createGame.onclick = () => {
-        const scenario = document.getElementById('scenario').value;
-        this.createRoom(scenario);
-      };
+      if (createGame) {
+        const newCreate = createGame.cloneNode(true);
+        createGame.parentNode.replaceChild(newCreate, createGame);
+        newCreate.onclick = () => {
+          const scenario = document.getElementById('scenario').value;
+          this.createRoom(scenario);
+        };
+      }
+
+      // Rejoindre un salon
       const joinGame = document.getElementById('joinGame');
-      if (joinGame) joinGame.onclick = () => {
-        const code = document.getElementById('roomCode').value;
-        this.joinRoomById(code);
-      };
+      if (joinGame) {
+        const newJoin = joinGame.cloneNode(true);
+        joinGame.parentNode.replaceChild(newJoin, joinGame);
+        newJoin.onclick = () => {
+          const code = document.getElementById('roomCode').value;
+          this.joinRoomById(code);
+        };
+      }
+
+      // Proposer une contrepartie
       const submitProposal = document.getElementById('submitProposal');
-      if (submitProposal) submitProposal.onclick = () => {
-        const counterpart = document.getElementById('counterpart').value;
-        this.submitProposal(counterpart);
-      };
+      if (submitProposal) {
+        const newProposal = submitProposal.cloneNode(true);
+        submitProposal.parentNode.replaceChild(newProposal, submitProposal);
+        newProposal.onclick = () => {
+          const counterpart = document.getElementById('counterpart').value;
+          this.submitProposal(counterpart);
+        };
+      }
+
+      // Nouvelle partie (après résultats)
       const newGame = document.getElementById('newGame');
-      if (newGame) newGame.onclick = () => this.resetGame();
+      if (newGame) {
+        const newNewGame = newGame.cloneNode(true);
+        newGame.parentNode.replaceChild(newNewGame, newGame);
+        newNewGame.onclick = () => this.resetGame();
+      }
+
+      // Quitter la partie
       const leaveGame = document.getElementById('leaveGame');
-      if (leaveGame) leaveGame.onclick = () => {
-        if (confirm('Quitter la partie ? Tu pourras la rejoindre plus tard avec le code.')) this.resetGame();
-      };
+      if (leaveGame) {
+        const newLeave = leaveGame.cloneNode(true);
+        leaveGame.parentNode.replaceChild(newLeave, leaveGame);
+        newLeave.onclick = () => {
+          if (confirm('Quitter la partie ? Tu pourras la rejoindre plus tard avec le code.')) this.resetGame();
+        };
+      }
+
+      // Boutons de vote
       document.querySelectorAll('.vote-btn').forEach(btn => {
-        btn.onclick = () => {
-          const proposalId = parseInt(btn.getAttribute('data-proposal-id'));
-          const vote = btn.getAttribute('data-vote');
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        newBtn.onclick = () => {
+          const proposalId = parseInt(newBtn.getAttribute('data-proposal-id'));
+          const vote = newBtn.getAttribute('data-vote');
           this.submitVote(proposalId, vote);
         };
       });
     }
   }
 
+  // Démarrer le jeu
   window.game = new Game();
 </script>
 </body>
