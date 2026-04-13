@@ -453,13 +453,13 @@
 
 
     init() {
-      // Charger le pseudo depuis localStorage
-      const savedName = localStorage.getItem('game50_playerName');
+      // Charger le pseudo depuis sessionStorage
+      const savedName = sessionStorage.getItem('game50_playerName');
       if (savedName) {
         this.displayName = sanitizeUsername(savedName);
       }
       // Vérifier si un salon était en cours
-      const savedRoom = localStorage.getItem('game50_currentRoom');
+      const savedRoom = sessionStorage.getItem('game50_currentRoom');
       if (savedRoom && this.displayName) {
         this.joinRoomById(savedRoom);
       } else {
@@ -480,6 +480,14 @@
           }, 200); // Délai pour laisser le temps au clic (onclick) de s'exécuter
         }
       });
+
+      // Retirer le joueur de la liste des présences si on ferme l'onglet ou quitte la page
+      window.addEventListener('beforeunload', () => {
+        if (this.roomId && this.displayName) {
+          // On retire la présence immédiatement pour les autres sans attendre le timeout de Firebase
+          this.removePresence();
+        }
+      });
     }
 
     async savePlayerName(name) {
@@ -490,7 +498,7 @@
         return false;
       }
       this.displayName = sanitized;
-      localStorage.setItem('game50_playerName', sanitized);
+      sessionStorage.setItem('game50_playerName', sanitized);
       this.errorMessage = null;
       this.render(); // ← Affiche le lobby
       return true;
@@ -516,7 +524,7 @@
         this.roomId = id;
         this.currentGame = gameData;
   
-        localStorage.setItem('game50_currentRoom', id);
+        sessionStorage.setItem('game50_currentRoom', id);
   
         this.updatePresence();
         this.setupRoomListener();
@@ -541,7 +549,7 @@
           if (validateGameData(gameData)) {
             this.roomId = cleanId;
             this.currentGame = gameData;
-            localStorage.setItem('game50_currentRoom', cleanId);
+            sessionStorage.setItem('game50_currentRoom', cleanId);
             this.updatePresence();
             this.setupRoomListener();
             this.errorMessage = null;
@@ -636,7 +644,7 @@
       this.currentGame = null;
       this.roomId = null;
       this.errorMessage = null;
-      localStorage.removeItem('game50_currentRoom');
+      sessionStorage.removeItem('game50_currentRoom');
       this.render();
     }
 
