@@ -381,13 +381,15 @@
 
   function validateGameData(game) {
     if (!game || typeof game !== 'object') return false;
+    game.scenario = game.scenario || "";
     if (typeof game.scenario !== 'string' || game.scenario.length > 500) return false;
-    if (!['propose', 'vote', 'results'].includes(game.phase)) return false;
+    if (!['waiting', 'propose', 'vote', 'results'].includes(game.phase)) return false;
     
     // 🔥 Firebase supprime les tableaux/objets vides. On les recrée par défaut s'ils sont absents.
     game.proposals = game.proposals || [];
     game.votes = game.votes || {};
     game.players = game.players || {};
+    game.host = game.host || 'Anonyme';
     
     if (!Array.isArray(game.proposals)) return false;
     if (typeof game.votes !== 'object') return false;
@@ -538,9 +540,9 @@
       const userKey = this.displayName ? this.displayName.replace(/[\.\$\#\[\]\/]/g, '_') : 'host';
   
       const gameData = {
-        scenario: getRandomScenario(),
-        phase: 'propose',
-        phaseStartTime: Date.now(),
+        scenario: '',
+        phase: 'waiting',
+        host: this.displayName,
         proposals: [],
         votes: {},
         players: { [userKey]: this.displayName },
@@ -678,30 +680,38 @@
     }
 
     async nextRound() {
-      if (!this.roomId) return;
+      if (!this.roomId || this.displayName !== this.currentGame.host) return;
       
-      const currentPlayers = this.currentGame.players || {};
-      const userKey = this.displayName ? this.displayName.replace(/[\.\$\#\[\]\/]/g, '_') : 'host';
-      if (this.displayName) currentPlayers[userKey] = this.displayName;
+      this.currentGame.phase = 'waiting';
+      this.currentGame.scenario = '';
+      this.currentGame.proposals = [];
+      this.currentGame.votes = {};
+      delete this.currentGame.results;
 
-      const gameData = {
-        scenario: getRandomScenario(),
-        phase: 'propose',
-        phaseStartTime: Date.now(),
-        proposals: [],
-        votes: {},
-        players: currentPlayers,
-        createdAt: Date.now()
-      };
       try {
-        await set(ref(db, 'rooms/' + this.roomId), gameData);
+        await this.saveGame();
       } catch (err) {
-        console.error("Erreur nouvelle manche:", err);
+        console.error("Erreur retour au salon:", err);
+      }
+    }
+
+    async startGame() {
+      if (!this.roomId || this.displayName !== this.currentGame.host) return;
+      
+      this.currentGame.phase = 'propose';
+      this.currentGame.scenario = getRandomScenario();
+      this.currentGame.phaseStartTime = Date.now();
+      
+      try {
+        await this.saveGame();
+      } catch (err) {
+        console.error("Erreur démarrage:", err);
       }
     }
 
     checkPhaseTimeout() {
-      if (!this.currentGame) return;
+      if (!this.currentGame || this.currentGame.phase === 'waiting' || this.currentGame.phase === 'results') return;
+      
       const now = Date.now();
       const elapsed = now - this.currentGame.phaseStartTime;
       let phaseChanged = false;
@@ -835,6 +845,7 @@
           appDiv.innerHTML = this.renderLobby();
         } else {
           switch (this.currentGame.phase) {
+            case 'waiting': appDiv.innerHTML = this.renderWaitingPhase(); break;
             case 'propose': appDiv.innerHTML = this.renderProposePhase(); break;
             case 'vote': appDiv.innerHTML = this.renderVotePhase(); break;
             case 'results': appDiv.innerHTML = this.renderResults(); break;
@@ -846,6 +857,22 @@
         console.error("ERREUR RENDER:", err);
         document.getElementById('app').innerHTML = `<div class="card error-box">Erreur d'affichage: ${err.message}</div>`;
       }
+    }
+
+    renderWaitingPhase() {
+      const isHost = this.displayName === this.currentGame.host;
+      return `
+        <div class="card">
+          <h2 style="margin-bottom:20px;text-align:center;">Salon d'attente</h2>
+          <div class="info-box">Invitez vos amis avec ce code avant de commencer !</div>
+          <div class="room-code">🔑 Code : ${escapeHtml(this.roomId)}</div>
+          ${this.renderPlayersList()}
+          ${isHost 
+            ? '<button id="startGame" style="margin-bottom: 15px;">▶️ Démarrer la partie</button>' 
+            : '<div class="info-box" style="text-align:center;">⏳ En attente de l&apos;hôte (' + escapeHtml(this.currentGame.host || 'Anonyme') + ') pour commencer...</div>'}
+          <button id="leaveGame" class="secondary">Quitter le salon</button>
+        </div>
+      `;
     }
 
     renderNameEntry() {
@@ -958,6 +985,7 @@
     }
 
     renderResults() {
+      const isHost = this.displayName === this.currentGame.host;
       if (!this.currentGame.results || this.currentGame.results.length === 0) {
         return `
           <div class="card scenario-card"><div class="scenario-label">Scénario</div><div class="scenario-text">${escapeHtml(this.currentGame.scenario)}</div></div>
@@ -965,7 +993,9 @@
             <div class="phase-indicator"><div class="phase-step">1. Propositions</div><div class="phase-step">2. Votes</div><div class="phase-step active">3. Résultats</div></div>
             ${this.renderPlayersList()}
             <div class="empty-state"><div class="empty-state-icon">🤷</div><p>Aucun vote n'a été enregistré...</p></div>
-            <button id="newGame" style="margin-bottom: 10px;">Manche suivante</button>
+            ${isHost 
+              ? '<button id="newGame" style="margin-bottom: 10px;">Retour au salon pour rejouer</button>'
+              : '<div class="info-box" style="text-align:center;">⏳ En attente de l&apos;hôte pour relancer une manche...</div>'}
             <button id="leaveGameResults" class="secondary">Quitter le salon</button>
           </div>
         `;
@@ -991,7 +1021,9 @@
               </div>
             `;
           }).join('')}
-          <button id="newGame" style="margin-bottom: 10px;">Manche suivante</button>
+          ${isHost 
+            ? '<button id="newGame" style="margin-bottom: 10px;">Retour au salon pour rejouer</button>'
+            : '<div class="info-box" style="text-align:center;">⏳ En attente de l&apos;hôte pour relancer une manche...</div>'}
           <button id="leaveGameResults" class="secondary">Quitter le salon</button>
         </div>
       `;
@@ -1070,6 +1102,12 @@
             this.submitProposal(counterpart);
           }
         };
+      }
+
+      // Démarrer la partie (Hôte)
+      const startGame = document.getElementById('startGame');
+      if (startGame) {
+        startGame.onclick = () => this.startGame();
       }
 
       // Nouvelle partie (après résultats)
