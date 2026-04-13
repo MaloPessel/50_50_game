@@ -659,6 +659,16 @@
       if (!this.roomId || !this.displayName) return;
       const userKey = this.displayName.replace(/[\.\$\#\[\]\/]/g, '_');
       try {
+        // Utilisation des données locales immédiates pour savoir si on est le dernier (important pour le beforeunload)
+        if (this.currentGame && this.currentGame.players) {
+          const playersKeys = Object.keys(this.currentGame.players);
+          if (playersKeys.length <= 1 && playersKeys.includes(userKey)) {
+            // Si on est le dernier joueur en lice, on détruit la totalité du salon
+            await this.deleteRoom();
+            return;
+          }
+        }
+        // Sinon, on retire juste notre propre présence
         await remove(ref(db, `rooms/${this.roomId}/players/${userKey}`));
       } catch (e) {
         console.error(e);
