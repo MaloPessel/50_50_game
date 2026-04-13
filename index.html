@@ -498,6 +498,7 @@
 
     async createRoom() {
       const id = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const userKey = this.displayName ? this.displayName.replace(/[\.\$\#\[\]\/]/g, '_') : 'host';
   
       const gameData = {
         scenario: getRandomScenario(),
@@ -505,7 +506,7 @@
         phaseStartTime: Date.now(),
         proposals: [],
         votes: {},
-        players: {},
+        players: { [userKey]: this.displayName },
         createdAt: Date.now()
       };
   
@@ -641,7 +642,11 @@
 
     async nextRound() {
       if (!this.roomId) return;
+      
       const currentPlayers = this.currentGame.players || {};
+      const userKey = this.displayName ? this.displayName.replace(/[\.\$\#\[\]\/]/g, '_') : 'host';
+      if (this.displayName) currentPlayers[userKey] = this.displayName;
+
       const gameData = {
         scenario: getRandomScenario(),
         phase: 'propose',
@@ -767,10 +772,20 @@
     }
 
     renderPlayersList() {
-      if (!this.currentGame || !this.currentGame.players) return '';
-      const players = Object.values(this.currentGame.players);
+      if (!this.currentGame) return '';
+      const playersMap = this.currentGame.players || {};
+      const players = Object.values(playersMap);
+      
+      // On affiche notre propre pseudo quoiqu'il arrive, même si le visuel lag avec Firebase
+      if (this.displayName && !players.includes(this.displayName)) {
+        players.push(this.displayName);
+      }
+      
       if (players.length === 0) return '';
-      return `<div class="player-count" style="margin-bottom: 20px;">👥 <strong>Joueurs présents (${players.length}) :</strong> ${escapeHtml(players.join(', '))}</div>`;
+      
+      return `<div class="player-count" style="margin-bottom: 20px; background: #e0e7ff; color: #1e40af; border: 1px solid #bfdbfe; text-align: center;">
+          👥 <strong>Joueurs présents (${players.length}) :</strong> ${escapeHtml(players.join(' - '))}
+        </div>`;
     }
 
     // ---------- RENDU ----------
