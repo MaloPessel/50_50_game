@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>50/50 - Le Jeu du Dilemme Parfait (Multijoueur sécurisé)</title>
   <style>
+    /* ===== TON STYLE EXISTANT (garde-le exactement comme avant) ===== */
     * {
       margin: 0;
       padding: 0;
@@ -343,13 +344,11 @@
 </div>
 
 <script type="module">
-  // ==================== IMPORTS FIREBASE ====================
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
   import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-analytics.js";
-  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
-  // Configuration Firebase (publique, c'est normal)
   const firebaseConfig = {
     apiKey: "AIzaSyBPbFNDsn5CVF-4krrYtw1z2IzwkkILLoE",
     authDomain: "game-ef3a0.firebaseapp.com",
@@ -366,25 +365,21 @@
   const db = getDatabase(app);
   const auth = getAuth(app);
 
-  // ==================== SÉCURITÉ & VALIDATION ====================
+  // ========== SECURITE ==========
   function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
-
   function sanitizeUsername(name) {
     if (typeof name !== 'string') return '';
     return name.trim().slice(0, 20).replace(/\s+/g, ' ');
   }
-
   function sanitizeText(text) {
     if (typeof text !== 'string') return '';
     return text.trim().slice(0, 500).replace(/\s+/g, ' ');
   }
-
-  // Validation stricte des données du jeu
   function validateGameData(game) {
     if (!game || typeof game !== 'object') return false;
     if (typeof game.scenario !== 'string' || game.scenario.length > 500) return false;
@@ -394,50 +389,43 @@
     return true;
   }
 
-  // Durée des phases (millisecondes)
   const PHASE_DURATION = { propose: 120000, vote: 180000 };
 
-  // ==================== CLASSE PRINCIPALE ====================
   class Game {
     constructor() {
-      this.userId = null;           // UID Firebase (unique, anonyme)
-      this.displayName = null;      // Pseudo choisi par l'utilisateur
+      this.userId = null;
+      this.displayName = null;
       this.currentGame = null;
       this.roomId = null;
       this.unsubscribe = null;
       this.errorMessage = null;
       this.phaseInterval = null;
       this.isTyping = false;
-      
       this.initAuth();
     }
 
-    // ---------- AUTHENTIFICATION FIREBASE (anonyme) ----------
     async initAuth() {
       try {
-        // Connexion anonyme persistante
         const userCred = await signInAnonymously(auth);
         this.userId = userCred.user.uid;
-        console.log("Authentifié avec UID:", this.userId);
+        console.log("✅ Authentifié avec UID:", this.userId);
         
-        // Charger le pseudo depuis localStorage
         const savedName = localStorage.getItem('game50_playerName');
         if (savedName) {
           this.displayName = sanitizeUsername(savedName);
+          console.log("📛 Pseudo chargé:", this.displayName);
         }
         
-        // Vérifier si un salon était en cours
         const savedRoom = localStorage.getItem('game50_currentRoom');
         if (savedRoom && this.displayName) {
+          console.log("🏠 Salon en cours détecté, tentative de reconnexion...");
           await this.joinRoomById(savedRoom);
         } else {
           this.render();
         }
         
-        // Lancer l'intervalle de gestion des phases
         this.phaseInterval = setInterval(() => this.checkPhaseTimeout(), 1000);
         
-        // Détection de la saisie pour éviter les re-renders intempestifs
         document.addEventListener('focusin', (e) => {
           if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') this.isTyping = true;
         });
@@ -448,13 +436,12 @@
           }
         });
       } catch (err) {
-        console.error("Erreur d'authentification:", err);
+        console.error("❌ Erreur d'authentification:", err);
         this.errorMessage = "Impossible de se connecter au serveur. Vérifie ta connexion internet.";
         this.render();
       }
     }
 
-    // Sauvegarde du pseudo choisi par l'utilisateur
     async savePlayerName(name) {
       const sanitized = sanitizeUsername(name);
       if (!sanitized) {
@@ -465,11 +452,11 @@
       this.displayName = sanitized;
       localStorage.setItem('game50_playerName', sanitized);
       this.errorMessage = null;
-      this.render();
+      console.log("✅ Pseudo enregistré:", this.displayName);
+      this.render(); // ← passe du formulaire au lobby
       return true;
     }
 
-    // ---------- GESTION DES SALONS ----------
     async createRoom(scenario) {
       const sanitizedScenario = sanitizeText(scenario);
       if (!sanitizedScenario) {
@@ -477,10 +464,8 @@
         this.render();
         return;
       }
-      // Générer un code aléatoire à 6 caractères
       const id = Math.random().toString(36).substring(2, 8).toUpperCase();
       this.roomId = id;
-      
       const gameData = {
         scenario: sanitizedScenario,
         phase: 'propose',
@@ -489,7 +474,6 @@
         votes: {},
         createdAt: Date.now()
       };
-      
       try {
         await set(ref(db, 'rooms/' + id), gameData);
         localStorage.setItem('game50_currentRoom', id);
@@ -497,7 +481,7 @@
         this.setupRoomListener();
         this.errorMessage = null;
         this.render();
-        alert(`✅ Salon créé !\nCode : ${id}\nPartage ce code avec tes amis pour qu'ils rejoignent.`);
+        alert(`✅ Salon créé !\nCode : ${id}\nPartage ce code avec tes amis.`);
       } catch (err) {
         console.error(err);
         this.errorMessage = 'Erreur lors de la création du salon';
@@ -528,7 +512,6 @@
       }
     }
 
-    // Écoute en temps réel des changements du salon
     setupRoomListener() {
       if (this.unsubscribe) this.unsubscribe();
       const roomRef = ref(db, 'rooms/' + this.roomId);
@@ -542,7 +525,6 @@
             console.warn("Données de jeu invalides");
           }
         } else {
-          // Salon supprimé
           this.resetGame();
           this.errorMessage = 'La partie a été terminée par le créateur.';
           this.render();
@@ -581,13 +563,11 @@
       this.render();
     }
 
-    // ---------- GESTION DES PHASES ----------
     checkPhaseTimeout() {
       if (!this.currentGame) return;
       const now = Date.now();
       const elapsed = now - this.currentGame.phaseStartTime;
       let phaseChanged = false;
-      
       if (this.currentGame.phase === 'propose' && elapsed > PHASE_DURATION.propose) {
         this.currentGame.phase = 'vote';
         this.currentGame.phaseStartTime = now;
@@ -597,7 +577,6 @@
         this.calculateResults();
         phaseChanged = true;
       }
-      
       if (phaseChanged) {
         this.saveGame();
         if (!this.isTyping) this.render();
@@ -614,7 +593,6 @@
       return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
 
-    // ---------- PROPOSITIONS ET VOTES (liés à l'UID Firebase) ----------
     async submitProposal(counterpart) {
       if (!this.userId || !this.displayName || !this.currentGame) return;
       if (this.currentGame.phase !== 'propose') {
@@ -628,8 +606,6 @@
         this.render();
         return;
       }
-      
-      // Vérifier si l'utilisateur a déjà proposé (via son UID)
       const existingIndex = this.currentGame.proposals.findIndex(p => p.userId === this.userId);
       const proposal = {
         userId: this.userId,
@@ -637,13 +613,11 @@
         text: sanitized,
         id: existingIndex >= 0 ? this.currentGame.proposals[existingIndex].id : Date.now()
       };
-      
       if (existingIndex >= 0) {
         this.currentGame.proposals[existingIndex] = proposal;
       } else {
         this.currentGame.proposals.push(proposal);
       }
-      
       this.errorMessage = null;
       await this.saveGame();
       if (!this.isTyping) this.render();
@@ -657,18 +631,14 @@
         return;
       }
       if (vote !== 'yes' && vote !== 'no') return;
-      
       if (!this.currentGame.votes[proposalId]) {
         this.currentGame.votes[proposalId] = { yes: [], no: [] };
       }
       const votesObj = this.currentGame.votes[proposalId];
-      // Retirer l'utilisateur des deux listes
       votesObj.yes = votesObj.yes.filter(uid => uid !== this.userId);
       votesObj.no = votesObj.no.filter(uid => uid !== this.userId);
-      // Ajouter le vote
       if (vote === 'yes') votesObj.yes.push(this.userId);
       else votesObj.no.push(this.userId);
-      
       await this.saveGame();
       if (!this.isTyping) this.render();
     }
@@ -691,12 +661,11 @@
       this.currentGame.results.sort((a, b) => a.deviation - b.deviation);
     }
 
-    // ---------- AFFICHAGE (RENDER) ----------
+    // ---------- RENDU ----------
     render() {
       try {
         const appDiv = document.getElementById('app');
         if (!this.userId) {
-          // En attente de l'authentification Firebase
           appDiv.innerHTML = `<div class="card"><div class="info-box">🔐 Connexion au serveur en cours...</div></div>`;
           return;
         }
@@ -714,7 +683,7 @@
         }
         this.attachEventListeners();
       } catch (err) {
-        console.error("Render error:", err);
+        console.error("ERREUR RENDER:", err);
         document.getElementById('app').innerHTML = `<div class="card error-box">Erreur d'affichage: ${err.message}</div>`;
       }
     }
@@ -735,9 +704,15 @@
     }
 
     renderLobby() {
+      // Vérification supplémentaire : si l'utilisateur n'a pas de pseudo, on ne doit pas arriver ici.
+      if (!this.displayName) {
+        console.warn("renderLobby appelé alors que displayName est null");
+        return this.renderNameEntry();
+      }
       return `
         <div class="card">
           <h2 style="margin-bottom:20px;">Menu principal</h2>
+          <div class="info-box">👋 Bonjour ${escapeHtml(this.displayName)} !</div>
           ${this.errorMessage ? `<div class="error-box">${escapeHtml(this.errorMessage)}</div>` : ''}
           <div style="margin-bottom:30px;">
             <h3 style="margin-bottom:15px;color:#667eea;">🎲 Créer une partie</h3>
@@ -862,40 +837,37 @@
       `;
     }
 
-    // ---------- ATTACHEMENT DES ÉVÉNEMENTS ----------
     attachEventListeners() {
       const submitName = document.getElementById('submitName');
-      if (submitName) submitName.onclick = () => {
-        const nameInput = document.getElementById('playerName');
-        if (nameInput) this.savePlayerName(nameInput.value);
-      };
-      
+      if (submitName) {
+        submitName.onclick = async () => {
+          const nameInput = document.getElementById('playerName');
+          if (nameInput) {
+            await this.savePlayerName(nameInput.value);
+          }
+        };
+      }
       const createGame = document.getElementById('createGame');
       if (createGame) createGame.onclick = () => {
         const scenario = document.getElementById('scenario').value;
         this.createRoom(scenario);
       };
-      
       const joinGame = document.getElementById('joinGame');
       if (joinGame) joinGame.onclick = () => {
         const code = document.getElementById('roomCode').value;
         this.joinRoomById(code);
       };
-      
       const submitProposal = document.getElementById('submitProposal');
       if (submitProposal) submitProposal.onclick = () => {
         const counterpart = document.getElementById('counterpart').value;
         this.submitProposal(counterpart);
       };
-      
       const newGame = document.getElementById('newGame');
       if (newGame) newGame.onclick = () => this.resetGame();
-      
       const leaveGame = document.getElementById('leaveGame');
       if (leaveGame) leaveGame.onclick = () => {
         if (confirm('Quitter la partie ? Tu pourras la rejoindre plus tard avec le code.')) this.resetGame();
       };
-      
       document.querySelectorAll('.vote-btn').forEach(btn => {
         btn.onclick = () => {
           const proposalId = parseInt(btn.getAttribute('data-proposal-id'));
@@ -906,7 +878,6 @@
     }
   }
 
-  // Lancer l'application
   window.game = new Game();
 </script>
 </body>
