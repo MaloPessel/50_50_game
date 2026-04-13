@@ -588,10 +588,19 @@
 
       startGameLoop() {
         setInterval(async () => {
+          const active = document.activeElement;
+          const isTyping = active && (
+            active.tagName === 'INPUT' || active.tagName === 'TEXTAREA'
+          );
+      
           await this.loadGame();
-          this.render();
+      
+          // ❌ Ne re-render PAS si l'utilisateur écrit
+          if (!isTyping) {
+            this.render();
+          }
         }, 2000);
-      }
+
 
       async createGame(scenario) {
         const sanitized = sanitizeText(scenario);
