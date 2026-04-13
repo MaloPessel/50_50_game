@@ -841,44 +841,45 @@
       // ENTER pseudo
       const nameInput = document.getElementById('playerName');
       if (nameInput) {
-        nameInput.addEventListener('keydown', e => {
+        nameInput.onkeydown = (e) => {
           if (e.key === 'Enter') {
+            e.preventDefault();
             this.savePlayerName(nameInput.value);
           }
-        });
+        };
       }
 
       // ENTER scenario
       const scenarioInput = document.getElementById('scenario');
       if (scenarioInput) {
-        scenarioInput.addEventListener('keydown', e => {
+        scenarioInput.onkeydown = (e) => {
           if (e.key === 'Enter' && e.ctrlKey) {
-            const scenario = scenarioInput.value;
-            this.createRoom(scenario);
+            e.preventDefault();
+            this.createRoom(scenarioInput.value);
           }
-        });
+        };
       }
 
       // ENTER room code
       const roomCodeInput = document.getElementById('roomCode');
       if (roomCodeInput) {
-        roomCodeInput.addEventListener('keydown', e => {
+        roomCodeInput.onkeydown = (e) => {
           if (e.key === 'Enter') {
-            const code = roomCodeInput.value;
-            this.joinRoomById(code);
+            e.preventDefault();
+            this.joinRoomById(roomCodeInput.value);
           }
-        });
+        };
       }
 
       // ENTER counterpart
       const counterpartInput = document.getElementById('counterpart');
       if (counterpartInput) {
-        counterpartInput.addEventListener('keydown', e => {
+        counterpartInput.onkeydown = (e) => {
           if (e.key === 'Enter' && e.ctrlKey) {
-            const counterpart = counterpartInput.value;
-            this.submitProposal(counterpart);
+            e.preventDefault();
+            this.submitProposal(counterpartInput.value);
           }
-        });
+        };
       }
 
       // Bouton "Commencer"
@@ -886,7 +887,7 @@
       if (submitName) {
         submitName.onclick = async () => {
           const nameInput = document.getElementById('playerName');
-          if (nameInput) {
+          if (nameInput && nameInput.value.trim()) {
             await this.savePlayerName(nameInput.value);
           }
         };
@@ -897,7 +898,9 @@
       if (createGame) {
         createGame.onclick = () => {
           const scenario = document.getElementById('scenario').value;
-          this.createRoom(scenario);
+          if (scenario.trim()) {
+            this.createRoom(scenario);
+          }
         };
       }
 
@@ -906,7 +909,9 @@
       if (joinGame) {
         joinGame.onclick = () => {
           const code = document.getElementById('roomCode').value;
-          this.joinRoomById(code);
+          if (code.trim()) {
+            this.joinRoomById(code);
+          }
         };
       }
 
@@ -915,7 +920,9 @@
       if (submitProposal) {
         submitProposal.onclick = () => {
           const counterpart = document.getElementById('counterpart').value;
-          this.submitProposal(counterpart);
+          if (counterpart.trim()) {
+            this.submitProposal(counterpart);
+          }
         };
       }
 
@@ -936,7 +943,7 @@
       // Votes
       document.querySelectorAll('.vote-btn').forEach(btn => {
         btn.onclick = () => {
-          const proposalId = btn.dataset.proposalId; // Garder comme string
+          const proposalId = btn.dataset.proposalId;
           const vote = btn.dataset.vote;
           this.submitVote(proposalId, vote);
         };
