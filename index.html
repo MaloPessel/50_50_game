@@ -653,8 +653,8 @@
   
       const votes = this.currentGame.votes[proposalId];
   
-      votes.yes = votes.yes.filter(n => n !== this.displayName);
-      votes.no = votes.no.filter(n => n !== this.displayName);
+      votes.yes = (votes.yes || []).filter(n => n !== this.displayName);
+      votes.no = (votes.no || []).filter(n => n !== this.displayName);
   
       if (vote === 'yes') votes.yes.push(this.displayName);
       if (vote === 'no') votes.no.push(this.displayName);
@@ -667,15 +667,17 @@
       if (!this.currentGame) return;
   
       this.currentGame.results = this.currentGame.proposals.map(p => {
-        const votes = this.currentGame.votes[p.id] || { yes: [], no: [] };
+        const votes = this.currentGame.votes[p.id] || {};
+        const yesVotes = votes.yes || [];
+        const noVotes = votes.no || [];
   
-        const total = votes.yes.length + votes.no.length;
-        const percent = total ? (votes.yes.length / total) * 100 : 0;
+        const total = yesVotes.length + noVotes.length;
+        const percent = total ? (yesVotes.length / total) * 100 : 0;
   
         return {
           ...p,
-          yesVotes: votes.yes.length,
-          noVotes: votes.no.length,
+          yesVotes: yesVotes.length,
+          noVotes: noVotes.length,
           yesPercent: percent,
           deviation: Math.abs(50 - percent)
         };
@@ -797,8 +799,10 @@
           ${this.currentGame.proposals.length === 0 ? `
             <div class="empty-state"><div class="empty-state-icon">🤷</div><p>Aucune proposition n'a été faite...</p></div>
           ` : this.currentGame.proposals.map(proposal => {
-            const votes = this.currentGame.votes[proposal.id] || { yes: [], no: [] };
-            const myVote = votes.yes.includes(this.displayName) ? 'yes' : votes.no.includes(this.displayName) ? 'no' : null;
+            const votes = this.currentGame.votes[proposal.id] || {};
+            const yesVotes = votes.yes || [];
+            const noVotes = votes.no || [];
+            const myVote = yesVotes.includes(this.displayName) ? 'yes' : noVotes.includes(this.displayName) ? 'no' : null;
             return `
               <div class="proposal-item">
                 <div class="proposal-author">${escapeHtml(proposal.author)}</div>
