@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>50/50 - Le Jeu du Dilemme Parfait</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 48px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header .subtitle {
+      font-size: 18px;
+      opacity: 0.95;
+      font-weight: 500;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
+    }
+
+    .scenario-card {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      text-align: center;
+      padding: 40px 30px;
+    }
+
+    .scenario-text {
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 15px;
+      word-wrap: break-word;
+    }
+
+    .scenario-label {
+      font-size: 14px;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+
+    .phase-indicator {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 25px;
+      gap: 10px;
+    }
+
+    .phase-step {
+      flex: 1;
+      text-align: center;
+      padding: 12px;
+      background: #f5f5f5;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #999;
+      transition: all 0.3s;
+    }
+
+    .phase-step.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      transform: scale(1.05);
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #555;
+      font-size: 14px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 16px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button.secondary {
+      background: #6c757d;
+      margin-top: 10px;
+    }
+
+    button.secondary:hover {
+      box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+    }
+
+    .proposal-item {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 15px;
+      border: 2px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .proposal-item:hover {
+      border-color: #667eea;
+      transform: translateX(5px);
+    }
+
+    .proposal-author {
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 8px;
+      font-size: 14px;
+      word-break: break-word;
+    }
+
+    .proposal-text {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 15px;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+
+    .vote-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .vote-btn {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid;
+      background: white;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 16px;
+    }
+
+    .vote-btn.yes {
+      border-color: #10b981;
+      color: #10b981;
+    }
+
+    .vote-btn.yes:hover, .vote-btn.yes.selected {
+      background: #10b981;
+      color: white;
+    }
+
+    .vote-btn.no {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    .vote-btn.no:hover, .vote-btn.no.selected {
+      background: #ef4444;
+      color: white;
+    }
+
+    .vote-btn.selected {
+      transform: scale(1.05);
+    }
+
+    .result-item {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 15px;
+      border: 3px solid #e0e0e0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .result-item.winner {
+      border-color: #fbbf24;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    }
+
+    .winner-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #fbbf24;
+      color: #92400e;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .result-author {
+      font-weight: 700;
+      color: #667eea;
+      font-size: 14px;
+      word-break: break-word;
+    }
+
+    .result-score {
+      font-size: 24px;
+      font-weight: 800;
+      color: #333;
+    }
+
+    .result-score.perfect {
+      color: #10b981;
+    }
+
+    .result-text {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 15px;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+
+    .vote-bar-container {
+      position: relative;
+      height: 30px;
+      background: #e0e0e0;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .vote-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+      transition: width 0.5s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .vote-bar-no {
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+      transition: width 0.5s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .vote-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    .countdown {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
+    .player-count {
+      text-align: center;
+      margin-top: 15px;
+      padding: 12px;
+      background: #f0fdf4;
+      border-radius: 10px;
+      color: #166534;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .waiting-message {
+      text-align: center;
+      padding: 30px;
+      color: #666;
+    }
+
+    .waiting-icon {
+      font-size: 36px;
+      margin-bottom: 15px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .info-box {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #1e40af;
+    }
+
+    .error-box {
+      background: #fee;
+      border-left: 4px solid #ef4444;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #991b1b;
+    }
+
+    @media (max-width: 640px) {
+      .header h1 {
+        font-size: 36px;
+      }
+      
+      .scenario-text {
+        font-size: 20px;
+      }
+      
+      .card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>50/50</h1>
+      <div class="subtitle">Le jeu du dilemme parfait</div>
+    </div>
+
+    <div id="app"></div>
+  </div>
+
+  <script>
+    // ========== SECURITY UTILITIES ==========
+    
+    /**
+     * Échappe les caractères HTML pour prévenir les attaques XSS
+     */
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    /**
+     * Valide et nettoie le pseudo
+     */
+    function sanitizeUsername(name) {
+      if (typeof name !== 'string') return '';
+      
+      // Limite à 20 caractères, retire les espaces multiples
+      return name
+        .trim()
+        .slice(0, 20)
+        .replace(/\s+/g, ' ');
+    }
+
+    /**
+     * Valide et nettoie le texte (scénario ou proposition)
+     */
+    function sanitizeText(text) {
+      if (typeof text !== 'string') return '';
+      
+      // Limite à 500 caractères, retire les espaces multiples
+      return text
+        .trim()
+        .slice(0, 500)
+        .replace(/\s+/g, ' ');
+    }
+
+    /**
+     * Valide que les données du jeu sont correctes
+     */
+    function validateGameData(game) {
+      if (!game || typeof game !== 'object') return false;
+      if (typeof game.scenario !== 'string') return false;
+      if (!['propose', 'vote', 'results'].includes(game.phase)) return false;
+      if (!Array.isArray(game.proposals)) return false;
+      if (typeof game.votes !== 'object') return false;
+      return true;
+    }
+
+    // ========== GAME CLASS ==========
+
+    const STORAGE_PREFIX = 'game50_';
+    const PHASE_DURATION = {
+      propose: 120000, // 2 minutes
+      vote: 180000     // 3 minutes
+    };
+
+    class Game {
+      constructor() {
+        this.currentGame = null;
+        this.playerName = null;
+        this.errorMessage = null;
+        this.render();
+        this.startGameLoop();
+      }
+
+      async init() {
+        await this.loadGame();
+        this.render();
+      }
+
+      async loadGame() {
+        try {
+          const result = await window.storage.get('current_game', true);
+          if (result && result.value) {
+            const parsed = JSON.parse(result.value);
+            
+            // Validation de sécurité
+            if (validateGameData(parsed)) {
+              this.currentGame = parsed;
+              this.checkPhaseTimeout();
+            } else {
+              console.error('Invalid game data');
+              this.currentGame = null;
+            }
+          }
+        } catch (e) {
+          console.log('No current game');
+        }
+
+        try {
+          const nameResult = await window.storage.get('player_name', false);
+          if (nameResult && nameResult.value) {
+            this.playerName = sanitizeUsername(nameResult.value);
+          }
+        } catch (e) {
+          console.log('No player name');
+        }
+      }
+
+      async saveGame() {
+        if (this.currentGame) {
+          try {
+            await window.storage.set('current_game', JSON.stringify(this.currentGame), true);
+          } catch (e) {
+            this.errorMessage = 'Erreur de sauvegarde';
+            console.error('Save error:', e);
+          }
+        }
+      }
+
+      async savePlayerName(name) {
+        const sanitized = sanitizeUsername(name);
+        if (!sanitized) {
+          this.errorMessage = 'Pseudo invalide';
+          return false;
+        }
+        
+        this.playerName = sanitized;
+        try {
+          await window.storage.set('player_name', sanitized, false);
+          return true;
+        } catch (e) {
+          this.errorMessage = 'Erreur de sauvegarde';
+          return false;
+        }
+      }
+
+      checkPhaseTimeout() {
+        if (!this.currentGame) return;
+
+        const now = Date.now();
+        const elapsed = now - this.currentGame.phaseStartTime;
+
+        if (this.currentGame.phase === 'propose' && elapsed > PHASE_DURATION.propose) {
+          this.currentGame.phase = 'vote';
+          this.currentGame.phaseStartTime = now;
+          this.saveGame();
+        } else if (this.currentGame.phase === 'vote' && elapsed > PHASE_DURATION.vote) {
+          this.currentGame.phase = 'results';
+          this.calculateResults();
+          this.saveGame();
+        }
+      }
+
+      startGameLoop() {
+        setInterval(async () => {
+          await this.loadGame();
+          this.render();
+        }, 2000);
+      }
+
+      async createGame(scenario) {
+        const sanitized = sanitizeText(scenario);
+        if (!sanitized) {
+          this.errorMessage = 'Scénario invalide';
+          this.render();
+          return;
+        }
+
+        this.currentGame = {
+          scenario: sanitized,
+          phase: 'propose',
+          phaseStartTime: Date.now(),
+          proposals: [],
+          votes: {}
+        };
+        this.errorMessage = null;
+        await this.saveGame();
+        this.render();
+      }
+
+      async submitProposal(counterpart) {
+        if (!this.playerName || !this.currentGame) return;
+
+        const sanitized = sanitizeText(counterpart);
+        if (!sanitized) {
+          this.errorMessage = 'Proposition invalide';
+          this.render();
+          return;
+        }
+
+        const existingIndex = this.currentGame.proposals.findIndex(
+          p => p.author === this.playerName
+        );
+
+        const proposal = {
+          author: this.playerName,
+          text: sanitized,
+          id: existingIndex >= 0 ? this.currentGame.proposals[existingIndex].id : Date.now()
+        };
+
+        if (existingIndex >= 0) {
+          this.currentGame.proposals[existingIndex] = proposal;
+        } else {
+          this.currentGame.proposals.push(proposal);
+        }
+
+        this.errorMessage = null;
+        await this.saveGame();
+        this.render();
+      }
+
+      async submitVote(proposalId, vote) {
+        if (!this.playerName || !this.currentGame) return;
+        if (vote !== 'yes' && vote !== 'no') return;
+
+        if (!this.currentGame.votes[proposalId]) {
+          this.currentGame.votes[proposalId] = { yes: [], no: [] };
+        }
+
+        const votes = this.currentGame.votes[proposalId];
+        votes.yes = votes.yes.filter(v => v !== this.playerName);
+        votes.no = votes.no.filter(v => v !== this.playerName);
+
+        if (vote === 'yes') {
+          votes.yes.push(this.playerName);
+        } else {
+          votes.no.push(this.playerName);
+        }
+
+        await this.saveGame();
+        this.render();
+      }
+
+      calculateResults() {
+        if (!this.currentGame) return;
+
+        this.currentGame.results = this.currentGame.proposals.map(proposal => {
+          const votes = this.currentGame.votes[proposal.id] || { yes: [], no: [] };
+          const totalVotes = votes.yes.length + votes.no.length;
+          const yesPercent = totalVotes > 0 ? (votes.yes.length / totalVotes) * 100 : 0;
+          const deviation = Math.abs(50 - yesPercent);
+
+          return {
+            ...proposal,
+            yesVotes: votes.yes.length,
+            noVotes: votes.no.length,
+            yesPercent: yesPercent,
+            deviation: deviation
+          };
+        });
+
+        this.currentGame.results.sort((a, b) => a.deviation - b.deviation);
+      }
+
+      async resetGame() {
+        this.currentGame = null;
+        this.errorMessage = null;
+        try {
+          await window.storage.delete('current_game', true);
+        } catch (e) {
+          console.log('No game to delete');
+        }
+        this.render();
+      }
+
+      getTimeRemaining() {
+        if (!this.currentGame) return null;
+
+        const now = Date.now();
+        const elapsed = now - this.currentGame.phaseStartTime;
+        const duration = this.currentGame.phase === 'propose' 
+          ? PHASE_DURATION.propose 
+          : PHASE_DURATION.vote;
+        const remaining = Math.max(0, duration - elapsed);
+
+        const minutes = Math.floor(remaining / 60000);
+        const seconds = Math.floor((remaining % 60000) / 1000);
+
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
+
+      // ========== RENDER METHODS - TOUS SÉCURISÉS AVEC escapeHtml() ==========
+
+      render() {
+        const app = document.getElementById('app');
+
+        if (!this.playerName) {
+          app.innerHTML = this.renderNameEntry();
+        } else if (!this.currentGame) {
+          app.innerHTML = this.renderGameCreation();
+        } else {
+          switch (this.currentGame.phase) {
+            case 'propose':
+              app.innerHTML = this.renderProposePhase();
+              break;
+            case 'vote':
+              app.innerHTML = this.renderVotePhase();
+              break;
+            case 'results':
+              app.innerHTML = this.renderResults();
+              break;
+          }
+        }
+
+        this.attachEventListeners();
+      }
+
+      renderNameEntry() {
+        return `
+          <div class="card">
+            <h2 style="margin-bottom: 20px; font-size: 24px; color: #333;">Bienvenue !</h2>
+            ${this.errorMessage ? `<div class="error-box">${escapeHtml(this.errorMessage)}</div>` : ''}
+            <div class="info-box">
+              Entre ton pseudo pour commencer à jouer
+            </div>
+            <div class="input-group">
+              <label>Ton pseudo</label>
+              <input type="text" id="playerName" placeholder="Choisis un pseudo..." maxlength="20">
+            </div>
+            <button id="submitName">Commencer</button>
+          </div>
+        `;
+      }
+
+      renderGameCreation() {
+        return `
+          <div class="card">
+            <h2 style="margin-bottom: 20px; font-size: 24px; color: #333;">Créer une nouvelle partie</h2>
+            ${this.errorMessage ? `<div class="error-box">${escapeHtml(this.errorMessage)}</div>` : ''}
+            <div class="info-box">
+              🎯 Le but : proposer une contrepartie qui divise l'opinion exactement en deux !
+            </div>
+            <div class="input-group">
+              <label>La phrase de départ</label>
+              <textarea id="scenario" placeholder="Ex: Vous gagnez 10 millions d'euros..." maxlength="500">Vous gagnez 10 millions d'euros</textarea>
+            </div>
+            <button id="createGame">Lancer la partie</button>
+          </div>
+        `;
+      }
+
+      renderProposePhase() {
+        const myProposal = this.currentGame.proposals.find(p => p.author === this.playerName);
+        const timeRemaining = this.getTimeRemaining();
+        
+        return `
+          <div class="card scenario-card">
+            <div class="scenario-label">Scénario</div>
+            <div class="scenario-text">${escapeHtml(this.currentGame.scenario)}</div>
+          </div>
+
+          <div class="card">
+            <div class="phase-indicator">
+              <div class="phase-step active">1. Propositions</div>
+              <div class="phase-step">2. Votes</div>
+              <div class="phase-step">3. Résultats</div>
+            </div>
+
+            ${this.errorMessage ? `<div class="error-box">${escapeHtml(this.errorMessage)}</div>` : ''}
+
+            <div class="info-box">
+              Propose une contrepartie qui divisera l'opinion en 50/50 !
+            </div>
+
+            <div class="input-group">
+              <label>Ta contrepartie</label>
+              <textarea id="counterpart" placeholder="Ex: Mais vous ne pourrez plus jamais manger de chocolat..." maxlength="500">${myProposal ? escapeHtml(myProposal.text) : ''}</textarea>
+            </div>
+
+            <button id="submitProposal">${myProposal ? 'Modifier ma proposition' : 'Envoyer ma proposition'}</button>
+
+            ${myProposal ? '<div class="player-count">✓ Proposition envoyée !</div>' : ''}
+            
+            <div class="countdown">⏱️ Temps restant : ${escapeHtml(timeRemaining)}</div>
+            
+            <div class="player-count">
+              ${this.currentGame.proposals.length} proposition${this.currentGame.proposals.length > 1 ? 's' : ''} reçue${this.currentGame.proposals.length > 1 ? 's' : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      renderVotePhase() {
+        const timeRemaining = this.getTimeRemaining();
+        
+        return `
+          <div class="card scenario-card">
+            <div class="scenario-label">Scénario</div>
+            <div class="scenario-text">${escapeHtml(this.currentGame.scenario)}</div>
+          </div>
+
+          <div class="card">
+            <div class="phase-indicator">
+              <div class="phase-step">1. Propositions</div>
+              <div class="phase-step active">2. Votes</div>
+              <div class="phase-step">3. Résultats</div>
+            </div>
+
+            <div class="info-box">
+              Vote pour chaque proposition : accepterais-tu ce deal ?
+            </div>
+
+            <div class="countdown">⏱️ Temps restant : ${escapeHtml(timeRemaining)}</div>
+
+            ${this.currentGame.proposals.length === 0 ? `
+              <div class="empty-state">
+                <div class="empty-state-icon">🤷</div>
+                <p>Aucune proposition n'a été faite...</p>
+              </div>
+            ` : this.currentGame.proposals.map(proposal => {
+              const votes = this.currentGame.votes[proposal.id] || { yes: [], no: [] };
+              const hasVoted = votes.yes.includes(this.playerName) || votes.no.includes(this.playerName);
+              const myVote = votes.yes.includes(this.playerName) ? 'yes' : votes.no.includes(this.playerName) ? 'no' : null;
+
+              return `
+                <div class="proposal-item">
+                  <div class="proposal-author">${escapeHtml(proposal.author)}</div>
+                  <div class="proposal-text">${escapeHtml(proposal.text)}</div>
+                  <div class="vote-buttons">
+                    <button class="vote-btn yes ${myVote === 'yes' ? 'selected' : ''}" 
+                            data-proposal-id="${proposal.id}" 
+                            data-vote="yes">
+                      ${myVote === 'yes' ? '✓ ' : ''}OUI
+                    </button>
+                    <button class="vote-btn no ${myVote === 'no' ? 'selected' : ''}" 
+                            data-proposal-id="${proposal.id}"
+                            data-vote="no">
+                      ${myVote === 'no' ? '✓ ' : ''}NON
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+
+      renderResults() {
+        if (!this.currentGame.results || this.currentGame.results.length === 0) {
+          return `
+            <div class="card scenario-card">
+              <div class="scenario-label">Scénario</div>
+              <div class="scenario-text">${escapeHtml(this.currentGame.scenario)}</div>
+            </div>
+
+            <div class="card">
+              <div class="phase-indicator">
+                <div class="phase-step">1. Propositions</div>
+                <div class="phase-step">2. Votes</div>
+                <div class="phase-step active">3. Résultats</div>
+              </div>
+
+              <div class="empty-state">
+                <div class="empty-state-icon">🤷</div>
+                <p>Aucun vote n'a été enregistré...</p>
+              </div>
+
+              <button id="newGame">Nouvelle partie</button>
+            </div>
+          `;
+        }
+
+        const winner = this.currentGame.results[0];
+        
+        return `
+          <div class="card scenario-card">
+            <div class="scenario-label">Scénario</div>
+            <div class="scenario-text">${escapeHtml(this.currentGame.scenario)}</div>
+          </div>
+
+          <div class="card">
+            <div class="phase-indicator">
+              <div class="phase-step">1. Propositions</div>
+              <div class="phase-step">2. Votes</div>
+              <div class="phase-step active">3. Résultats</div>
+            </div>
+
+            <h2 style="margin-bottom: 20px; font-size: 24px; color: #333; text-align: center;">
+              🏆 Résultats
+            </h2>
+
+            ${this.currentGame.results.map((result, index) => {
+              const isWinner = index === 0;
+              const totalVotes = result.yesVotes + result.noVotes;
+              const yesWidth = totalVotes > 0 ? (result.yesVotes / totalVotes) * 100 : 50;
+              const noWidth = totalVotes > 0 ? (result.noVotes / totalVotes) * 100 : 50;
+
+              return `
+                <div class="result-item ${isWinner ? 'winner' : ''}">
+                  ${isWinner ? '<div class="winner-badge">🏆 Gagnant</div>' : ''}
+                  
+                  <div class="result-header">
+                    <div class="result-author">${escapeHtml(result.author)}</div>
+                    <div class="result-score ${result.deviation < 1 ? 'perfect' : ''}">
+                      ${result.yesPercent.toFixed(1)}% OUI
+                    </div>
+                  </div>
+
+                  <div class="result-text">${escapeHtml(result.text)}</div>
+
+                  <div class="vote-bar-container">
+                    <div class="vote-bar" style="width: ${yesWidth}%;">
+                      ${result.yesVotes > 0 ? result.yesVotes + ' OUI' : ''}
+                    </div>
+                    <div class="vote-bar-no" style="width: ${noWidth}%;">
+                      ${result.noVotes > 0 ? result.noVotes + ' NON' : ''}
+                    </div>
+                  </div>
+
+                  <div class="vote-stats">
+                    <span>Écart au 50/50 : ${result.deviation.toFixed(1)}%</span>
+                    <span>${totalVotes} vote${totalVotes > 1 ? 's' : ''}</span>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+
+            <button id="newGame">Nouvelle partie</button>
+          </div>
+        `;
+      }
+
+      attachEventListeners() {
+        const submitName = document.getElementById('submitName');
+        if (submitName) {
+          submitName.onclick = async () => {
+            const name = document.getElementById('playerName').value;
+            const success = await this.savePlayerName(name);
+            if (success) {
+              this.render();
+            } else {
+              this.render();
+            }
+          };
+        }
+
+        const createGame = document.getElementById('createGame');
+        if (createGame) {
+          createGame.onclick = () => {
+            const scenario = document.getElementById('scenario').value;
+            this.createGame(scenario);
+          };
+        }
+
+        const submitProposal = document.getElementById('submitProposal');
+        if (submitProposal) {
+          submitProposal.onclick = () => {
+            const counterpart = document.getElementById('counterpart').value;
+            this.submitProposal(counterpart);
+          };
+        }
+
+        const newGame = document.getElementById('newGame');
+        if (newGame) {
+          newGame.onclick = () => {
+            this.resetGame();
+          };
+        }
+
+        // Vote buttons - utilise data-attributes au lieu de onclick inline
+        const voteButtons = document.querySelectorAll('.vote-btn');
+        voteButtons.forEach(button => {
+          button.onclick = () => {
+            const proposalId = parseInt(button.getAttribute('data-proposal-id'));
+            const vote = button.getAttribute('data-vote');
+            this.submitVote(proposalId, vote);
+          };
+        });
+      }
+    }
+
+    const game = new Game();
+    game.init();
+  </script>
+</body>
+</html>
