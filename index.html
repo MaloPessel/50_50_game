@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>50/50 - Le Jeu du Dilemme Parfait</title>
+  <title>50/50 - Le Jeu du Dilemme Parfait (Multijoueur)</title>
   <style>
     * {
       margin: 0;
@@ -415,6 +415,18 @@
       color: #991b1b;
     }
 
+    .room-code {
+      background: #f3f4f6;
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      margin-bottom: 20px;
+      font-family: monospace;
+      font-size: 18px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
     @media (max-width: 640px) {
       .header h1 {
         font-size: 36px;
@@ -434,53 +446,50 @@
   <div class="container">
     <div class="header">
       <h1>50/50</h1>
-      <div class="subtitle">Le jeu du dilemme parfait</div>
+      <div class="subtitle">Le jeu du dilemme parfait - Multijoueur</div>
     </div>
 
     <div id="app"></div>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import { getDatabase, ref, set, get, onValue, update, remove } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-analytics.js";
+  
+    const firebaseConfig = {
+      apiKey: "AIzaSyBPbFNDsn5CVF-4krrYtw1z2IzwkkILLoE",
+      authDomain: "game-ef3a0.firebaseapp.com",
+      databaseURL: "https://game-ef3a0-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "game-ef3a0",
+      storageBucket: "game-ef3a0.firebasestorage.app",
+      messagingSenderId: "1091069158786",
+      appId: "1:1091069158786:web:fd14c503c7726de7a51b9b",
+      measurementId: "G-ZMJ2TLB230"
+    };
+  
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getDatabase(app);
+
     // ========== SECURITY UTILITIES ==========
     
-    /**
-     * Échappe les caractères HTML pour prévenir les attaques XSS
-     */
     function escapeHtml(text) {
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
     }
 
-    /**
-     * Valide et nettoie le pseudo
-     */
     function sanitizeUsername(name) {
       if (typeof name !== 'string') return '';
-      
-      // Limite à 20 caractères, retire les espaces multiples
-      return name
-        .trim()
-        .slice(0, 20)
-        .replace(/\s+/g, ' ');
+      return name.trim().slice(0, 20).replace(/\s+/g, ' ');
     }
 
-    /**
-     * Valide et nettoie le texte (scénario ou proposition)
-     */
     function sanitizeText(text) {
       if (typeof text !== 'string') return '';
-      
-      // Limite à 500 caractères, retire les espaces multiples
-      return text
-        .trim()
-        .slice(0, 500)
-        .replace(/\s+/g, ' ');
+      return text.trim().slice(0, 500).replace(/\s+/g, ' ');
     }
 
-    /**
-     * Valide que les données du jeu sont correctes
-     */
     function validateGameData(game) {
       if (!game || typeof game !== 'object') return false;
       if (typeof game.scenario !== 'string') return false;
@@ -492,199 +501,293 @@
 
     // ========== GAME CLASS ==========
 
-    const STORAGE_PREFIX = 'game50_';
     const PHASE_DURATION = {
-      propose: 120000, // 2 minutes
-      vote: 180000     // 3 minutes
+      propose: 120000,
+      vote: 180000
     };
 
     class Game {
       constructor() {
         this.currentGame = null;
         this.playerName = null;
+        this.roomId = null;
+        this.unsubscribe = null;
         this.errorMessage = null;
-        this.render();
-        this.startGameLoop();
+        this.phaseInterval = null;
+        this.isTyping = false;
+        
+        this.init();
       }
 
       async init() {
-        await this.loadGame();
-        this.render();
-      }
-
-      async loadGame() {
-        try {
-          const result = await window.storage.get('current_game', true);
-          if (result && result.value) {
-            const parsed = JSON.parse(result.value);
-            
-            // Validation de sécurité
-            if (validateGameData(parsed)) {
-              this.currentGame = parsed;
-              this.checkPhaseTimeout();
-            } else {
-              console.error('Invalid game data');
-              this.currentGame = null;
-            }
-          }
-        } catch (e) {
-          console.log('No current game');
+        // Charger le pseudo depuis localStorage
+        const savedName = localStorage.getItem('game50_playerName');
+        if (savedName) {
+          this.playerName = sanitizeUsername(savedName);
         }
-
-        try {
-          const nameResult = await window.storage.get('player_name', false);
-          if (nameResult && nameResult.value) {
-            this.playerName = sanitizeUsername(nameResult.value);
-          }
-        } catch (e) {
-          console.log('No player name');
+        
+        // Vérifier si on a un salon en cours
+        const savedRoom = localStorage.getItem('game50_currentRoom');
+        if (savedRoom && this.playerName) {
+          await this.joinRoomById(savedRoom);
+        } else {
+          this.render();
         }
-      }
-
-      async saveGame() {
-        if (this.currentGame) {
-          try {
-            await window.storage.set('current_game', JSON.stringify(this.currentGame), true);
-          } catch (e) {
-            this.errorMessage = 'Erreur de sauvegarde';
-            console.error('Save error:', e);
+        
+        // Démarrer la vérification des phases
+        this.phaseInterval = setInterval(() => this.checkPhaseTimeout(), 1000);
+        
+        // Détecter si l'utilisateur tape pour éviter les re-renders
+        document.addEventListener('focusin', (e) => {
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            this.isTyping = true;
           }
-        }
+        });
+        document.addEventListener('focusout', (e) => {
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            this.isTyping = false;
+            this.render(); // Re-render après avoir fini d'écrire
+          }
+        });
       }
 
       async savePlayerName(name) {
         const sanitized = sanitizeUsername(name);
         if (!sanitized) {
           this.errorMessage = 'Pseudo invalide';
+          this.render();
           return false;
         }
         
         this.playerName = sanitized;
-        try {
-          await window.storage.set('player_name', sanitized, false);
-          return true;
-        } catch (e) {
-          this.errorMessage = 'Erreur de sauvegarde';
-          return false;
-        }
+        localStorage.setItem('game50_playerName', sanitized);
+        this.errorMessage = null;
+        this.render();
+        return true;
       }
 
-      checkPhaseTimeout() {
-        if (!this.currentGame) return;
-
-        const now = Date.now();
-        const elapsed = now - this.currentGame.phaseStartTime;
-
-        if (this.currentGame.phase === 'propose' && elapsed > PHASE_DURATION.propose) {
-          this.currentGame.phase = 'vote';
-          this.currentGame.phaseStartTime = now;
-          this.saveGame();
-        } else if (this.currentGame.phase === 'vote' && elapsed > PHASE_DURATION.vote) {
-          this.currentGame.phase = 'results';
-          this.calculateResults();
-          this.saveGame();
-        }
-      }
-
-      startGameLoop() {
-        setInterval(async () => {
-          const active = document.activeElement;
-          const isTyping = active && (
-            active.tagName === 'INPUT' || active.tagName === 'TEXTAREA'
-          );
-      
-          await this.loadGame();
-      
-          // ❌ Ne re-render PAS si l'utilisateur écrit
-          if (!isTyping) {
-            this.render();
-          }
-        }, 2000);
-      }
-
-
-      async createGame(scenario) {
-        const sanitized = sanitizeText(scenario);
-        if (!sanitized) {
+      async createRoom(scenario) {
+        const sanitizedScenario = sanitizeText(scenario);
+        if (!sanitizedScenario) {
           this.errorMessage = 'Scénario invalide';
           this.render();
           return;
         }
-
-        this.currentGame = {
-          scenario: sanitized,
+        
+        // Générer un ID de salon unique
+        const id = Math.random().toString(36).substring(2, 8).toUpperCase();
+        this.roomId = id;
+        
+        const gameData = {
+          scenario: sanitizedScenario,
           phase: 'propose',
           phaseStartTime: Date.now(),
           proposals: [],
-          votes: {}
+          votes: {},
+          createdAt: Date.now()
         };
+        
+        try {
+          await set(ref(db, 'rooms/' + id), gameData);
+          localStorage.setItem('game50_currentRoom', id);
+          this.currentGame = gameData;
+          this.setupRoomListener();
+          this.errorMessage = null;
+          this.render();
+          alert(`Salon créé ! Code : ${id}\nPartagez ce code avec vos amis pour qu'ils rejoignent.`);
+        } catch (error) {
+          console.error(error);
+          this.errorMessage = 'Erreur lors de la création du salon';
+          this.render();
+        }
+      }
+
+      async joinRoomById(roomId) {
+        if (!roomId) return;
+        
+        const cleanId = roomId.trim().toUpperCase();
+        try {
+          const snapshot = await get(ref(db, 'rooms/' + cleanId));
+          if (snapshot.exists()) {
+            this.roomId = cleanId;
+            this.currentGame = snapshot.val();
+            localStorage.setItem('game50_currentRoom', cleanId);
+            this.setupRoomListener();
+            this.errorMessage = null;
+            this.render();
+          } else {
+            this.errorMessage = 'Salon introuvable';
+            this.render();
+          }
+        } catch (error) {
+          console.error(error);
+          this.errorMessage = 'Erreur lors de la connexion au salon';
+          this.render();
+        }
+      }
+
+      setupRoomListener() {
+        if (this.unsubscribe) {
+          this.unsubscribe();
+        }
+        
+        const roomRef = ref(db, 'rooms/' + this.roomId);
+        this.unsubscribe = onValue(roomRef, (snapshot) => {
+          if (snapshot.exists()) {
+            const newData = snapshot.val();
+            if (validateGameData(newData)) {
+              this.currentGame = newData;
+              if (!this.isTyping) {
+                this.render();
+              }
+            }
+          } else {
+            // Le salon a été supprimé
+            this.resetGame();
+            this.errorMessage = 'La partie a été terminée par l\'hôte';
+            this.render();
+          }
+        });
+      }
+
+      async saveGame() {
+        if (!this.roomId || !this.currentGame) return;
+        
+        try {
+          await set(ref(db, 'rooms/' + this.roomId), this.currentGame);
+        } catch (error) {
+          console.error('Erreur sauvegarde:', error);
+        }
+      }
+
+      async deleteRoom() {
+        if (!this.roomId) return;
+        
+        try {
+          await remove(ref(db, 'rooms/' + this.roomId));
+        } catch (error) {
+          console.error('Erreur suppression:', error);
+        }
+      }
+
+      async resetGame() {
+        if (this.unsubscribe) {
+          this.unsubscribe();
+          this.unsubscribe = null;
+        }
+        
+        if (this.roomId) {
+          await this.deleteRoom();
+        }
+        
+        this.currentGame = null;
+        this.roomId = null;
         this.errorMessage = null;
-        await this.saveGame();
+        localStorage.removeItem('game50_currentRoom');
         this.render();
+      }
+
+      checkPhaseTimeout() {
+        if (!this.currentGame) return;
+        
+        const now = Date.now();
+        const elapsed = now - this.currentGame.phaseStartTime;
+        let phaseChanged = false;
+        
+        if (this.currentGame.phase === 'propose' && elapsed > PHASE_DURATION.propose) {
+          this.currentGame.phase = 'vote';
+          this.currentGame.phaseStartTime = now;
+          phaseChanged = true;
+        } else if (this.currentGame.phase === 'vote' && elapsed > PHASE_DURATION.vote) {
+          this.currentGame.phase = 'results';
+          this.calculateResults();
+          phaseChanged = true;
+        }
+        
+        if (phaseChanged) {
+          this.saveGame();
+          if (!this.isTyping) {
+            this.render();
+          }
+        }
       }
 
       async submitProposal(counterpart) {
         if (!this.playerName || !this.currentGame) return;
-
+        if (this.currentGame.phase !== 'propose') {
+          this.errorMessage = 'La phase de proposition est terminée';
+          this.render();
+          return;
+        }
+        
         const sanitized = sanitizeText(counterpart);
         if (!sanitized) {
           this.errorMessage = 'Proposition invalide';
           this.render();
           return;
         }
-
+        
         const existingIndex = this.currentGame.proposals.findIndex(
           p => p.author === this.playerName
         );
-
+        
         const proposal = {
           author: this.playerName,
           text: sanitized,
           id: existingIndex >= 0 ? this.currentGame.proposals[existingIndex].id : Date.now()
         };
-
+        
         if (existingIndex >= 0) {
           this.currentGame.proposals[existingIndex] = proposal;
         } else {
           this.currentGame.proposals.push(proposal);
         }
-
+        
         this.errorMessage = null;
         await this.saveGame();
-        this.render();
+        if (!this.isTyping) {
+          this.render();
+        }
       }
-
+      
       async submitVote(proposalId, vote) {
         if (!this.playerName || !this.currentGame) return;
+        if (this.currentGame.phase !== 'vote') {
+          this.errorMessage = 'La phase de vote est terminée';
+          this.render();
+          return;
+        }
         if (vote !== 'yes' && vote !== 'no') return;
-
+        
         if (!this.currentGame.votes[proposalId]) {
           this.currentGame.votes[proposalId] = { yes: [], no: [] };
         }
-
+        
         const votes = this.currentGame.votes[proposalId];
         votes.yes = votes.yes.filter(v => v !== this.playerName);
         votes.no = votes.no.filter(v => v !== this.playerName);
-
+        
         if (vote === 'yes') {
           votes.yes.push(this.playerName);
         } else {
           votes.no.push(this.playerName);
         }
-
+        
         await this.saveGame();
-        this.render();
+        if (!this.isTyping) {
+          this.render();
+        }
       }
-
+      
       calculateResults() {
         if (!this.currentGame) return;
-
+        
         this.currentGame.results = this.currentGame.proposals.map(proposal => {
           const votes = this.currentGame.votes[proposal.id] || { yes: [], no: [] };
           const totalVotes = votes.yes.length + votes.no.length;
           const yesPercent = totalVotes > 0 ? (votes.yes.length / totalVotes) * 100 : 0;
           const deviation = Math.abs(50 - yesPercent);
-
+          
           return {
             ...proposal,
             yesVotes: votes.yes.length,
@@ -693,46 +796,35 @@
             deviation: deviation
           };
         });
-
+        
         this.currentGame.results.sort((a, b) => a.deviation - b.deviation);
       }
-
-      async resetGame() {
-        this.currentGame = null;
-        this.errorMessage = null;
-        try {
-          await window.storage.delete('current_game', true);
-        } catch (e) {
-          console.log('No game to delete');
-        }
-        this.render();
-      }
-
+      
       getTimeRemaining() {
         if (!this.currentGame) return null;
-
+        
         const now = Date.now();
         const elapsed = now - this.currentGame.phaseStartTime;
         const duration = this.currentGame.phase === 'propose' 
           ? PHASE_DURATION.propose 
           : PHASE_DURATION.vote;
         const remaining = Math.max(0, duration - elapsed);
-
+        
         const minutes = Math.floor(remaining / 60000);
         const seconds = Math.floor((remaining % 60000) / 1000);
-
+        
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
       }
-
-      // ========== RENDER METHODS - TOUS SÉCURISÉS AVEC escapeHtml() ==========
-
+      
+      // ========== RENDER METHODS ==========
+      
       render() {
         const app = document.getElementById('app');
-
+        
         if (!this.playerName) {
           app.innerHTML = this.renderNameEntry();
         } else if (!this.currentGame) {
-          app.innerHTML = this.renderGameCreation();
+          app.innerHTML = this.renderLobby();
         } else {
           switch (this.currentGame.phase) {
             case 'propose':
@@ -746,10 +838,10 @@
               break;
           }
         }
-
+        
         this.attachEventListeners();
       }
-
+      
       renderNameEntry() {
         return `
           <div class="card">
@@ -766,24 +858,34 @@
           </div>
         `;
       }
-
-      renderGameCreation() {
+      
+      renderLobby() {
         return `
           <div class="card">
-            <h2 style="margin-bottom: 20px; font-size: 24px; color: #333;">Créer une nouvelle partie</h2>
+            <h2 style="margin-bottom: 20px; font-size: 24px; color: #333;">Menu principal</h2>
             ${this.errorMessage ? `<div class="error-box">${escapeHtml(this.errorMessage)}</div>` : ''}
-            <div class="info-box">
-              🎯 Le but : proposer une contrepartie qui divise l'opinion exactement en deux !
+            
+            <div style="margin-bottom: 30px;">
+              <h3 style="margin-bottom: 15px; color: #667eea;">🎲 Créer une partie</h3>
+              <div class="input-group">
+                <label>Scénario de départ</label>
+                <textarea id="scenario" placeholder="Ex: Vous gagnez 10 millions d'euros..." maxlength="500">Vous gagnez 10 millions d'euros</textarea>
+              </div>
+              <button id="createGame">Créer un salon</button>
             </div>
-            <div class="input-group">
-              <label>La phrase de départ</label>
-              <textarea id="scenario" placeholder="Ex: Vous gagnez 10 millions d'euros..." maxlength="500">Vous gagnez 10 millions d'euros</textarea>
+            
+            <div style="border-top: 1px solid #e0e0e0; padding-top: 20px;">
+              <h3 style="margin-bottom: 15px; color: #667eea;">🔗 Rejoindre une partie</h3>
+              <div class="input-group">
+                <label>Code du salon</label>
+                <input type="text" id="roomCode" placeholder="Ex: AB3F7K" maxlength="6" style="text-transform: uppercase;">
+              </div>
+              <button id="joinGame">Rejoindre</button>
             </div>
-            <button id="createGame">Lancer la partie</button>
           </div>
         `;
       }
-
+      
       renderProposePhase() {
         const myProposal = this.currentGame.proposals.find(p => p.author === this.playerName);
         const timeRemaining = this.getTimeRemaining();
@@ -793,38 +895,44 @@
             <div class="scenario-label">Scénario</div>
             <div class="scenario-text">${escapeHtml(this.currentGame.scenario)}</div>
           </div>
-
+          
           <div class="card">
             <div class="phase-indicator">
               <div class="phase-step active">1. Propositions</div>
               <div class="phase-step">2. Votes</div>
               <div class="phase-step">3. Résultats</div>
             </div>
-
+            
+            <div class="room-code">
+              🔑 Code salon : ${escapeHtml(this.roomId)}
+            </div>
+            
             ${this.errorMessage ? `<div class="error-box">${escapeHtml(this.errorMessage)}</div>` : ''}
-
+            
             <div class="info-box">
               Propose une contrepartie qui divisera l'opinion en 50/50 !
             </div>
-
+            
             <div class="input-group">
               <label>Ta contrepartie</label>
               <textarea id="counterpart" placeholder="Ex: Mais vous ne pourrez plus jamais manger de chocolat..." maxlength="500">${myProposal ? escapeHtml(myProposal.text) : ''}</textarea>
             </div>
-
+            
             <button id="submitProposal">${myProposal ? 'Modifier ma proposition' : 'Envoyer ma proposition'}</button>
-
+            
             ${myProposal ? '<div class="player-count">✓ Proposition envoyée !</div>' : ''}
             
             <div class="countdown">⏱️ Temps restant : ${escapeHtml(timeRemaining)}</div>
             
             <div class="player-count">
-              ${this.currentGame.proposals.length} proposition${this.currentGame.proposals.length > 1 ? 's' : ''} reçue${this.currentGame.proposals.length > 1 ? 's' : ''}
+              📝 ${this.currentGame.proposals.length} proposition${this.currentGame.proposals.length > 1 ? 's' : ''} reçue${this.currentGame.proposals.length > 1 ? 's' : ''}
             </div>
+            
+            <button id="leaveGame" class="secondary" style="margin-top: 15px;">Quitter la partie</button>
           </div>
         `;
       }
-
+      
       renderVotePhase() {
         const timeRemaining = this.getTimeRemaining();
         
@@ -833,20 +941,24 @@
             <div class="scenario-label">Scénario</div>
             <div class="scenario-text">${escapeHtml(this.currentGame.scenario)}</div>
           </div>
-
+          
           <div class="card">
             <div class="phase-indicator">
               <div class="phase-step">1. Propositions</div>
               <div class="phase-step active">2. Votes</div>
               <div class="phase-step">3. Résultats</div>
             </div>
-
+            
+            <div class="room-code">
+              🔑 Code salon : ${escapeHtml(this.roomId)}
+            </div>
+            
             <div class="info-box">
               Vote pour chaque proposition : accepterais-tu ce deal ?
             </div>
-
+            
             <div class="countdown">⏱️ Temps restant : ${escapeHtml(timeRemaining)}</div>
-
+            
             ${this.currentGame.proposals.length === 0 ? `
               <div class="empty-state">
                 <div class="empty-state-icon">🤷</div>
@@ -854,9 +966,8 @@
               </div>
             ` : this.currentGame.proposals.map(proposal => {
               const votes = this.currentGame.votes[proposal.id] || { yes: [], no: [] };
-              const hasVoted = votes.yes.includes(this.playerName) || votes.no.includes(this.playerName);
               const myVote = votes.yes.includes(this.playerName) ? 'yes' : votes.no.includes(this.playerName) ? 'no' : null;
-
+              
               return `
                 <div class="proposal-item">
                   <div class="proposal-author">${escapeHtml(proposal.author)}</div>
@@ -876,10 +987,12 @@
                 </div>
               `;
             }).join('')}
+            
+            <button id="leaveGame" class="secondary" style="margin-top: 15px;">Quitter la partie</button>
           </div>
         `;
       }
-
+      
       renderResults() {
         if (!this.currentGame.results || this.currentGame.results.length === 0) {
           return `
@@ -887,24 +1000,24 @@
               <div class="scenario-label">Scénario</div>
               <div class="scenario-text">${escapeHtml(this.currentGame.scenario)}</div>
             </div>
-
+            
             <div class="card">
               <div class="phase-indicator">
                 <div class="phase-step">1. Propositions</div>
                 <div class="phase-step">2. Votes</div>
                 <div class="phase-step active">3. Résultats</div>
               </div>
-
+              
               <div class="empty-state">
                 <div class="empty-state-icon">🤷</div>
                 <p>Aucun vote n'a été enregistré...</p>
               </div>
-
+              
               <button id="newGame">Nouvelle partie</button>
             </div>
           `;
         }
-
+        
         const winner = this.currentGame.results[0];
         
         return `
@@ -912,24 +1025,24 @@
             <div class="scenario-label">Scénario</div>
             <div class="scenario-text">${escapeHtml(this.currentGame.scenario)}</div>
           </div>
-
+          
           <div class="card">
             <div class="phase-indicator">
               <div class="phase-step">1. Propositions</div>
               <div class="phase-step">2. Votes</div>
               <div class="phase-step active">3. Résultats</div>
             </div>
-
+            
             <h2 style="margin-bottom: 20px; font-size: 24px; color: #333; text-align: center;">
               🏆 Résultats
             </h2>
-
+            
             ${this.currentGame.results.map((result, index) => {
               const isWinner = index === 0;
               const totalVotes = result.yesVotes + result.noVotes;
               const yesWidth = totalVotes > 0 ? (result.yesVotes / totalVotes) * 100 : 50;
               const noWidth = totalVotes > 0 ? (result.noVotes / totalVotes) * 100 : 50;
-
+              
               return `
                 <div class="result-item ${isWinner ? 'winner' : ''}">
                   ${isWinner ? '<div class="winner-badge">🏆 Gagnant</div>' : ''}
@@ -940,9 +1053,9 @@
                       ${result.yesPercent.toFixed(1)}% OUI
                     </div>
                   </div>
-
+                  
                   <div class="result-text">${escapeHtml(result.text)}</div>
-
+                  
                   <div class="vote-bar-container">
                     <div class="vote-bar" style="width: ${yesWidth}%;">
                       ${result.yesVotes > 0 ? result.yesVotes + ' OUI' : ''}
@@ -951,7 +1064,7 @@
                       ${result.noVotes > 0 ? result.noVotes + ' NON' : ''}
                     </div>
                   </div>
-
+                  
                   <div class="vote-stats">
                     <span>Écart au 50/50 : ${result.deviation.toFixed(1)}%</span>
                     <span>${totalVotes} vote${totalVotes > 1 ? 's' : ''}</span>
@@ -959,34 +1072,37 @@
                 </div>
               `;
             }).join('')}
-
+            
             <button id="newGame">Nouvelle partie</button>
           </div>
         `;
       }
-
+      
       attachEventListeners() {
         const submitName = document.getElementById('submitName');
         if (submitName) {
           submitName.onclick = async () => {
             const name = document.getElementById('playerName').value;
-            const success = await this.savePlayerName(name);
-            if (success) {
-              this.render();
-            } else {
-              this.render();
-            }
+            await this.savePlayerName(name);
           };
         }
-
+        
         const createGame = document.getElementById('createGame');
         if (createGame) {
           createGame.onclick = () => {
             const scenario = document.getElementById('scenario').value;
-            this.createGame(scenario);
+            this.createRoom(scenario);
           };
         }
-
+        
+        const joinGame = document.getElementById('joinGame');
+        if (joinGame) {
+          joinGame.onclick = () => {
+            const roomCode = document.getElementById('roomCode').value;
+            this.joinRoomById(roomCode);
+          };
+        }
+        
         const submitProposal = document.getElementById('submitProposal');
         if (submitProposal) {
           submitProposal.onclick = () => {
@@ -994,15 +1110,23 @@
             this.submitProposal(counterpart);
           };
         }
-
+        
         const newGame = document.getElementById('newGame');
         if (newGame) {
           newGame.onclick = () => {
             this.resetGame();
           };
         }
-
-        // Vote buttons - utilise data-attributes au lieu de onclick inline
+        
+        const leaveGame = document.getElementById('leaveGame');
+        if (leaveGame) {
+          leaveGame.onclick = () => {
+            if (confirm('Quitter la partie ? Vous pourrez la rejoindre plus tard avec le code.')) {
+              this.resetGame();
+            }
+          };
+        }
+        
         const voteButtons = document.querySelectorAll('.vote-btn');
         voteButtons.forEach(button => {
           button.onclick = () => {
@@ -1013,9 +1137,8 @@
         });
       }
     }
-
+    
     const game = new Game();
-    game.init();
   </script>
 </body>
 </html>
