@@ -345,7 +345,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-  import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+  import { getDatabase, ref, set, get, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBPbFNDsn5CVF-4krrYtw1z2IzwkkILLoE",
@@ -387,6 +387,7 @@
     // 🔥 Firebase supprime les tableaux/objets vides. On les recrée par défaut s'ils sont absents.
     game.proposals = game.proposals || [];
     game.votes = game.votes || {};
+    game.players = game.players || {};
     
     if (!Array.isArray(game.proposals)) return false;
     if (typeof game.votes !== 'object') return false;
@@ -410,7 +411,22 @@
     "Vous trouvez instantanément l'âme sœur parfaite",
     "Vous ne ressentez plus jamais ni fatigue ni besoin de dormir",
     "Vous accomplissez le plus grand rêve de votre vie",
-    "Vous trouvez une valise inépuisable remplie de billets de 100€"
+    "Vous trouvez une valise inépuisable remplie de billets de 100€",
+    "Vous respirez sous l'eau et communiquez avec les animaux marins",
+    "Vous avez le pouvoir d'invisibilité",
+    "Vous ne tombez plus jamais malade et guérissez vos proches",
+    "Vous pouvez arrêter et reprendre le temps à votre convenance",
+    "Vous devenez l'humain le plus intelligent de la planète",
+    "Un génie vous accorde 3 vœux absolus",
+    "Vous pouvez revivre n'importe quel souvenir de votre passé à l'infini",
+    "Vous avez un compte en banque qui se recharge de 10 000€ chaque matin",
+    "Vous pouvez vous transformer en l'animal de votre choix",
+    "Vous ne ressentirez plus jamais aucune douleur physique",
+    "Chaque blague que vous faites hilarise instantanément tout le monde",
+    "Vous gagnez l'apparence physique parfaite selon vos critères",
+    "Vous devenez un virtuose absolu de tous les instruments de musique",
+    "Vous trouvez une potion qui vous donne une chance infinie",
+    "Vous pouvez entrer dans l'univers de n'importe quel film ou jeu vidéo"
   ];
 
   function getRandomScenario() {
@@ -489,6 +505,7 @@
         phaseStartTime: Date.now(),
         proposals: [],
         votes: {},
+        players: {},
         createdAt: Date.now()
       };
   
@@ -500,6 +517,7 @@
   
         localStorage.setItem('game50_currentRoom', id);
   
+        this.updatePresence();
         this.setupRoomListener();
         this.render();
   
@@ -523,6 +541,7 @@
             this.roomId = cleanId;
             this.currentGame = gameData;
             localStorage.setItem('game50_currentRoom', cleanId);
+            this.updatePresence();
             this.setupRoomListener();
             this.errorMessage = null;
             this.render();
@@ -584,13 +603,35 @@
       this.isDeleting = false;
     }
 
+    async updatePresence() {
+      if (!this.roomId || !this.displayName) return;
+      const userKey = this.displayName.replace(/[\.\$\#\[\]\/]/g, '_');
+      const playerRef = ref(db, `rooms/${this.roomId}/players/${userKey}`);
+      try {
+        await set(playerRef, this.displayName);
+        onDisconnect(playerRef).remove();
+      } catch (e) {
+        console.error("Erreur de présence :", e);
+      }
+    }
+
+    async removePresence() {
+      if (!this.roomId || !this.displayName) return;
+      const userKey = this.displayName.replace(/[\.\$\#\[\]\/]/g, '_');
+      try {
+        await remove(ref(db, `rooms/${this.roomId}/players/${userKey}`));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
 
     async resetGame() {
       if (this.unsubscribe) {
         this.unsubscribe();
         this.unsubscribe = null;
       }
-      if (this.roomId) await this.deleteRoom();
+      await this.removePresence();
       this.currentGame = null;
       this.roomId = null;
       this.errorMessage = null;
@@ -600,12 +641,14 @@
 
     async nextRound() {
       if (!this.roomId) return;
+      const currentPlayers = this.currentGame.players || {};
       const gameData = {
         scenario: getRandomScenario(),
         phase: 'propose',
         phaseStartTime: Date.now(),
         proposals: [],
         votes: {},
+        players: currentPlayers,
         createdAt: Date.now()
       };
       try {
@@ -632,6 +675,11 @@
       if (phaseChanged) {
         this.saveGame();
         if (!this.isTyping) this.render();
+      } else {
+        const timerDisplay = document.getElementById('timerDisplay');
+        if (timerDisplay) {
+          timerDisplay.innerText = `⏱️ Temps restant : ${this.getTimeRemaining()}`;
+        }
       }
     }
 
@@ -718,6 +766,13 @@
       this.currentGame.results.sort((a, b) => a.deviation - b.deviation);
     }
 
+    renderPlayersList() {
+      if (!this.currentGame || !this.currentGame.players) return '';
+      const players = Object.values(this.currentGame.players);
+      if (players.length === 0) return '';
+      return `<div class="player-count" style="margin-bottom: 20px;">👥 <strong>Joueurs présents (${players.length}) :</strong> ${escapeHtml(players.join(', '))}</div>`;
+    }
+
     // ---------- RENDU ----------
     render() {
       try {
@@ -794,6 +849,7 @@
             <div class="phase-step">3. Résultats</div>
           </div>
           <div class="room-code">🔑 Code salon : ${escapeHtml(this.roomId)}</div>
+          ${this.renderPlayersList()}
           ${this.errorMessage ? `<div class="error-box">${escapeHtml(this.errorMessage)}</div>` : ''}
           <div class="info-box">Propose une contrepartie qui divisera l'opinion en 50/50 !</div>
           <div class="input-group">
@@ -802,7 +858,7 @@
           </div>
           <button id="submitProposal">${myProposal ? 'Modifier ma proposition' : 'Envoyer ma proposition'}</button>
           ${myProposal ? '<div class="player-count">✓ Proposition enregistrée !</div>' : ''}
-          <div class="countdown">⏱️ Temps restant : ${escapeHtml(timeRemaining)}</div>
+          <div class="countdown" id="timerDisplay">⏱️ Temps restant : ${escapeHtml(timeRemaining)}</div>
           <div class="player-count">📝 ${this.currentGame.proposals.length} proposition${this.currentGame.proposals.length > 1 ? 's' : ''}</div>
           <button id="leaveGame" class="secondary" style="margin-top:15px;">Quitter la partie</button>
         </div>
@@ -823,8 +879,9 @@
             <div class="phase-step">3. Résultats</div>
           </div>
           <div class="room-code">🔑 Code salon : ${escapeHtml(this.roomId)}</div>
+          ${this.renderPlayersList()}
           <div class="info-box">Vote pour chaque proposition : accepterais-tu ce deal ?</div>
-          <div class="countdown">⏱️ Temps restant : ${escapeHtml(timeRemaining)}</div>
+          <div class="countdown" id="timerDisplay">⏱️ Temps restant : ${escapeHtml(timeRemaining)}</div>
           ${this.currentGame.proposals.length === 0 ? `
             <div class="empty-state"><div class="empty-state-icon">🤷</div><p>Aucune proposition n'a été faite...</p></div>
           ` : this.currentGame.proposals.map(proposal => {
@@ -854,6 +911,7 @@
           <div class="card scenario-card"><div class="scenario-label">Scénario</div><div class="scenario-text">${escapeHtml(this.currentGame.scenario)}</div></div>
           <div class="card">
             <div class="phase-indicator"><div class="phase-step">1. Propositions</div><div class="phase-step">2. Votes</div><div class="phase-step active">3. Résultats</div></div>
+            ${this.renderPlayersList()}
             <div class="empty-state"><div class="empty-state-icon">🤷</div><p>Aucun vote n'a été enregistré...</p></div>
             <button id="newGame" style="margin-bottom: 10px;">Manche suivante</button>
             <button id="leaveGameResults" class="secondary">Quitter le salon</button>
@@ -865,6 +923,7 @@
         <div class="card">
           <div class="phase-indicator"><div class="phase-step">1. Propositions</div><div class="phase-step">2. Votes</div><div class="phase-step active">3. Résultats</div></div>
           <h2 style="margin-bottom:20px;text-align:center;">🏆 Résultats</h2>
+          ${this.renderPlayersList()}
           ${this.currentGame.results.map((result, idx) => {
             const isWinner = idx === 0;
             const total = result.yesVotes + result.noVotes;
