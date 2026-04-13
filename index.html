@@ -715,17 +715,38 @@
       const now = Date.now();
       const elapsed = now - this.currentGame.phaseStartTime;
       let phaseChanged = false;
+      let forceRender = false;
+      
       if (this.currentGame.phase === 'propose' && elapsed > PHASE_DURATION.propose) {
         this.currentGame.phase = 'vote';
         this.currentGame.phaseStartTime = now;
+        this.currentVoteIndex = 0;
         phaseChanged = true;
-      } else if (this.currentGame.phase === 'vote' && elapsed > PHASE_DURATION.vote) {
-        this.currentGame.phase = 'results';
-        this.calculateResults();
-        phaseChanged = true;
+      } else if (this.currentGame.phase === 'vote') {
+        const PROPOSAL_VOTE_TIME = 30000; // 30 secondes par proposition
+        const totalDuration = this.currentGame.proposals.length * PROPOSAL_VOTE_TIME;
+        
+        if (elapsed > totalDuration || this.currentGame.proposals.length === 0) {
+          this.currentGame.phase = 'results';
+          this.calculateResults();
+          phaseChanged = true;
+        } else {
+          const newIndex = Math.floor(elapsed / PROPOSAL_VOTE_TIME);
+          if (this.currentVoteIndex !== newIndex) {
+            this.currentVoteIndex = newIndex;
+            forceRender = true;
+          }
+        }
       }
+      
       if (phaseChanged) {
-        this.saveGame();
+        // Seul l'hôte sauvegarde la transition pour éviter les conflits
+        if (this.displayName === this.currentGame.host) {
+          this.saveGame();
+        }
+        if (!this.isTyping) this.render();
+      } else if (forceRender) {
+        // Rafraîchir l'écran quand on passe à la proposition suivante
         if (!this.isTyping) this.render();
       } else {
         const timerDisplay = document.getElementById('timerDisplay');
@@ -738,8 +759,16 @@
     getTimeRemaining() {
       if (!this.currentGame) return "0:00";
       const elapsed = Date.now() - this.currentGame.phaseStartTime;
-      const duration = this.currentGame.phase === 'propose' ? PHASE_DURATION.propose : PHASE_DURATION.vote;
-      const remaining = Math.max(0, duration - elapsed);
+      let remaining = 0;
+      
+      if (this.currentGame.phase === 'propose') {
+        remaining = Math.max(0, PHASE_DURATION.propose - elapsed);
+      } else if (this.currentGame.phase === 'vote') {
+        const PROPOSAL_VOTE_TIME = 30000;
+        // On calcule le temps restant UNIQUEMENT pour la proposition en cours
+        remaining = Math.max(0, PROPOSAL_VOTE_TIME - (elapsed % PROPOSAL_VOTE_TIME));
+      }
+      
       const minutes = Math.floor(remaining / 60000);
       const seconds = Math.floor((remaining % 60000) / 1000);
       return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -946,6 +975,42 @@
 
     renderVotePhase() {
       const timeRemaining = this.getTimeRemaining();
+      const elapsed = Date.now() - this.currentGame.phaseStartTime;
+      const PROPOSAL_VOTE_TIME = 30000;
+      const currentIndex = Math.floor(elapsed / PROPOSAL_VOTE_TIME);
+      
+      let content = '';
+      if (this.currentGame.proposals.length === 0) {
+        content = `
+          <div class="empty-state"><div class="empty-state-icon">🤷</div><p>Aucune proposition n'a été faite...</p></div>
+          <button id="leaveGame" class="secondary" style="margin-top:15px;">Quitter la partie</button>
+        `;
+      } else if (currentIndex < this.currentGame.proposals.length) {
+        const proposal = this.currentGame.proposals[currentIndex];
+        const votes = this.currentGame.votes[proposal.id] || {};
+        const yesVotes = votes.yes || [];
+        const noVotes = votes.no || [];
+        const myVote = yesVotes.includes(this.displayName) ? 'yes' : noVotes.includes(this.displayName) ? 'no' : null;
+        
+        content = `
+          <div class="info-box" style="text-align:center; font-size:16px;">
+            <strong>🗳️ Proposition ${currentIndex + 1} sur ${this.currentGame.proposals.length}</strong>
+          </div>
+          <div class="countdown" id="timerDisplay" style="font-size: 18px; color: #ef4444; font-weight: 800; text-align: center; margin-bottom: 15px;">
+            ⏱️ Temps restant : ${escapeHtml(timeRemaining)}
+          </div>
+          <div class="proposal-item" style="border-width: 3px; border-color: #667eea; transform: scale(1.02); margin-bottom: 20px;">
+            <div class="proposal-author" style="text-align: center; font-size: 16px;">${escapeHtml(proposal.author)} a proposé :</div>
+            <div class="proposal-text" style="font-size: 20px; font-weight: 600; text-align: center; margin: 15px 0;">"${escapeHtml(proposal.text)}"</div>
+            <div class="vote-buttons" style="margin-top: 25px;">
+              <button class="vote-btn yes ${myVote === 'yes' ? 'selected' : ''}" data-proposal-id="${proposal.id}" data-vote="yes">${myVote === 'yes' ? '✓ ' : ''}J'ACCEPTE</button>
+              <button class="vote-btn no ${myVote === 'no' ? 'selected' : ''}" data-proposal-id="${proposal.id}" data-vote="no">${myVote === 'no' ? '✓ ' : ''}JE REFUSE</button>
+            </div>
+          </div>
+          <button id="leaveGame" class="secondary">Quitter la partie</button>
+        `;
+      }
+
       return `
         <div class="card scenario-card">
           <div class="scenario-label">Scénario</div>
@@ -959,27 +1024,7 @@
           </div>
           <div class="room-code">🔑 Code salon : ${escapeHtml(this.roomId)}</div>
           ${this.renderPlayersList()}
-          <div class="info-box">Vote pour chaque proposition : accepterais-tu ce deal ?</div>
-          <div class="countdown" id="timerDisplay">⏱️ Temps restant : ${escapeHtml(timeRemaining)}</div>
-          ${this.currentGame.proposals.length === 0 ? `
-            <div class="empty-state"><div class="empty-state-icon">🤷</div><p>Aucune proposition n'a été faite...</p></div>
-          ` : this.currentGame.proposals.map(proposal => {
-            const votes = this.currentGame.votes[proposal.id] || {};
-            const yesVotes = votes.yes || [];
-            const noVotes = votes.no || [];
-            const myVote = yesVotes.includes(this.displayName) ? 'yes' : noVotes.includes(this.displayName) ? 'no' : null;
-            return `
-              <div class="proposal-item">
-                <div class="proposal-author">${escapeHtml(proposal.author)}</div>
-                <div class="proposal-text">${escapeHtml(proposal.text)}</div>
-                <div class="vote-buttons">
-                  <button class="vote-btn yes ${myVote === 'yes' ? 'selected' : ''}" data-proposal-id="${proposal.id}" data-vote="yes">${myVote === 'yes' ? '✓ ' : ''}OUI</button>
-                  <button class="vote-btn no ${myVote === 'no' ? 'selected' : ''}" data-proposal-id="${proposal.id}" data-vote="no">${myVote === 'no' ? '✓ ' : ''}NON</button>
-                </div>
-              </div>
-            `;
-          }).join('')}
-          <button id="leaveGame" class="secondary" style="margin-top:15px;">Quitter la partie</button>
+          ${content}
         </div>
       `;
     }
