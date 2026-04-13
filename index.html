@@ -383,6 +383,11 @@
     if (!game || typeof game !== 'object') return false;
     if (typeof game.scenario !== 'string' || game.scenario.length > 500) return false;
     if (!['propose', 'vote', 'results'].includes(game.phase)) return false;
+    
+    // 🔥 Firebase supprime les tableaux/objets vides. On les recrée par défaut s'ils sont absents.
+    game.proposals = game.proposals || [];
+    game.votes = game.votes || {};
+    
     if (!Array.isArray(game.proposals)) return false;
     if (typeof game.votes !== 'object') return false;
     return true;
@@ -497,12 +502,19 @@
       try {
         const snapshot = await get(ref(db, 'rooms/' + cleanId));
         if (snapshot.exists()) {
-          this.roomId = cleanId;
-          this.currentGame = snapshot.val();
-          localStorage.setItem('game50_currentRoom', cleanId);
-          this.setupRoomListener();
-          this.errorMessage = null;
-          this.render();
+          const gameData = snapshot.val();
+          
+          if (validateGameData(gameData)) {
+            this.roomId = cleanId;
+            this.currentGame = gameData;
+            localStorage.setItem('game50_currentRoom', cleanId);
+            this.setupRoomListener();
+            this.errorMessage = null;
+            this.render();
+          } else {
+            this.errorMessage = 'Données de ce salon corrompues.';
+            this.render();
+          }
         } else {
           this.errorMessage = 'Salon introuvable. Vérifie le code.';
           this.render();
