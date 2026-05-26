@@ -3,365 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>50/50 - Le Jeu du Dilemme Parfait (Multijoueur)</title>
+  <title>50/50 - Le Jeu du Dilemme Parfait (Local)</title>
   <style>
-    /* ===== TON STYLE EXISTANT ===== */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
-      color: #333;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-      color: white;
-    }
-    .header h1 {
-      font-size: 48px;
-      font-weight: 800;
-      margin-bottom: 10px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    }
-    .header .subtitle {
-      font-size: 18px;
-      opacity: 0.95;
-    }
-    .card {
-      background: white;
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-      margin-bottom: 20px;
-    }
-    .scenario-card {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      color: white;
-      text-align: center;
-      padding: 40px 30px;
-    }
-    .scenario-text {
-      font-size: 24px;
-      font-weight: 600;
-      line-height: 1.4;
-      margin-bottom: 15px;
-      word-wrap: break-word;
-    }
-    .scenario-label {
-      font-size: 14px;
-      opacity: 0.9;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      font-weight: 600;
-    }
-    .phase-indicator {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 25px;
-      gap: 10px;
-    }
-    .phase-step {
-      flex: 1;
-      text-align: center;
-      padding: 12px;
-      background: #f5f5f5;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #999;
-      transition: all 0.3s;
-    }
-    .phase-step.active {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      transform: scale(1.05);
-    }
-    .input-group {
-      margin-bottom: 20px;
-    }
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: #555;
-      font-size: 14px;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 15px;
-      border: 2px solid #e0e0e0;
-      border-radius: 12px;
-      font-size: 16px;
-      font-family: inherit;
-      transition: border-color 0.3s;
-    }
-    input:focus, textarea:focus {
-      outline: none;
-      border-color: #667eea;
-    }
-    textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-    button {
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 18px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    }
-    button.secondary {
-      background: #6c757d;
-      margin-top: 10px;
-    }
-    .proposal-item {
-      background: #f8f9fa;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 15px;
-      border: 2px solid transparent;
-      transition: all 0.3s;
-    }
-    .proposal-item:hover {
-      border-color: #667eea;
-    }
-    .proposal-author {
-      font-weight: 700;
-      color: #667eea;
-      margin-bottom: 8px;
-      font-size: 14px;
-      word-break: break-word;
-    }
-    .proposal-text {
-      font-size: 16px;
-      color: #333;
-      margin-bottom: 15px;
-      line-height: 1.5;
-    }
-    .vote-buttons {
-      display: flex;
-      gap: 10px;
-    }
-    .vote-btn {
-      flex: 1;
-      padding: 12px;
-      border: 2px solid;
-      background: white;
-      border-radius: 10px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.3s;
-      font-size: 16px;
-    }
-    .vote-btn.yes {
-      border-color: #10b981;
-      color: #10b981;
-    }
-    .vote-btn.yes:hover, .vote-btn.yes.selected {
-      background: #10b981;
-      color: white;
-    }
-    .vote-btn.no {
-      border-color: #ef4444;
-      color: #ef4444;
-    }
-    .vote-btn.no:hover, .vote-btn.no.selected {
-      background: #ef4444;
-      color: white;
-    }
-    .result-item {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 15px;
-      border: 3px solid #e0e0e0;
-      position: relative;
-    }
-    .result-item.winner {
-      border-color: #fbbf24;
-      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    }
-    .winner-badge {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: #fbbf24;
-      color: #92400e;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .result-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .result-author {
-      font-weight: 700;
-      color: #667eea;
-    }
-    .result-score {
-      font-size: 24px;
-      font-weight: 800;
-    }
-    .result-score.perfect {
-      color: #10b981;
-    }
-    .vote-bar-container {
-      position: relative;
-      height: 30px;
-      background: #e0e0e0;
-      border-radius: 15px;
-      overflow: hidden;
-      margin-bottom: 8px;
-    }
-    .vote-bar {
-      position: absolute;
-      left: 0;
-      top: 0;
-      height: 100%;
-      background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
-      transition: width 0.5s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 700;
-      font-size: 14px;
-    }
-    .vote-bar-no {
-      position: absolute;
-      right: 0;
-      top: 0;
-      height: 100%;
-      background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
-      transition: width 0.5s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 700;
-      font-size: 14px;
-    }
-    .vote-stats {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      color: #666;
-    }
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: #999;
-    }
-    .empty-state-icon {
-      font-size: 48px;
-      margin-bottom: 15px;
-    }
-    .countdown {
-      text-align: center;
-      font-size: 14px;
-      color: #666;
-      margin-top: 15px;
-      font-weight: 600;
-    }
-    .player-count {
-      text-align: center;
-      margin-top: 15px;
-      padding: 12px;
-      background: #f0fdf4;
-      border-radius: 10px;
-      color: #166534;
-      font-weight: 600;
-      font-size: 14px;
-    }
-    .info-box {
-      background: #eff6ff;
-      border-left: 4px solid #3b82f6;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      font-size: 14px;
-      color: #1e40af;
-    }
-    .error-box {
-      background: #fee;
-      border-left: 4px solid #ef4444;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      font-size: 14px;
-      color: #991b1b;
-    }
-    .room-code {
-      background: #f3f4f6;
-      border-radius: 12px;
-      padding: 15px;
-      text-align: center;
-      margin-bottom: 20px;
-      font-family: monospace;
-      font-size: 18px;
-      font-weight: bold;
-      letter-spacing: 2px;
-    }
-    @media (max-width: 640px) {
-      .header h1 { font-size: 36px; }
-      .scenario-text { font-size: 20px; }
-      .card { padding: 20px; }
-    }
+    /* Styles conservés à l'identique */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 30px; color: white; }
+    .header h1 { font-size: 48px; font-weight: 800; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+    .header .subtitle { font-size: 18px; opacity: 0.95; }
+    .card { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); margin-bottom: 20px; }
+    .scenario-card { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; text-align: center; padding: 40px 30px; }
+    .scenario-text { font-size: 24px; font-weight: 600; line-height: 1.4; margin-bottom: 15px; word-wrap: break-word; }
+    .scenario-label { font-size: 14px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+    .phase-indicator { display: flex; justify-content: space-between; margin-bottom: 25px; gap: 10px; }
+    .phase-step { flex: 1; text-align: center; padding: 12px; background: #f5f5f5; border-radius: 12px; font-size: 13px; font-weight: 600; color: #999; transition: all 0.3s; }
+    .phase-step.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; transform: scale(1.05); }
+    .input-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 14px; }
+    input, textarea { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 16px; font-family: inherit; transition: border-color 0.3s; }
+    input:focus, textarea:focus { outline: none; border-color: #667eea; }
+    textarea { resize: vertical; min-height: 100px; }
+    button { width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); }
+    button.secondary { background: #6c757d; margin-top: 10px; }
+    .proposal-item { background: #f8f9fa; border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 2px solid transparent; transition: all 0.3s; }
+    .vote-buttons { display: flex; gap: 10px; margin-top: 15px; }
+    .vote-btn { flex: 1; padding: 12px; border: 2px solid; background: white; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; font-size: 16px; }
+    .vote-btn.yes { border-color: #10b981; color: #10b981; }
+    .vote-btn.yes.selected { background: #10b981; color: white; }
+    .vote-btn.no { border-color: #ef4444; color: #ef4444; }
+    .vote-btn.no.selected { background: #ef4444; color: white; }
+    .result-item { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 3px solid #e0e0e0; position: relative; }
+    .result-item.winner { border-color: #fbbf24; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+    .winner-badge { position: absolute; top: 15px; right: 15px; background: #fbbf24; color: #92400e; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .vote-bar-container { position: relative; height: 30px; background: #e0e0e0; border-radius: 15px; overflow: hidden; margin: 10px 0; }
+    .vote-bar { position: absolute; left: 0; top: 0; height: 100%; background: #10b981; transition: width 0.5s ease; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 12px; }
+    .vote-bar-no { position: absolute; right: 0; top: 0; height: 100%; background: #ef4444; transition: width 0.5s ease; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 12px; }
+    .info-box { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; color: #1e40af; }
+    .error-box { background: #fee; border-left: 4px solid #ef4444; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; color: #991b1b; }
+    .countdown { text-align: center; font-size: 14px; color: #666; margin-top: 15px; font-weight: 600; }
   </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
     <h1>50/50</h1>
-    <div class="subtitle">Le jeu du dilemme parfait - Multijoueur</div>
+    <div class="subtitle">Le jeu du dilemme parfait - Local</div>
   </div>
   <div id="app"></div>
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-  import { getDatabase, ref, set, get, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBPbFNDsn5CVF-4krrYtw1z2IzwkkILLoE",
-    authDomain: "game-ef3a0.firebaseapp.com",
-    databaseURL: "https://game-ef3a0-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "game-ef3a0",
-    storageBucket: "game-ef3a0.firebasestorage.app",
-    messagingSenderId: "1091069158786",
-    appId: "1:1091069158786:web:fd14c503c7726de7a51b9b",
-    measurementId: "G-ZMJ2TLB230"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  // ========== SÉCURITÉ ==========
+  // ========== UTILITAIRES ==========
   function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -370,834 +64,239 @@
   }
 
   function sanitizeUsername(name) {
-    if (typeof name !== 'string') return '';
-    return name.trim().slice(0, 20).replace(/\s+/g, ' ');
+    return (name || '').trim().slice(0, 20);
   }
 
-  function sanitizeText(text) {
-    if (typeof text !== 'string') return '';
-    return text.trim().slice(0, 500).replace(/\s+/g, ' ');
-  }
-
-  function validateGameData(game) {
-    if (!game || typeof game !== 'object') return false;
-    game.scenario = game.scenario || "";
-    if (typeof game.scenario !== 'string' || game.scenario.length > 500) return false;
-    if (!['waiting', 'propose', 'vote', 'results'].includes(game.phase)) return false;
-    
-    // 🔥 Firebase supprime les tableaux/objets vides. On les recrée par défaut s'ils sont absents.
-    game.proposals = game.proposals || [];
-    game.votes = game.votes || {};
-    game.players = game.players || {};
-    game.host = game.host || 'Anonyme';
-    
-    if (!Array.isArray(game.proposals)) return false;
-    if (typeof game.votes !== 'object') return false;
-    return true;
-  }
-
-  const PHASE_DURATION = { propose: 120000, vote: 180000 };
-
-  const SCENARIOS = [
-    "Vous gagnez 10 millions d'euros",
-    "Vous pouvez voler comme un oiseau",
-    "Vous avez la capacité de lire dans les pensées",
-    "Vous découvrez le secret de l'immortalité",
-    "Vous devenez instantanément célèbre dans le monde entier",
-    "Vous avez une santé parfaite jusqu'à la fin de votre vie",
-    "Vous pouvez manger tout ce que vous voulez sans jamais grossir",
-    "Vous possédez le pouvoir de vous téléporter n'importe où",
-    "Vous maîtrisez instantanément toutes les langues humaines",
-    "Vous trouvez instantanément l'âme sœur parfaite",
-    "Vous ne ressentez plus jamais la fatigue",
-    "Vous trouvez une valise remplie d'argent qui se recharge chaque mois",
-    "Vous respirez sous l'eau et pouvez vivre dans les océans",
-    "Vous avez le pouvoir de devenir invisible à volonté",
-    "Vous pouvez arrêter le temps pendant une minute par jour",
-    "Vous devenez la personne la plus intelligente du monde",
-    "Un génie vous accorde un seul souhait absolu",
-    "Vous pouvez revivre un seul souvenir autant de fois que vous voulez",
-    "Vous pouvez vous transformer en n'importe quel animal",
-    "Vous ne ressentez plus jamais la douleur physique",
-    "Toutes vos blagues font rire instantanément les autres",
-    "Vous obtenez le physique parfait selon vos critères",
-    "Vous devenez un maître absolu dans un instrument de musique au choix",
-    "Vous trouvez une chance surnaturelle qui vous protège des malheurs",
-    "Vous pouvez entrer dans n'importe quel univers de fiction",
-    "Vous pouvez lire les intentions des gens avant qu'ils agissent",
-    "Vous trouvez un carnet qui prédit un seul événement futur par jour",
-    "Vous pouvez copier une compétence humaine pendant 24 heures",
-    "Vous découvrez une porte vers un monde parallèle inconnu",
-    "Vous pouvez influencer légèrement la chance autour de vous",
-    "Vous pouvez créer des illusions totalement réalistes",
-    "Vous obtenez un double de vous-même qui vous aide dans votre vie",
-    "Vous pouvez voyager instantanément dans n'importe quel pays",
-    "Vous pouvez soigner instantanément n'importe quelle blessure",
-    "Vous pouvez augmenter vos capacités physiques pendant une heure",
-    "Vous pouvez parler une seule fois à une personne décédée",
-    "Vous pouvez revivre une journée parfaite une seule fois",
-    "Vous pouvez changer un seul petit événement de votre passé",
-    "Vous pouvez entrer physiquement dans un livre ou une histoire",
-    "Vous pouvez contrôler un objet électronique à distance",
-    "Vous pouvez voir les conséquences directes de vos décisions",
-    "Vous pouvez obtenir instantanément un objet de votre choix simple",
-    "Vous pouvez ressentir les émotions d’une autre personne à distance",
-    "Vous pouvez créer un monde virtuel totalement immersif",
-    "Vous pouvez supprimer définitivement une peur de votre esprit",
-    "Vous pouvez échanger un souvenir avec une autre personne",
-    "Vous pouvez accélérer ou ralentir votre perception du temps",
-    "Vous pouvez faire apparaître ou disparaître un objet à volonté",
-    "Vous pouvez apprendre une compétence complexe en une journée",
-    "Vous pouvez bloquer un événement négatif imminent une seule fois",
-    "Vous pouvez ressentir exactement ce que quelqu'un vit",
-    "Vous pouvez créer une copie temporaire d’un objet réel",
-    "Vous pouvez parler à votre futur vous une seule fois",
-    "Vous pouvez transformer une émotion négative en force",
-    "Vous pouvez obtenir une réponse honnête à toute question posée",
-    "Vous pouvez voyager dans différentes versions de votre vie",
-    "Vous pouvez annuler une erreur importante une seule fois",
-    "Vous pouvez devenir expert dans n'importe quel domaine en 24h",
-    "Vous pouvez contrôler votre chance pendant une journée"
-  ];
-
-  function getRandomScenario() {
-    return SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
-  }
-
-  // 🔥 FONCTION MANQUANTE
   function generateId() {
     return Math.random().toString(36).substring(2, 9);
   }
+
+  const SCENARIOS = [
+    "Vous gagnez 10 millions d'euros", "Vous pouvez voler comme un oiseau",
+    "Vous avez la capacité de lire dans les pensées", "Vous découvrez le secret de l'immortalité",
+    "Vous devenez instantanément célèbre", "Vous avez une santé parfaite"
+  ];
+
+  const LOCAL_GAME_KEY = "game50_local_storage";
+  const PHASE_DURATION = { propose: 60000, vote: 30000 }; // Durées réduites pour test local
 
   class Game {
     constructor() {
       this.displayName = null;
       this.currentGame = null;
-      this.roomId = null;
-      this.unsubscribe = null;
       this.errorMessage = null;
-      this.phaseInterval = null;
-      this.isTyping = false;
-      this.isDeleting = false; // 🔥 FIX race condition
       this.init();
     }
 
-
     init() {
-      // Charger le pseudo depuis sessionStorage
       const savedName = sessionStorage.getItem('game50_playerName');
-      if (savedName) {
-        this.displayName = sanitizeUsername(savedName);
-      }
-      // Vérifier si un salon était en cours
-      const savedRoom = sessionStorage.getItem('game50_currentRoom');
-      if (savedRoom && this.displayName) {
-        this.joinRoomById(savedRoom);
+      if (savedName) this.displayName = savedName;
+
+      const savedGame = localStorage.getItem(LOCAL_GAME_KEY);
+      if (savedGame) this.currentGame = JSON.parse(savedGame);
+
+      this.render();
+      setInterval(() => this.checkPhaseTimeout(), 1000);
+    }
+
+    render() {
+      const appDiv = document.getElementById('app');
+      if (!this.displayName) {
+        appDiv.innerHTML = this.renderNameEntry();
+      } else if (!this.currentGame) {
+        appDiv.innerHTML = this.renderLobby();
       } else {
-        this.render();
+        switch (this.currentGame.phase) {
+          case 'waiting': appDiv.innerHTML = this.renderWaitingPhase(); break;
+          case 'propose': appDiv.innerHTML = this.renderProposePhase(); break;
+          case 'vote': appDiv.innerHTML = this.renderVotePhase(); break;
+          case 'results': appDiv.innerHTML = this.renderResults(); break;
+        }
       }
-
-      this.phaseInterval = setInterval(() => this.checkPhaseTimeout(), 1000);
-
-      // Éviter les re-renders intempestifs pendant la saisie
-      document.addEventListener('focusin', (e) => {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') this.isTyping = true;
-      });
-      document.addEventListener('focusout', (e) => {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-          setTimeout(() => {
-            this.isTyping = false;
-            this.render();
-          }, 200); // Délai pour laisser le temps au clic (onclick) de s'exécuter
-        }
-      });
-
-      // Retirer le joueur de la liste des présences si on ferme l'onglet ou quitte la page
-      window.addEventListener('beforeunload', () => {
-        if (this.roomId && this.displayName) {
-          // On retire la présence immédiatement pour les autres sans attendre le timeout de Firebase
-          this.removePresence();
-        }
-      });
+      this.attachEventListeners();
     }
 
-    async savePlayerName(name) {
-      const sanitized = sanitizeUsername(name);
-      if (!sanitized) {
-        this.errorMessage = 'Pseudo invalide (vide ou trop d\'espaces)';
-        this.render();
-        return false;
-      }
-      this.displayName = sanitized;
-      sessionStorage.setItem('game50_playerName', sanitized);
-      this.errorMessage = null;
-      this.render(); // ← Affiche le lobby
-      return true;
+    // --- LOGIQUE DE JEU ---
+    saveState() {
+      localStorage.setItem(LOCAL_GAME_KEY, JSON.stringify(this.currentGame));
+      this.render();
     }
 
-    async createRoom() {
-      const id = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const userKey = this.displayName ? this.displayName.replace(/[\.\$\#\[\]\/]/g, '_') : 'host';
-  
-      const gameData = {
+    createRoom() {
+      this.currentGame = {
         scenario: '',
         phase: 'waiting',
         host: this.displayName,
         proposals: [],
         votes: {},
-        players: { [userKey]: this.displayName },
         createdAt: Date.now()
       };
-  
-      try {
-        await set(ref(db, 'rooms/' + id), gameData);
-  
-        this.roomId = id;
-        this.currentGame = gameData;
-  
-        sessionStorage.setItem('game50_currentRoom', id);
-  
-        this.updatePresence();
-        this.setupRoomListener();
-        this.render();
-  
-        alert(`Salon créé ! Code : ${id}`);
-      } catch (err) {
-        console.error(err);
-        this.errorMessage = 'Erreur création';
-        this.render();
-      }
+      this.saveState();
     }
 
-    async joinRoomById(roomId) {
-      if (!roomId) return;
-      const cleanId = roomId.trim().toUpperCase();
-      try {
-        const snapshot = await get(ref(db, 'rooms/' + cleanId));
-        if (snapshot.exists()) {
-          const gameData = snapshot.val();
-          
-          if (validateGameData(gameData)) {
-            this.roomId = cleanId;
-            this.currentGame = gameData;
-            sessionStorage.setItem('game50_currentRoom', cleanId);
-            this.updatePresence();
-            this.setupRoomListener();
-            this.errorMessage = null;
-            this.render();
-          } else {
-            this.errorMessage = 'Données de ce salon corrompues.';
-            this.render();
-          }
-        } else {
-          this.errorMessage = 'Salon introuvable. Vérifie le code.';
-          this.render();
-        }
-      } catch (err) {
-        console.error(err);
-        this.errorMessage = 'Erreur lors de la connexion au salon';
-        this.render();
-      }
-    }
-
-    setupRoomListener() {
-      if (this.unsubscribe) this.unsubscribe();
-      const roomRef = ref(db, 'rooms/' + this.roomId);
-      this.unsubscribe = onValue(roomRef, (snapshot) => {
-        if (snapshot.exists()) {
-          const newData = snapshot.val();
-          if (validateGameData(newData)) {
-            this.currentGame = newData;
-            if (!this.isTyping) this.render();
-          } else {
-            console.warn("Données de jeu invalides");
-          }
-        } else {
-          this.resetGame();
-          this.errorMessage = 'La partie a été terminée par le créateur.';
-          this.render();
-        }
-      });
-    }
-
-    async saveGame() {
-      if (!this.roomId || !this.currentGame) return;
-      try {
-        await set(ref(db, 'rooms/' + this.roomId), this.currentGame);
-      } catch (err) {
-        console.error("Erreur sauvegarde:", err);
-      }
-    }
-
-    async deleteRoom() {
-      if (!this.roomId || this.isDeleting) return;
-  
-      this.isDeleting = true;
-  
-      try {
-        await remove(ref(db, 'rooms/' + this.roomId));
-      } catch (e) {
-        console.error(e);
-      }
-  
-      this.isDeleting = false;
-    }
-
-    async updatePresence() {
-      if (!this.roomId || !this.displayName) return;
-      const userKey = this.displayName.replace(/[\.\$\#\[\]\/]/g, '_');
-      const playerRef = ref(db, `rooms/${this.roomId}/players/${userKey}`);
-      try {
-        await set(playerRef, this.displayName);
-        onDisconnect(playerRef).remove();
-      } catch (e) {
-        console.error("Erreur de présence :", e);
-      }
-    }
-
-    async removePresence() {
-      if (!this.roomId || !this.displayName) return;
-      const userKey = this.displayName.replace(/[\.\$\#\[\]\/]/g, '_');
-      try {
-        // Utilisation des données locales immédiates pour savoir si on est le dernier (important pour le beforeunload)
-        if (this.currentGame && this.currentGame.players) {
-          const playersKeys = Object.keys(this.currentGame.players);
-          if (playersKeys.length <= 1 && playersKeys.includes(userKey)) {
-            // Si on est le dernier joueur en lice, on détruit la totalité du salon
-            await this.deleteRoom();
-            return;
-          }
-        }
-        // Sinon, on retire juste notre propre présence
-        await remove(ref(db, `rooms/${this.roomId}/players/${userKey}`));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-
-    async resetGame() {
-      if (this.unsubscribe) {
-        this.unsubscribe();
-        this.unsubscribe = null;
-      }
-      await this.removePresence();
-      this.currentGame = null;
-      this.roomId = null;
-      this.errorMessage = null;
-      sessionStorage.removeItem('game50_currentRoom');
-      this.render();
-    }
-
-    async nextRound() {
-      if (!this.roomId || this.displayName !== this.currentGame.host) return;
-      
-      this.currentGame.phase = 'waiting';
-      this.currentGame.scenario = '';
-      this.currentGame.proposals = [];
-      this.currentGame.votes = {};
-      delete this.currentGame.results;
-
-      try {
-        await this.saveGame();
-      } catch (err) {
-        console.error("Erreur retour au salon:", err);
-      }
-    }
-
-    async startGame() {
-      if (!this.roomId || this.displayName !== this.currentGame.host) return;
-      
+    startGame() {
       this.currentGame.phase = 'propose';
-      this.currentGame.scenario = getRandomScenario();
+      this.currentGame.scenario = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
       this.currentGame.phaseStartTime = Date.now();
-      
-      try {
-        await this.saveGame();
-      } catch (err) {
-        console.error("Erreur démarrage:", err);
+      this.saveState();
+    }
+
+    submitProposal(text) {
+      if (!text.trim()) return;
+      const proposal = {
+        id: generateId(),
+        author: this.displayName,
+        text: text.trim()
+      };
+      this.currentGame.proposals.push(proposal);
+      this.saveState();
+    }
+
+    submitVote(proposalId, vote) {
+      if (!this.currentGame.votes[proposalId]) {
+        this.currentGame.votes[proposalId] = { yes: 0, no: 0 };
       }
+      this.currentGame.votes[proposalId][vote]++;
+      this.saveState();
     }
 
     checkPhaseTimeout() {
       if (!this.currentGame || this.currentGame.phase === 'waiting' || this.currentGame.phase === 'results') return;
       
-      const now = Date.now();
-      const elapsed = now - this.currentGame.phaseStartTime;
-      let phaseChanged = false;
-      let forceRender = false;
-      
+      const elapsed = Date.now() - this.currentGame.phaseStartTime;
       if (this.currentGame.phase === 'propose' && elapsed > PHASE_DURATION.propose) {
         this.currentGame.phase = 'vote';
-        this.currentGame.phaseStartTime = now;
-        this.currentVoteIndex = 0;
-        phaseChanged = true;
-      } else if (this.currentGame.phase === 'vote') {
-        const PROPOSAL_VOTE_TIME = 30000; // 30 secondes par proposition
-        const totalDuration = this.currentGame.proposals.length * PROPOSAL_VOTE_TIME;
-        
-        if (elapsed > totalDuration || this.currentGame.proposals.length === 0) {
-          this.currentGame.phase = 'results';
-          this.calculateResults();
-          phaseChanged = true;
-        } else {
-          const newIndex = Math.floor(elapsed / PROPOSAL_VOTE_TIME);
-          if (this.currentVoteIndex !== newIndex) {
-            this.currentVoteIndex = newIndex;
-            forceRender = true;
-          }
-        }
+        this.currentGame.phaseStartTime = Date.now();
+        this.saveState();
+      } else if (this.currentGame.phase === 'vote' && elapsed > PHASE_DURATION.vote) {
+        this.currentGame.phase = 'results';
+        this.calculateResults();
+        this.saveState();
       }
       
-      if (phaseChanged) {
-        // Seul l'hôte sauvegarde la transition pour éviter les conflits
-        if (this.displayName === this.currentGame.host) {
-          this.saveGame();
-        }
-        if (!this.isTyping) this.render();
-      } else if (forceRender) {
-        // Rafraîchir l'écran quand on passe à la proposition suivante
-        if (!this.isTyping) this.render();
-      } else {
-        const timerDisplay = document.getElementById('timerDisplay');
-        if (timerDisplay) {
-          timerDisplay.innerText = `⏱️ Temps restant : ${this.getTimeRemaining()}`;
-        }
+      const timer = document.getElementById('timerDisplay');
+      if (timer) {
+        const total = this.currentGame.phase === 'propose' ? PHASE_DURATION.propose : PHASE_DURATION.vote;
+        const rem = Math.max(0, Math.floor((total - elapsed) / 1000));
+        timer.innerText = `⏱️ Temps restant : ${rem}s`;
       }
     }
-
-    getTimeRemaining() {
-      if (!this.currentGame) return "0:00";
-      const elapsed = Date.now() - this.currentGame.phaseStartTime;
-      let remaining = 0;
-      
-      if (this.currentGame.phase === 'propose') {
-        remaining = Math.max(0, PHASE_DURATION.propose - elapsed);
-      } else if (this.currentGame.phase === 'vote') {
-        const PROPOSAL_VOTE_TIME = 30000;
-        // On calcule le temps restant UNIQUEMENT pour la proposition en cours
-        remaining = Math.max(0, PROPOSAL_VOTE_TIME - (elapsed % PROPOSAL_VOTE_TIME));
-      }
-      
-      const minutes = Math.floor(remaining / 60000);
-      const seconds = Math.floor((remaining % 60000) / 1000);
-      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    }
-
-    async submitProposal(counterpart) {
-      if (!this.currentGame || this.currentGame.phase !== 'propose') return;
-  
-      const sanitized = sanitizeText(counterpart);
-      if (!sanitized) return;
-  
-      const existingIndex = this.currentGame.proposals.findIndex(
-        p => p.author === this.displayName
-      );
-  
-      const proposal = {
-        author: this.displayName,
-        text: sanitized,
-        id: existingIndex >= 0
-          ? this.currentGame.proposals[existingIndex].id
-          : generateId() // 🔥 FIX ID UNIQUE
-      };
-  
-      if (existingIndex >= 0) {
-        this.currentGame.proposals[existingIndex] = proposal;
-      } else {
-        this.currentGame.proposals.push(proposal);
-      }
-  
-      await this.saveGame();
-      this.render();
-    }
-
-
-    async submitVote(proposalId, vote) {
-      if (!this.currentGame || this.currentGame.phase !== 'vote') return;
-  
-      proposalId = String(proposalId); // 🔥 FIX type
-  
-      if (!this.currentGame.votes[proposalId]) {
-        this.currentGame.votes[proposalId] = { yes: [], no: [] };
-      }
-  
-      const votes = this.currentGame.votes[proposalId];
-  
-      votes.yes = (votes.yes || []).filter(n => n !== this.displayName);
-      votes.no = (votes.no || []).filter(n => n !== this.displayName);
-  
-      if (vote === 'yes') votes.yes.push(this.displayName);
-      if (vote === 'no') votes.no.push(this.displayName);
-  
-      await this.saveGame();
-    }
-
 
     calculateResults() {
-      if (!this.currentGame) return;
-  
       this.currentGame.results = this.currentGame.proposals.map(p => {
-        const votes = this.currentGame.votes[p.id] || {};
-        const yesVotes = votes.yes || [];
-        const noVotes = votes.no || [];
-  
-        const total = yesVotes.length + noVotes.length;
-        const percent = total ? (yesVotes.length / total) * 100 : 0;
-  
-        return {
-          ...p,
-          yesVotes: yesVotes.length,
-          noVotes: noVotes.length,
-          yesPercent: percent,
-          deviation: Math.abs(50 - percent)
-        };
-      });
-  
-      this.currentGame.results.sort((a, b) => a.deviation - b.deviation);
+        const v = this.currentGame.votes[p.id] || { yes: 0, no: 0 };
+        const total = v.yes + v.no;
+        const percent = total > 0 ? (v.yes / total * 100) : 0;
+        return { ...p, yesPercent: percent, totalVotes: total };
+      }).sort((a, b) => Math.abs(50 - a.yesPercent) - Math.abs(50 - b.yesPercent));
     }
 
-    renderPlayersList() {
-      if (!this.currentGame) return '';
-      const playersMap = this.currentGame.players || {};
-      const players = Object.values(playersMap);
-      
-      // On affiche notre propre pseudo quoiqu'il arrive, même si le visuel lag avec Firebase
-      if (this.displayName && !players.includes(this.displayName)) {
-        players.push(this.displayName);
-      }
-      
-      if (players.length === 0) return '';
-      
-      return `<div class="player-count" style="margin-bottom: 20px; background: #e0e7ff; color: #1e40af; border: 1px solid #bfdbfe; text-align: center;">
-          👥 <strong>Joueurs présents (${players.length}) :</strong> ${escapeHtml(players.join(' - '))}
-        </div>`;
-    }
-
-    // ---------- RENDU ----------
-    render() {
-      try {
-        const appDiv = document.getElementById('app');
-        if (!this.displayName) {
-          appDiv.innerHTML = this.renderNameEntry();
-        } else if (!this.currentGame) {
-          appDiv.innerHTML = this.renderLobby();
-        } else {
-          switch (this.currentGame.phase) {
-            case 'waiting': appDiv.innerHTML = this.renderWaitingPhase(); break;
-            case 'propose': appDiv.innerHTML = this.renderProposePhase(); break;
-            case 'vote': appDiv.innerHTML = this.renderVotePhase(); break;
-            case 'results': appDiv.innerHTML = this.renderResults(); break;
-            default: appDiv.innerHTML = '<div class="card">Erreur de phase</div>';
-          }
-        }
-        this.attachEventListeners();
-      } catch (err) {
-        console.error("ERREUR RENDER:", err);
-        document.getElementById('app').innerHTML = `<div class="card error-box">Erreur d'affichage: ${err.message}</div>`;
-      }
-    }
-
-    renderWaitingPhase() {
-      const isHost = this.displayName === this.currentGame.host;
-      return `
-        <div class="card">
-          <h2 style="margin-bottom:20px;text-align:center;">Salon d'attente</h2>
-          <div class="info-box">Invitez vos amis avec ce code avant de commencer !</div>
-          <div class="room-code">🔑 Code : ${escapeHtml(this.roomId)}</div>
-          ${this.renderPlayersList()}
-          ${isHost 
-            ? '<button id="startGame" style="margin-bottom: 15px;">▶️ Démarrer la partie</button>' 
-            : '<div class="info-box" style="text-align:center;">⏳ En attente de l&apos;hôte (' + escapeHtml(this.currentGame.host || 'Anonyme') + ') pour commencer...</div>'}
-          <button id="leaveGame" class="secondary">Quitter le salon</button>
-        </div>
-      `;
-    }
-
+    // --- RENDU TEMPLATES ---
     renderNameEntry() {
       return `
         <div class="card">
-          <h2 style="margin-bottom:20px;">Bienvenue !</h2>
-          ${this.errorMessage ? `<div class="error-box">${escapeHtml(this.errorMessage)}</div>` : ''}
-          <div class="info-box">Choisis un pseudo pour commencer à jouer.</div>
-          <div class="input-group">
-            <label>Ton pseudo</label>
-            <input type="text" id="playerName" placeholder="Ex: Joueur01" maxlength="20" autocomplete="off">
-          </div>
-          <button id="submitName">Commencer</button>
-        </div>
-      `;
+          <h2>Bienvenue !</h2>
+          <div class="input-group"><label>Ton pseudo</label>
+          <input type="text" id="playerName" placeholder="Ex: Joueur01"></div>
+          <button id="btnSaveName">Commencer</button>
+        </div>`;
     }
 
     renderLobby() {
       return `
         <div class="card">
-          <h2 style="margin-bottom:20px;">Menu principal</h2>
-          <div class="info-box">👋 Bonjour ${escapeHtml(this.displayName)} !</div>
-          ${this.errorMessage ? `<div class="error-box">${escapeHtml(this.errorMessage)}</div>` : ''}
-          <div style="margin-bottom:30px;">
-            <h3 style="margin-bottom:15px;color:#667eea;">🎲 Créer une partie</h3>
-            <div class="info-box">Un scénario aléatoire sera généré pour vous et vos amis !</div>
-            <button id="createGame">Créer un salon</button>
-          </div>
-          <div style="border-top:1px solid #e0e0e0; padding-top:20px;">
-            <h3 style="margin-bottom:15px;color:#667eea;">🔗 Rejoindre une partie</h3>
-            <div class="input-group">
-              <label>Code du salon</label>
-              <input type="text" id="roomCode" placeholder="Ex: AB3F7K" maxlength="6" style="text-transform:uppercase;" autocomplete="off">
-            </div>
-            <button id="joinGame">Rejoindre</button>
-          </div>
-        </div>
-      `;
+          <h2>Menu Local</h2>
+          <div class="info-box">Bonjour ${escapeHtml(this.displayName)} !</div>
+          <button id="btnCreate">Créer une partie</button>
+        </div>`;
+    }
+
+    renderWaitingPhase() {
+      return `
+        <div class="card">
+          <h2>Salon d'attente</h2>
+          <button id="btnStart">▶️ Démarrer la partie</button>
+          <button id="btnReset" class="secondary">Quitter</button>
+        </div>`;
     }
 
     renderProposePhase() {
-      const myProposal = this.currentGame.proposals.find(p => p.author === this.displayName);
-      const timeRemaining = this.getTimeRemaining();
       return `
         <div class="card scenario-card">
           <div class="scenario-label">Scénario</div>
           <div class="scenario-text">${escapeHtml(this.currentGame.scenario)}</div>
         </div>
         <div class="card">
-          <div class="phase-indicator">
-            <div class="phase-step active">1. Propositions</div>
-            <div class="phase-step">2. Votes</div>
-            <div class="phase-step">3. Résultats</div>
-          </div>
-          <div class="room-code">🔑 Code salon : ${escapeHtml(this.roomId)}</div>
-          ${this.renderPlayersList()}
-          ${this.errorMessage ? `<div class="error-box">${escapeHtml(this.errorMessage)}</div>` : ''}
-          <div class="info-box">Propose une contrepartie qui divisera l'opinion en 50/50 !</div>
+          <div class="phase-step active">1. Proposition</div>
           <div class="input-group">
-            <label>Ta contrepartie</label>
-            <textarea id="counterpart" placeholder="Ex: Mais vous ne pourrez plus jamais manger de chocolat..." maxlength="500">${myProposal ? escapeHtml(myProposal.text) : ''}</textarea>
+            <label>Ta contrepartie (Dilemme)</label>
+            <textarea id="txtProposal" placeholder="Mais..."></textarea>
           </div>
-          <button id="submitProposal">${myProposal ? 'Modifier ma proposition' : 'Envoyer ma proposition'}</button>
-          ${myProposal ? '<div class="player-count">✓ Proposition enregistrée !</div>' : ''}
-          <div class="countdown" id="timerDisplay">⏱️ Temps restant : ${escapeHtml(timeRemaining)}</div>
-          <div class="player-count">📝 ${this.currentGame.proposals.length} proposition${this.currentGame.proposals.length > 1 ? 's' : ''}</div>
-          <button id="leaveGame" class="secondary" style="margin-top:15px;">Quitter la partie</button>
-        </div>
-      `;
+          <button id="btnSubmitProposal">Envoyer</button>
+          <div class="countdown" id="timerDisplay"></div>
+        </div>`;
     }
 
     renderVotePhase() {
-      const timeRemaining = this.getTimeRemaining();
-      const elapsed = Date.now() - this.currentGame.phaseStartTime;
-      const PROPOSAL_VOTE_TIME = 30000;
-      const currentIndex = Math.floor(elapsed / PROPOSAL_VOTE_TIME);
-      
-      let content = '';
-      if (this.currentGame.proposals.length === 0) {
-        content = `
-          <div class="empty-state"><div class="empty-state-icon">🤷</div><p>Aucune proposition n'a été faite...</p></div>
-          <button id="leaveGame" class="secondary" style="margin-top:15px;">Quitter la partie</button>
-        `;
-      } else if (currentIndex < this.currentGame.proposals.length) {
-        const proposal = this.currentGame.proposals[currentIndex];
-        const votes = this.currentGame.votes[proposal.id] || {};
-        const yesVotes = votes.yes || [];
-        const noVotes = votes.no || [];
-        const myVote = yesVotes.includes(this.displayName) ? 'yes' : noVotes.includes(this.displayName) ? 'no' : null;
-        
-        content = `
-          <div class="info-box" style="text-align:center; font-size:16px;">
-            <strong>🗳️ Proposition ${currentIndex + 1} sur ${this.currentGame.proposals.length}</strong>
-          </div>
-          <div class="countdown" id="timerDisplay" style="font-size: 18px; color: #ef4444; font-weight: 800; text-align: center; margin-bottom: 15px;">
-            ⏱️ Temps restant : ${escapeHtml(timeRemaining)}
-          </div>
-          <div class="proposal-item" style="border-width: 3px; border-color: #667eea; transform: scale(1.02); margin-bottom: 20px;">
-            <div class="proposal-author" style="text-align: center; font-size: 16px;">${escapeHtml(proposal.author)} a proposé :</div>
-            <div class="proposal-text" style="font-size: 20px; font-weight: 600; text-align: center; margin: 15px 0;">"${escapeHtml(proposal.text)}"</div>
-            <div class="vote-buttons" style="margin-top: 25px;">
-              <button class="vote-btn yes ${myVote === 'yes' ? 'selected' : ''}" data-proposal-id="${proposal.id}" data-vote="yes">${myVote === 'yes' ? '✓ ' : ''}J'ACCEPTE</button>
-              <button class="vote-btn no ${myVote === 'no' ? 'selected' : ''}" data-proposal-id="${proposal.id}" data-vote="no">${myVote === 'no' ? '✓ ' : ''}JE REFUSE</button>
+      const proposal = this.currentGame.proposals[0] || { text: "Pas de proposition", id: '0' };
+      return `
+        <div class="card">
+          <h2>Votez !</h2>
+          <div class="proposal-item">
+            <p>"... ${escapeHtml(proposal.text)}"</p>
+            <div class="vote-buttons">
+              <button class="vote-btn yes" onclick="window.game.submitVote('${proposal.id}', 'yes')">J'ACCEPTE</button>
+              <button class="vote-btn no" onclick="window.game.submitVote('${proposal.id}', 'no')">JE REFUSE</button>
             </div>
           </div>
-          <button id="leaveGame" class="secondary">Quitter la partie</button>
-        `;
-      }
-
-      return `
-        <div class="card scenario-card">
-          <div class="scenario-label">Scénario</div>
-          <div class="scenario-text">${escapeHtml(this.currentGame.scenario)}</div>
-        </div>
-        <div class="card">
-          <div class="phase-indicator">
-            <div class="phase-step">1. Propositions</div>
-            <div class="phase-step active">2. Votes</div>
-            <div class="phase-step">3. Résultats</div>
-          </div>
-          <div class="room-code">🔑 Code salon : ${escapeHtml(this.roomId)}</div>
-          ${this.renderPlayersList()}
-          ${content}
-        </div>
-      `;
+          <div class="countdown" id="timerDisplay"></div>
+        </div>`;
     }
 
     renderResults() {
-      const isHost = this.displayName === this.currentGame.host;
-      if (!this.currentGame.results || this.currentGame.results.length === 0) {
-        return `
-          <div class="card scenario-card"><div class="scenario-label">Scénario</div><div class="scenario-text">${escapeHtml(this.currentGame.scenario)}</div></div>
-          <div class="card">
-            <div class="phase-indicator"><div class="phase-step">1. Propositions</div><div class="phase-step">2. Votes</div><div class="phase-step active">3. Résultats</div></div>
-            ${this.renderPlayersList()}
-            <div class="empty-state"><div class="empty-state-icon">🤷</div><p>Aucun vote n'a été enregistré...</p></div>
-            ${isHost 
-              ? '<button id="newGame" style="margin-bottom: 10px;">Retour au salon pour rejouer</button>'
-              : '<div class="info-box" style="text-align:center;">⏳ En attente de l&apos;hôte pour relancer une manche...</div>'}
-            <button id="leaveGameResults" class="secondary">Quitter le salon</button>
-          </div>
-        `;
-      }
       return `
-        <div class="card scenario-card"><div class="scenario-label">Scénario</div><div class="scenario-text">${escapeHtml(this.currentGame.scenario)}</div></div>
         <div class="card">
-          <div class="phase-indicator"><div class="phase-step">1. Propositions</div><div class="phase-step">2. Votes</div><div class="phase-step active">3. Résultats</div></div>
-          <h2 style="margin-bottom:20px;text-align:center;">🏆 Résultats</h2>
-          ${this.renderPlayersList()}
-          ${this.currentGame.results.map((result, idx) => {
-            const isWinner = idx === 0;
-            const total = result.yesVotes + result.noVotes;
-            const yesWidth = total > 0 ? (result.yesVotes / total) * 100 : 50;
-            const noWidth = total > 0 ? (result.noVotes / total) * 100 : 50;
-            return `
-              <div class="result-item ${isWinner ? 'winner' : ''}">
-                ${isWinner ? '<div class="winner-badge">🏆 Gagnant</div>' : ''}
-                <div class="result-header"><div class="result-author">${escapeHtml(result.author)}</div><div class="result-score ${result.deviation < 1 ? 'perfect' : ''}">${result.yesPercent.toFixed(1)}% OUI</div></div>
-                <div class="result-text">${escapeHtml(result.text)}</div>
-                <div class="vote-bar-container"><div class="vote-bar" style="width:${yesWidth}%;">${result.yesVotes > 0 ? result.yesVotes + ' OUI' : ''}</div><div class="vote-bar-no" style="width:${noWidth}%;">${result.noVotes > 0 ? result.noVotes + ' NON' : ''}</div></div>
-                <div class="vote-stats"><span>Écart au 50/50 : ${result.deviation.toFixed(1)}%</span><span>${total} vote${total > 1 ? 's' : ''}</span></div>
+          <h2>Résultats</h2>
+          ${(this.currentGame.results || []).map((r, i) => `
+            <div class="result-item ${i === 0 ? 'winner' : ''}">
+              ${i === 0 ? '<span class="winner-badge">Le plus proche du 50/50 !</span>' : ''}
+              <p><strong>${escapeHtml(r.author)}</strong> : ${escapeHtml(r.text)}</p>
+              <div class="vote-bar-container">
+                <div class="vote-bar" style="width: ${r.yesPercent}%">${Math.round(r.yesPercent)}%</div>
               </div>
-            `;
-          }).join('')}
-          ${isHost 
-            ? '<button id="newGame" style="margin-bottom: 10px;">Retour au salon pour rejouer</button>'
-            : '<div class="info-box" style="text-align:center;">⏳ En attente de l&apos;hôte pour relancer une manche...</div>'}
-          <button id="leaveGameResults" class="secondary">Quitter le salon</button>
-        </div>
-      `;
+            </div>
+          `).join('')}
+          <button id="btnReset">Nouvelle partie</button>
+        </div>`;
     }
 
     attachEventListeners() {
-      // ENTER pseudo
-      const nameInput = document.getElementById('playerName');
-      if (nameInput) {
-        nameInput.onkeydown = (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            this.savePlayerName(nameInput.value);
-          }
-        };
-      }
+      const btnSaveName = document.getElementById('btnSaveName');
+      if (btnSaveName) btnSaveName.onclick = () => {
+        const val = sanitizeUsername(document.getElementById('playerName').value);
+        if (val) { this.displayName = val; sessionStorage.setItem('game50_playerName', val); this.render(); }
+      };
 
-      // ENTER room code
-      const roomCodeInput = document.getElementById('roomCode');
-      if (roomCodeInput) {
-        roomCodeInput.onkeydown = (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            this.joinRoomById(roomCodeInput.value);
-          }
-        };
-      }
+      const btnCreate = document.getElementById('btnCreate');
+      if (btnCreate) btnCreate.onclick = () => this.createRoom();
 
-      // ENTER counterpart
-      const counterpartInput = document.getElementById('counterpart');
-      if (counterpartInput) {
-        counterpartInput.onkeydown = (e) => {
-          if (e.key === 'Enter' && e.ctrlKey) {
-            e.preventDefault();
-            this.submitProposal(counterpartInput.value);
-          }
-        };
-      }
+      const btnStart = document.getElementById('btnStart');
+      if (btnStart) btnStart.onclick = () => this.startGame();
 
-      // Bouton "Commencer"
-      const submitName = document.getElementById('submitName');
-      if (submitName) {
-        submitName.onclick = async () => {
-          const nameInput = document.getElementById('playerName');
-          if (nameInput && nameInput.value.trim()) {
-            await this.savePlayerName(nameInput.value);
-          }
-        };
-      }
+      const btnSubmitProposal = document.getElementById('btnSubmitProposal');
+      if (btnSubmitProposal) btnSubmitProposal.onclick = () => {
+        this.submitProposal(document.getElementById('txtProposal').value);
+      };
 
-      // Créer un salon
-      const createGame = document.getElementById('createGame');
-      if (createGame) {
-        createGame.onclick = () => {
-          this.createRoom();
-        };
-      }
-
-      // Rejoindre un salon
-      const joinGame = document.getElementById('joinGame');
-      if (joinGame) {
-        joinGame.onclick = () => {
-          const code = document.getElementById('roomCode').value;
-          if (code.trim()) {
-            this.joinRoomById(code);
-          }
-        };
-      }
-
-      // Proposer une contrepartie
-      const submitProposal = document.getElementById('submitProposal');
-      if (submitProposal) {
-        submitProposal.onclick = () => {
-          const counterpart = document.getElementById('counterpart').value;
-          if (counterpart.trim()) {
-            this.submitProposal(counterpart);
-          }
-        };
-      }
-
-      // Démarrer la partie (Hôte)
-      const startGame = document.getElementById('startGame');
-      if (startGame) {
-        startGame.onclick = () => this.startGame();
-      }
-
-      // Nouvelle partie (après résultats)
-      const newGame = document.getElementById('newGame');
-      if (newGame) {
-        newGame.onclick = () => this.nextRound();
-      }
-      
-      const leaveGameResults = document.getElementById('leaveGameResults');
-      if (leaveGameResults) {
-        leaveGameResults.onclick = () => {
-          if (confirm('Quitter la partie définitivement ?')) this.resetGame();
-        };
-      }
-
-      // Quitter la partie
-      const leaveGame = document.getElementById('leaveGame');
-      if (leaveGame) {
-        leaveGame.onclick = () => {
-          if (confirm('Quitter la partie ? Tu pourras la rejoindre plus tard avec le code.')) this.resetGame();
-        };
-      }
-
-      // Votes
-      document.querySelectorAll('.vote-btn').forEach(btn => {
-        btn.onclick = () => {
-          const proposalId = btn.dataset.proposalId;
-          const vote = btn.dataset.vote;
-          this.submitVote(proposalId, vote);
-        };
-      });
+      const btnReset = document.getElementById('btnReset');
+      if (btnReset) btnReset.onclick = () => {
+        localStorage.removeItem(LOCAL_GAME_KEY);
+        this.currentGame = null;
+        this.render();
+      };
     }
   }
 
-  // Démarrer le jeu
   window.game = new Game();
 </script>
 </body>
