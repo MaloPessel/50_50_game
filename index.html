@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>50/50 - Le Jeu du Dilemme (Pass & Play)</title>
+  <title>50/50 - Le Jeu du Dilemme (Pass & Play Édition Party)</title>
   <style>
-    /* ===== TON STYLE CONSERVÉ ===== */
+    /* ===== STYLES DE BASE ===== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; color: #333; }
     .container { max-width: 600px; margin: 0 auto; }
@@ -13,9 +13,21 @@
     .header h1 { font-size: 48px; font-weight: 800; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
     .header .subtitle { font-size: 18px; opacity: 0.95; }
     .card { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); margin-bottom: 20px; }
-    .scenario-card { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; text-align: center; padding: 40px 30px; }
+    
+    /* ===== SCÉNARIOS ET RÈGLES ===== */
+    .scenario-card { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; text-align: center; padding: 40px 30px; position: relative; overflow: hidden; }
     .scenario-text { font-size: 24px; font-weight: 600; line-height: 1.4; margin-bottom: 15px; word-wrap: break-word; }
-    .scenario-label { font-size: 14px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+    .scenario-label { font-size: 14px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 10px; }
+    .secret-rule-box { margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 2px dashed rgba(255,255,255,0.5); animation: pulseRule 2s infinite; }
+    .secret-rule-title { font-weight: 800; color: #ffe4e1; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; }
+    
+    @keyframes pulseRule {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); border-color: rgba(255,255,255,0.9); }
+      100% { transform: scale(1); }
+    }
+
+    /* ===== INPUTS & BOUTONS ===== */
     .input-group { margin-bottom: 20px; }
     label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 14px; }
     input, textarea { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 16px; font-family: inherit; transition: border-color 0.3s; }
@@ -24,21 +36,41 @@
     button { width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
     button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); }
     button.secondary { background: #6c757d; margin-top: 10px; }
+    
+    /* ===== VOTES ===== */
     .vote-buttons { display: flex; gap: 10px; margin-top: 15px; }
-    .vote-btn { flex: 1; padding: 12px; border: 2px solid; background: white; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; font-size: 16px; }
+    .vote-btn { flex: 1; padding: 12px; border: 2px solid; background: white; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 16px; text-transform: uppercase; }
     .vote-btn.yes { border-color: #10b981; color: #10b981; }
-    .vote-btn.yes:hover { background: #10b981; color: white; }
+    .vote-btn.yes:active { background: #10b981; color: white; transform: scale(0.95); }
     .vote-btn.no { border-color: #ef4444; color: #ef4444; }
-    .vote-btn.no:hover { background: #ef4444; color: white; }
-    .result-item { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 3px solid #e0e0e0; position: relative; }
+    .vote-btn.no:active { background: #ef4444; color: white; transform: scale(0.95); }
+    
+    /* ===== RÉSULTATS & ANIMATIONS ===== */
+    .result-item { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 3px solid #e0e0e0; position: relative; overflow: hidden; }
     .result-item.winner { border-color: #fbbf24; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
-    .winner-badge { position: absolute; top: 15px; right: 15px; background: #fbbf24; color: #92400e; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-    .vote-bar-container { position: relative; height: 30px; background: #e0e0e0; border-radius: 15px; overflow: hidden; margin: 10px 0; }
-    .vote-bar { position: absolute; left: 0; top: 0; height: 100%; background: #10b981; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 12px; }
+    .winner-badge { position: absolute; top: -5px; right: 15px; background: #fbbf24; color: #92400e; padding: 6px 12px; border-radius: 0 0 10px 10px; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+    
+    .vote-bar-container { position: relative; height: 35px; background: #fee2e2; /* fond rouge (Non) */ border-radius: 15px; overflow: hidden; margin: 15px 0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+    .vote-bar-fill { position: absolute; left: 0; top: 0; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); /* vert (Oui) */ width: 0%; /* Sera animé en JS */ transition: width 1.5s cubic-bezier(0.25, 1, 0.5, 1); display: flex; align-items: center; padding-left: 10px; color: white; font-weight: 800; font-size: 14px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+    
+    .author-reveal-btn { background: #374151; color: white; padding: 10px; border-radius: 8px; font-size: 14px; margin-top: 10px; display: block; text-align: center; cursor: pointer; transition: background 0.3s; }
+    .author-reveal-btn:hover { background: #1f2937; }
+    
+    .author-info { display: none; margin-top: 15px; padding-top: 15px; border-top: 2px dashed #e5e7eb; text-align: center; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .author-name { font-size: 22px; font-weight: 800; color: #4f46e5; margin-bottom: 5px; }
+    .author-title { font-size: 14px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; }
+
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* ===== DIVERS ===== */
     .info-box { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; color: #1e40af; }
     .player-tag { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 5px 10px; border-radius: 15px; margin: 5px; font-weight: 600; font-size: 14px; }
     .transition-screen { text-align: center; padding: 40px 20px; }
-    .transition-icon { font-size: 64px; margin-bottom: 20px; }
+    .transition-icon { font-size: 64px; margin-bottom: 20px; animation: bounce 2s infinite; }
+    @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-20px);} 60% {transform: translateY(-10px);} }
   </style>
 </head>
 <body>
@@ -62,26 +94,43 @@
     return Math.random().toString(36).substring(2, 9);
   }
 
+  // Les dilemmes de base
   const SCENARIOS = [
-    "Vous gagnez 10 millions d'euros", "Vous pouvez voler comme un oiseau",
-    "Vous avez la capacité de lire dans les pensées", "Vous découvrez le secret de l'immortalité",
-    "Vous devenez instantanément célèbre", "Vous avez une santé parfaite"
+    "Vous gagnez 10 millions d'euros", 
+    "Vous pouvez voler comme un oiseau",
+    "Vous avez la capacité de lire dans les pensées", 
+    "Vous découvrez le secret de l'immortalité",
+    "Vous devenez instantanément la personne la plus célèbre du monde", 
+    "Vous avez une santé parfaite jusqu'à 100 ans",
+    "Vous pouvez vous téléporter n'importe où dans le monde",
+    "Vous pouvez parler et comprendre toutes les langues animales"
+  ];
+
+  // NOUVEAU : Les règles secrètes
+  const SECRET_RULES = [
+    "La contrepartie doit obligatoirement impliquer un animal.",
+    "La contrepartie doit être liée à la nourriture ou la boisson.",
+    "La contrepartie doit impliquer un handicap physique ou sensoriel.",
+    "La contrepartie doit être extrêmement embarrassante en public.",
+    "La contrepartie doit faire intervenir un membre de votre famille.",
+    "La contrepartie doit vous ruiner financièrement.",
+    "La contrepartie doit comporter le mot 'Toujours' ou 'Jamais'."
   ];
 
   class Game {
     constructor() {
       this.players = [];
-      this.phase = 'setup'; // setup, transition_propose, propose, transition_vote, vote, results
+      this.phase = 'setup';
       this.currentPlayerIndex = 0;
       this.currentVoteIndex = 0;
       this.scenario = '';
+      this.secretRule = null; // Stocke la règle secrète de la manche
       this.proposals = [];
-      this.votes = {}; // format: { proposalId: { yes: [], no: [] } }
+      this.votes = {}; 
+      this.results = [];
       
       this.render();
     }
-
-    // --- ACTIONS DU JEU ---
 
     addPlayer(name) {
       const cleanName = name.trim();
@@ -98,7 +147,16 @@
 
     startGame() {
       if (this.players.length < 2) return alert("Il faut au moins 2 joueurs !");
+      
       this.scenario = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
+      
+      // 30% de chance d'avoir une règle secrète pour pimenter le jeu
+      if (Math.random() < 0.3) {
+        this.secretRule = SECRET_RULES[Math.floor(Math.random() * SECRET_RULES.length)];
+      } else {
+        this.secretRule = null;
+      }
+
       this.proposals = [];
       this.votes = {};
       this.currentPlayerIndex = 0;
@@ -124,12 +182,12 @@
       this.currentPlayerIndex++;
       
       if (this.currentPlayerIndex >= this.players.length) {
-        // Tous les joueurs ont proposé, on passe au vote
+        // Shuffle des propositions pour que le premier qui vote ne devine pas l'ordre
+        this.proposals = this.proposals.sort(() => Math.random() - 0.5);
         this.currentPlayerIndex = 0;
         this.currentVoteIndex = 0;
         this.phase = 'transition_vote';
       } else {
-        // Au joueur suivant
         this.phase = 'transition_propose';
       }
       this.render();
@@ -146,21 +204,29 @@
       this.votes[currentProposal.id][voteValue].push(currentPlayer);
       this.currentVoteIndex++;
 
-      // Si le joueur a voté pour toutes les propositions
       if (this.currentVoteIndex >= this.proposals.length) {
         this.currentVoteIndex = 0;
         this.currentPlayerIndex++;
 
-        // Si tous les joueurs ont fini de voter
         if (this.currentPlayerIndex >= this.players.length) {
           this.calculateResults();
           this.phase = 'results';
         } else {
-          // Joueur suivant
           this.phase = 'transition_vote';
         }
       }
       this.render();
+    }
+
+    // NOUVEAU : Attribution des Titres Honorifiques
+    getHonoraryTitle(percent) {
+      if (percent === 50) return "👑 Le Maître Chanteur Parfait";
+      if (percent === 100) return "🧸 Le Bisounours (Trop gentil)";
+      if (percent === 0) return "😈 Le Tortionnaire Sadique";
+      if (Math.abs(50 - percent) <= 15) return "⚖️ L'Équilibriste";
+      if (percent > 75) return "🤝 Le Négociateur Sympa";
+      if (percent < 25) return "🏴‍☠️ Le Bourreau Sans Pitié";
+      return "🤷 Le Créateur de Chaos";
     }
 
     calculateResults() {
@@ -171,17 +237,26 @@
         return {
           ...p,
           yesPercent: yesPercent,
-          deviation: Math.abs(50 - yesPercent), // Pour trouver le plus proche de 50/50
-          totalVotes: totalVotes
+          deviation: Math.abs(50 - yesPercent),
+          title: this.getHonoraryTitle(yesPercent) // Assigne le titre
         };
       });
-      // Trier par le plus proche de 50%
       this.results.sort((a, b) => a.deviation - b.deviation);
     }
 
     resetGame() {
       this.phase = 'setup';
       this.render();
+    }
+
+    // NOUVEAU : Fonction de révélation au clic
+    revealAuthor(proposalId) {
+      const btn = document.getElementById(`btn-reveal-${proposalId}`);
+      const info = document.getElementById(`info-${proposalId}`);
+      if (btn && info) {
+        btn.style.display = 'none';
+        info.style.display = 'block';
+      }
     }
 
     // --- RENDU HTML ---
@@ -193,7 +268,16 @@
       else if (this.phase === 'transition_propose' || this.phase === 'transition_vote') appDiv.innerHTML = this.renderTransition();
       else if (this.phase === 'propose') appDiv.innerHTML = this.renderPropose();
       else if (this.phase === 'vote') appDiv.innerHTML = this.renderVote();
-      else if (this.phase === 'results') appDiv.innerHTML = this.renderResults();
+      else if (this.phase === 'results') {
+        appDiv.innerHTML = this.renderResults();
+        // NOUVEAU : Lance l'animation des barres après l'affichage du DOM
+        setTimeout(() => {
+          const bars = document.querySelectorAll('.vote-bar-fill');
+          bars.forEach(bar => {
+            bar.style.width = bar.getAttribute('data-target-width');
+          });
+        }, 100); // Petit délai pour laisser le navigateur dessiner la barre à 0%
+      }
 
       this.attachEventListeners();
     }
@@ -203,17 +287,14 @@
         <div class="card">
           <h2 style="text-align:center; margin-bottom:20px;">👥 Les Joueurs</h2>
           <div class="info-box">Ajoutez tous les joueurs présents. Chacun jouera à tour de rôle sur cet appareil.</div>
-          
           <div style="margin-bottom: 20px;">
             ${this.players.map(p => `<span class="player-tag">${escapeHtml(p)} <span style="cursor:pointer; color:#ef4444;" onclick="window.game.removePlayer('${escapeHtml(p)}')">✖</span></span>`).join('')}
             ${this.players.length === 0 ? '<em style="color:#999; font-size:14px;">Aucun joueur pour le moment...</em>' : ''}
           </div>
-
           <div class="input-group">
             <input type="text" id="newPlayerName" placeholder="Prénom du joueur..." onkeypress="if(event.key === 'Enter') document.getElementById('btnAddPlayer').click()">
           </div>
           <button id="btnAddPlayer" class="secondary" style="margin-bottom: 20px;">+ Ajouter</button>
-          
           <button id="btnStartGame" ${this.players.length < 2 ? 'style="opacity:0.5; cursor:not-allowed;"' : ''}>▶️ Lancer la partie</button>
         </div>`;
     }
@@ -236,6 +317,12 @@
         <div class="card scenario-card">
           <div class="scenario-label">Le Scénario</div>
           <div class="scenario-text">${escapeHtml(this.scenario)}</div>
+          ${this.secretRule ? `
+            <div class="secret-rule-box">
+              <div class="secret-rule-title">⚠️ Contrainte Surprise ⚠️</div>
+              <div style="font-size: 16px;">${escapeHtml(this.secretRule)}</div>
+            </div>
+          ` : ''}
         </div>
         <div class="card">
           <div class="info-box">Au tour de <strong>${player}</strong> de faire une proposition !</div>
@@ -257,12 +344,10 @@
         </div>
         <div class="card">
           <div class="info-box"><strong>${player}</strong>, vote ! (Proposition ${this.currentVoteIndex + 1}/${this.proposals.length})</div>
-          
           <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
             <p style="color: #666; font-size: 14px; margin-bottom: 10px;">Quelqu'un a proposé :</p>
             <h3 style="font-size: 22px; color: #333;">"... ${escapeHtml(proposal.text)}"</h3>
           </div>
-
           <div class="vote-buttons">
             <button class="vote-btn yes" onclick="window.game.submitVote('yes')">J'ACCEPTE</button>
             <button class="vote-btn no" onclick="window.game.submitVote('no')">JE REFUSE</button>
@@ -277,17 +362,31 @@
           <div style="font-size: 18px;">${escapeHtml(this.scenario)}</div>
         </div>
         <div class="card">
-          <h2 style="text-align:center; margin-bottom: 25px;">🏆 Résultats</h2>
+          <h2 style="text-align:center; margin-bottom: 25px;">🏆 Résultats et Débats</h2>
+          <div class="info-box" style="text-align:center;">Débattez ! Qui a bien pu écrire ces atrocités ? Cliquez pour le découvrir !</div>
+          
           ${this.results.map((r, i) => `
             <div class="result-item ${i === 0 ? 'winner' : ''}">
-              ${i === 0 ? '<span class="winner-badge">Le Dilemme Parfait !</span>' : ''}
-              <p style="margin-bottom: 10px;"><strong>${escapeHtml(r.author)}</strong> avait proposé : <br/><em>"${escapeHtml(r.text)}"</em></p>
+              ${i === 0 ? '<span class="winner-badge">Le plus proche du 50/50 !</span>' : ''}
+              <h3 style="font-size: 18px; margin-bottom: 15px; color: #1f2937;">"... ${escapeHtml(r.text)}"</h3>
+              
+              <!-- NOUVEAU : Barre de jus avec CSS Data Target -->
               <div class="vote-bar-container">
-                <div class="vote-bar" style="width: ${r.yesPercent}%">${Math.round(r.yesPercent)}% Oui</div>
+                <div class="vote-bar-fill" data-target-width="${r.yesPercent}%">${Math.round(r.yesPercent)}% OUI</div>
+              </div>
+              
+              <!-- NOUVEAU : Bouton de révélation et Info auteur cachée -->
+              <button class="author-reveal-btn" id="btn-reveal-${r.id}" onclick="window.game.revealAuthor('${r.id}')">
+                👁️ Révéler l'auteur
+              </button>
+              
+              <div class="author-info" id="info-${r.id}">
+                <div class="author-title">${escapeHtml(r.title)}</div>
+                <div class="author-name">C'était ${escapeHtml(r.author)} !</div>
               </div>
             </div>
           `).join('')}
-          <button id="btnReset" style="margin-top: 20px;">Rejouer une partie</button>
+          <button id="btnReset" style="margin-top: 20px;">Rejouer une manche</button>
         </div>`;
     }
 
@@ -301,24 +400,19 @@
           input.focus();
         };
       }
-
       const btnStartGame = document.getElementById('btnStartGame');
       if (btnStartGame) btnStartGame.onclick = () => this.startGame();
-
       const btnReady = document.getElementById('btnReady');
       if (btnReady) btnReady.onclick = () => this.readyForTurn();
-
       const btnSubmitProposal = document.getElementById('btnSubmitProposal');
       if (btnSubmitProposal) btnSubmitProposal.onclick = () => {
         this.submitProposal(document.getElementById('txtProposal').value);
       };
-
       const btnReset = document.getElementById('btnReset');
       if (btnReset) btnReset.onclick = () => this.resetGame();
     }
   }
 
-  // Initialisation
   window.game = new Game();
 </script>
 </body>
