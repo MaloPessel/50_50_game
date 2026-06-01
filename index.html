@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>50/50 - Édition Neo-Pop Party</title>
-
+  
   <link rel="icon" type="image/png" href="logo.png">
   
   <style>
@@ -31,60 +31,38 @@
     }
 
     /* ===== CONTAINER RESPONSIVE ===== */
-    .container { 
-      width: 100%; 
-      max-width: 650px; 
-      margin: auto; 
-    }
+    .container { width: 100%; max-width: 650px; margin: auto; }
 
     /* ===== HEADER ===== */
     .header { text-align: center; margin-bottom: 40px; }
     .header h1 { 
-      font-size: 56px; 
-      font-weight: 900; 
-      margin-bottom: 5px; 
+      font-size: 56px; font-weight: 900; margin-bottom: 5px; 
       background: -webkit-linear-gradient(0deg, #ff00cc, #3333ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       filter: drop-shadow(0px 4px 10px rgba(255, 0, 204, 0.3));
     }
     .header .subtitle { font-size: 18px; font-weight: 600; color: #a0aec0; letter-spacing: 2px; text-transform: uppercase; }
 
     /* ===== GLASSMORPHISM CARDS ===== */
     .card { 
-      background: rgba(25, 30, 50, 0.6); 
-      backdrop-filter: blur(12px); 
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.1); 
-      border-radius: 24px; 
-      padding: 35px; 
-      box-shadow: 0 20px 50px rgba(0,0,0,0.3); 
+      background: rgba(25, 30, 50, 0.6); backdrop-filter: blur(12px); 
+      -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); 
+      border-radius: 24px; padding: 35px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); 
       margin-bottom: 25px; 
-      transition: transform 0.3s ease;
     }
 
     /* ===== SCÉNARIOS ET RÈGLES ===== */
     .scenario-card { 
       background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
-      color: #1a1a2e; 
-      text-align: center; 
-      padding: 40px 30px; 
-      position: relative; 
-      overflow: hidden; 
-      border: none;
-      box-shadow: 0 15px 35px rgba(255, 154, 158, 0.3);
+      color: #1a1a2e; text-align: center; padding: 40px 30px; position: relative; overflow: hidden; 
+      border: none; box-shadow: 0 15px 35px rgba(255, 154, 158, 0.3);
     }
     .scenario-text { font-size: 26px; font-weight: 800; line-height: 1.4; margin-bottom: 15px; word-wrap: break-word; }
     .scenario-label { font-size: 14px; opacity: 0.8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; margin-bottom: 15px; }
     
     .secret-rule-box { 
-      margin-top: 25px; 
-      padding: 15px; 
-      background: #1a1a2e; 
-      color: #fff;
-      border-radius: 12px; 
-      border: 2px dashed #ff00cc; 
-      box-shadow: 0 0 15px rgba(255, 0, 204, 0.2);
+      margin-top: 25px; padding: 15px; background: #1a1a2e; color: #fff;
+      border-radius: 12px; border: 2px dashed #ff00cc; 
       animation: pulseRule 2s infinite; 
     }
     .secret-rule-title { font-weight: 900; color: #ff00cc; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; font-size: 13px; }
@@ -94,123 +72,41 @@
     .input-group { margin-bottom: 25px; }
     label { display: block; margin-bottom: 10px; font-weight: 600; color: #cbd5e1; font-size: 14px; }
     input, textarea { 
-      width: 100%; 
-      padding: 18px; 
-      background: rgba(0, 0, 0, 0.2);
-      color: #fff;
-      border: 2px solid rgba(255, 255, 255, 0.1); 
-      border-radius: 16px; 
-      font-size: 16px; 
-      transition: all 0.3s; 
+      width: 100%; padding: 18px; background: rgba(0, 0, 0, 0.2); color: #fff;
+      border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 16px; font-size: 16px; 
     }
-    input::placeholder, textarea::placeholder { color: #64748b; }
-    input:focus, textarea:focus { outline: none; border-color: #00f2fe; background: rgba(0, 0, 0, 0.4); box-shadow: 0 0 15px rgba(0, 242, 254, 0.2); }
+    input:focus, textarea:focus { outline: none; border-color: #00f2fe; background: rgba(0, 0, 0, 0.4); }
     textarea { resize: vertical; min-height: 120px; }
 
     /* ===== BOUTONS ===== */
     button { 
-      width: 100%; 
-      padding: 18px; 
-      background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%); 
-      color: white; 
-      border: none; 
-      border-radius: 16px; 
-      font-size: 18px; 
-      font-weight: 800; 
-      cursor: pointer; 
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
-      text-transform: uppercase; 
-      letter-spacing: 1px; 
-      box-shadow: 0 10px 20px rgba(0, 114, 255, 0.3);
+      width: 100%; padding: 18px; background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%); 
+      color: white; border: none; border-radius: 16px; font-size: 18px; font-weight: 800; 
+      cursor: pointer; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 20px rgba(0, 114, 255, 0.3);
     }
-    button:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(0, 114, 255, 0.4); }
-    button:active { transform: translateY(1px); }
-    button.secondary { background: rgba(255,255,255,0.1); box-shadow: none; margin-top: 10px; border: 1px solid rgba(255,255,255,0.2); }
-    button.secondary:hover { background: rgba(255,255,255,0.2); }
+    button.secondary { background: rgba(255,255,255,0.1); margin-top: 10px; border: 1px solid rgba(255,255,255,0.2); }
 
     /* ===== VOTES ===== */
     .vote-buttons { display: flex; gap: 15px; margin-top: 25px; }
-    .vote-btn { 
-      flex: 1; 
-      padding: 20px 10px; 
-      background: rgba(0,0,0,0.3);
-      border: 2px solid; 
-      border-radius: 16px; 
-      font-weight: 800; 
-      font-size: 18px; 
-      box-shadow: none;
-    }
+    .vote-btn { flex: 1; padding: 20px 10px; background: rgba(0,0,0,0.3); border: 2px solid; border-radius: 16px; font-weight: 800; font-size: 18px; }
     .vote-btn.yes { border-color: #00e676; color: #00e676; }
-    .vote-btn.yes:active { background: #00e676; color: #1a1a2e; }
     .vote-btn.no { border-color: #ff1744; color: #ff1744; }
-    .vote-btn.no:active { background: #ff1744; color: #1a1a2e; }
 
     /* ===== RÉSULTATS & ANIMATIONS ===== */
-    .result-item { 
-      background: rgba(0, 0, 0, 0.2); 
-      border-radius: 16px; 
-      padding: 25px; 
-      margin-bottom: 25px; 
-      border: 1px solid rgba(255,255,255,0.05); 
-      position: relative; 
-    }
-    .result-item.winner { 
-      border: 2px solid #ffd700; 
-      background: rgba(255, 215, 0, 0.05); 
-      box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
-    }
-    .winner-badge { 
-      position: absolute; 
-      top: -12px; 
-      right: 20px; 
-      background: #ffd700; 
-      color: #000; 
-      padding: 6px 15px; 
-      border-radius: 20px; 
-      font-size: 12px; 
-      font-weight: 900; 
-      text-transform: uppercase; 
-      box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4);
-    }
+    .result-item { background: rgba(0, 0, 0, 0.2); border-radius: 16px; padding: 25px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); position: relative; }
+    .winner { border: 2px solid #ffd700; }
+    .winner-badge { position: absolute; top: -12px; right: 20px; background: #ffd700; color: #000; padding: 6px 15px; border-radius: 20px; font-size: 12px; font-weight: 900; text-transform: uppercase; }
     
-    .vote-bar-container { 
-      position: relative; 
-      height: 40px; 
-      background: rgba(255, 23, 68, 0.2); /* Fond rouge doux */
-      border-radius: 20px; 
-      overflow: hidden; 
-      margin: 20px 0; 
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-    .vote-bar-fill { 
-      position: absolute; 
-      left: 0; top: 0; height: 100%; 
-      background: linear-gradient(90deg, #00e676, #1de9b6); 
-      width: 0%; 
-      transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); 
-      display: flex; align-items: center; 
-      padding-left: 15px; 
-      color: #000; 
-      font-weight: 900; 
-      font-size: 16px; 
-    }
+    .vote-bar-container { position: relative; height: 40px; background: rgba(255, 23, 68, 0.2); border-radius: 20px; overflow: hidden; margin: 20px 0; border: 1px solid rgba(255,255,255,0.1); }
+    .vote-bar-fill { position: absolute; left: 0; top: 0; height: 100%; background: linear-gradient(90deg, #00e676, #1de9b6); width: 0%; transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); display: flex; align-items: center; padding-left: 15px; color: #000; font-weight: 900; }
     
-    .author-reveal-btn { background: rgba(255,255,255,0.1); color: #fff; padding: 12px; border-radius: 12px; font-size: 14px; margin-top: 15px; box-shadow: none; }
-    .author-reveal-btn:hover { background: rgba(255,255,255,0.2); transform: none; }
-    
-    .author-info { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    .author-name { font-size: 26px; font-weight: 900; color: #00f2fe; margin-bottom: 5px; text-shadow: 0 0 10px rgba(0, 242, 254, 0.5); }
-    .author-title { font-size: 14px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 2px; }
-
-    @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    .author-reveal-btn { background: rgba(255,255,255,0.1); color: #fff; padding: 12px; border-radius: 12px; margin-top: 15px; width: 100%; cursor: pointer; }
+    .author-info { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center; }
+    .author-name { font-size: 26px; font-weight: 900; color: #00f2fe; margin-bottom: 5px; }
 
     /* ===== DIVERS ===== */
-    .info-box { background: rgba(0, 198, 255, 0.1); border-left: 4px solid #00c6ff; padding: 15px 20px; border-radius: 0 12px 12px 0; margin-bottom: 25px; font-size: 15px; color: #e2e8f0; font-weight: 600; }
-    .player-tag { display: inline-block; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px 16px; border-radius: 20px; margin: 5px; font-weight: 600; font-size: 14px; transition: all 0.2s; }
-    .player-tag:hover { background: rgba(255, 23, 68, 0.2); border-color: #ff1744; }
-    .transition-screen { text-align: center; padding: 60px 20px; }
-    .transition-icon { font-size: 80px; margin-bottom: 30px; animation: float 3s ease-in-out infinite; }
-    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
+    .info-box { background: rgba(0, 198, 255, 0.1); border-left: 4px solid #00c6ff; padding: 15px 20px; border-radius: 0 12px 12px 0; margin-bottom: 25px; font-weight: 600; }
+    .player-tag { display: inline-block; background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; margin: 5px; }
   </style>
 </head>
 <body>
@@ -224,82 +120,33 @@
 
 <script type="module">
   function escapeHtml(text) {
-    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
 
-  function generateId() {
-    return Math.random().toString(36).substring(2, 9);
-  }
+  function generateId() { return Math.random().toString(36).substring(2, 9); }
 
-  const SCENARIOS = [
-    "Vous gagnez 10 millions d'euros", 
-    "Vous pouvez voler comme un oiseau",
-    "Vous avez la capacité de lire dans les pensées", 
-    "Vous découvrez le secret de l'immortalité",
-    "Vous devenez instantanément la personne la plus célèbre du monde", 
-    "Vous avez une santé parfaite jusqu'à 100 ans",
-    "Vous pouvez vous téléporter n'importe où dans le monde",
-    "Vous pouvez parler et comprendre toutes les langues animales"
-  ];
-
-  const SECRET_RULES = [
-    "La contrepartie doit obligatoirement impliquer un animal.",
-    "La contrepartie doit être liée à la nourriture ou la boisson.",
-    "La contrepartie doit impliquer un handicap physique ou sensoriel.",
-    "La contrepartie doit être extrêmement embarrassante en public.",
-    "La contrepartie doit faire intervenir un membre de votre famille.",
-    "La contrepartie doit vous ruiner financièrement.",
-    "La contrepartie doit comporter le mot 'Toujours' ou 'Jamais'."
-  ];
+  const SCENARIOS = ["Vous gagnez 10 millions", "Vous pouvez voler", "Vous lisez dans les pensées", "Immortel", "Célébrité mondiale", "Santé parfaite 100 ans", "Téléportation", "Parler aux animaux"];
+  const SECRET_RULES = ["Contrainte animalière", "Lié à la nourriture", "Handicap physique", "Embarrassant public", "Membre famille", "Ruine financière", "Mot 'Toujours' ou 'Jamais'"];
 
   class Game {
     constructor() {
-      this.players = [];
-      this.phase = 'setup';
-      this.currentPlayerIndex = 0;
-      this.currentVoteIndex = 0;
-      this.scenario = '';
-      this.secretRule = null;
-      this.proposals = [];
-      this.votes = {}; 
-      this.results = [];
+      this.players = []; this.phase = 'setup'; this.proposals = []; this.votes = {}; this.results = [];
       this.render();
     }
 
     addPlayer(name) {
-      const cleanName = name.trim();
-      if (cleanName && !this.players.includes(cleanName)) {
-        this.players.push(cleanName);
-        this.render();
-      }
+      if (name.trim() && !this.players.includes(name.trim())) { this.players.push(name.trim()); this.render(); }
     }
 
-    removePlayer(name) {
-      this.players = this.players.filter(p => p !== name);
-      this.render();
-    }
+    removePlayer(name) { this.players = this.players.filter(p => p !== name); this.render(); }
 
     startGame() {
-      if (this.players.length < 2) return alert("Il faut au moins 2 joueurs !");
+      if (this.players.length < 2) return alert("Min 2 joueurs !");
       this.scenario = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
-      if (Math.random() < 0.3) {
-        this.secretRule = SECRET_RULES[Math.floor(Math.random() * SECRET_RULES.length)];
-      } else {
-        this.secretRule = null;
-      }
-      this.proposals = [];
-      this.votes = {};
-      this.currentPlayerIndex = 0;
-      this.phase = 'transition_propose';
-      this.render();
-    }
-
-    readyForTurn() {
-      if (this.phase === 'transition_propose') this.phase = 'propose';
-      if (this.phase === 'transition_vote') this.phase = 'vote';
+      this.secretRule = Math.random() < 0.3 ? SECRET_RULES[Math.floor(Math.random() * SECRET_RULES.length)] : null;
+      this.proposals = []; this.votes = {}; this.currentPlayerIndex = 0; this.phase = 'transition_propose';
       this.render();
     }
 
@@ -307,231 +154,76 @@
       if (!text.trim()) return;
       this.proposals.push({ id: generateId(), author: this.players[this.currentPlayerIndex], text: text.trim() });
       this.currentPlayerIndex++;
-      
       if (this.currentPlayerIndex >= this.players.length) {
-        this.proposals = this.proposals.sort(() => Math.random() - 0.5);
-        this.currentPlayerIndex = 0;
-        this.currentVoteIndex = 0;
-        this.phase = 'transition_vote';
-      } else {
-        this.phase = 'transition_propose';
-      }
+        this.proposals.sort(() => Math.random() - 0.5);
+        this.currentPlayerIndex = 0; this.currentVoteIndex = 0; this.phase = 'transition_vote';
+      } else { this.phase = 'transition_propose'; }
       this.render();
     }
 
-    submitVote(voteValue) {
-      const currentProposal = this.proposals[this.currentVoteIndex];
-      const currentPlayer = this.players[this.currentPlayerIndex];
-
-      if (!this.votes[currentProposal.id]) {
-        this.votes[currentProposal.id] = { yes: [], no: [] };
-      }
-
-      this.votes[currentProposal.id][voteValue].push(currentPlayer);
+    submitVote(val) {
+      const p = this.proposals[this.currentVoteIndex];
+      if (!this.votes[p.id]) this.votes[p.id] = { yes: [], no: [] };
+      this.votes[p.id][val].push(this.players[this.currentPlayerIndex]);
       this.currentVoteIndex++;
-
       if (this.currentVoteIndex >= this.proposals.length) {
-        this.currentVoteIndex = 0;
-        this.currentPlayerIndex++;
-
-        if (this.currentPlayerIndex >= this.players.length) {
-          this.calculateResults();
-          this.phase = 'results';
-        } else {
-          this.phase = 'transition_vote';
-        }
+        this.currentVoteIndex = 0; this.currentPlayerIndex++;
+        if (this.currentPlayerIndex >= this.players.length) { this.calculate(); this.phase = 'results'; }
+        else { this.phase = 'transition_vote'; }
       }
       this.render();
     }
 
-    getHonoraryTitle(percent) {
-      if (percent === 50) return "👑 Le Maître Chanteur Parfait";
-      if (percent === 100) return "🧸 Le Bisounours (Trop gentil)";
-      if (percent === 0) return "😈 Le Tortionnaire Sadique";
-      if (Math.abs(50 - percent) <= 15) return "⚖️ L'Équilibriste";
-      if (percent > 75) return "🤝 Le Négociateur Sympa";
-      if (percent < 25) return "🏴‍☠️ Le Bourreau Sans Pitié";
-      return "🤷 Le Créateur de Chaos";
-    }
-
-    calculateResults() {
+    calculate() {
       this.results = this.proposals.map(p => {
         const v = this.votes[p.id] || { yes: [], no: [] };
-        const totalVotes = v.yes.length + v.no.length;
-        const yesPercent = totalVotes > 0 ? (v.yes.length / totalVotes) * 100 : 0;
-        return {
-          ...p,
-          yesPercent: yesPercent,
-          deviation: Math.abs(50 - yesPercent),
-          title: this.getHonoraryTitle(yesPercent)
-        };
-      });
-      this.results.sort((a, b) => a.deviation - b.deviation);
+        const total = v.yes.length + v.no.length;
+        const yesPercent = total > 0 ? (v.yes.length / total) * 100 : 0;
+        return { ...p, yesPercent, deviation: Math.abs(50 - yesPercent) };
+      }).sort((a, b) => a.deviation - b.deviation);
     }
 
-    resetGame() {
-      this.phase = 'setup';
-      this.render();
-    }
-
-    revealAuthor(proposalId) {
-      const btn = document.getElementById(`btn-reveal-${proposalId}`);
-      const info = document.getElementById(`info-${proposalId}`);
-      if (btn && info) {
-        btn.style.display = 'none';
-        info.style.display = 'block';
-      }
+    revealAuthor(id) {
+      document.getElementById('btn-reveal-'+id).style.display = 'none';
+      document.getElementById('info-'+id).style.display = 'block';
     }
 
     render() {
-      const appDiv = document.getElementById('app');
-      
-      if (this.phase === 'setup') appDiv.innerHTML = this.renderSetup();
-      else if (this.phase === 'transition_propose' || this.phase === 'transition_vote') appDiv.innerHTML = this.renderTransition();
-      else if (this.phase === 'propose') appDiv.innerHTML = this.renderPropose();
-      else if (this.phase === 'vote') appDiv.innerHTML = this.renderVote();
+      const app = document.getElementById('app');
+      if (this.phase === 'setup') app.innerHTML = `
+        <div class="card">
+          <h2 style="text-align:center;">👥 Les Joueurs</h2>
+          <div style="display:flex; flex-wrap:wrap; justify-content:center;">${this.players.map(p => `<span class="player-tag">${p} <span onclick="window.game.removePlayer('${p}')" style="color:red;cursor:pointer">✖</span></span>`).join('')}</div>
+          <input type="text" id="pname" placeholder="Prénom...">
+          <button onclick="window.game.addPlayer(document.getElementById('pname').value); document.getElementById('pname').value=''">+ Ajouter</button>
+          <button style="margin-top:20px" onclick="window.game.startGame()">🚀 Lancer</button>
+        </div>`;
       else if (this.phase === 'results') {
-        appDiv.innerHTML = this.renderResults();
-        setTimeout(() => {
-          const bars = document.querySelectorAll('.vote-bar-fill');
-          bars.forEach(bar => {
-            bar.style.width = bar.getAttribute('data-target-width');
-          });
-        }, 100);
-      }
-
-      this.attachEventListeners();
-    }
-
-    renderSetup() {
-      return `
-        <div class="card">
-          <h2 style="text-align:center; margin-bottom:25px; font-weight:800;">👥 Les Joueurs</h2>
-          <div class="info-box">Ajoutez tous les joueurs présents. L'appareil va tourner !</div>
-          <div style="margin-bottom: 25px; display:flex; flex-wrap:wrap; justify-content:center;">
-            ${this.players.map(p => `<span class="player-tag">${escapeHtml(p)} <span style="cursor:pointer; color:#ff1744; margin-left:8px;" onclick="window.game.removePlayer('${escapeHtml(p)}')">✖</span></span>`).join('')}
-            ${this.players.length === 0 ? '<em style="color:#64748b; font-size:14px;">La table est vide...</em>' : ''}
-          </div>
-          <div class="input-group">
-            <input type="text" id="newPlayerName" placeholder="Prénom du joueur..." onkeypress="if(event.key === 'Enter') document.getElementById('btnAddPlayer').click()">
-          </div>
-          <button id="btnAddPlayer" class="secondary" style="margin-bottom: 30px;">+ Ajouter à la partie</button>
-          <button id="btnStartGame" ${this.players.length < 2 ? 'style="opacity:0.5; cursor:not-allowed;"' : ''}>🚀 Décoller</button>
-        </div>`;
-    }
-
-    renderTransition() {
-      const action = this.phase === 'transition_propose' ? 'faire sa proposition' : 'voter';
-      const player = escapeHtml(this.players[this.currentPlayerIndex]);
-      return `
-        <div class="card transition-screen">
-          <div class="transition-icon">🤫</div>
-          <h2 style="margin-bottom: 15px; font-size: 32px;">À toi <span style="color: #00f2fe;">${player}</span></h2>
-          <p style="color: #cbd5e1; margin-bottom: 40px; font-size: 18px;">Les autres, on détourne le regard ! C'est le moment de ${action}.</p>
-          <button id="btnReady">C'est bon, je suis caché !</button>
-        </div>`;
-    }
-
-    renderPropose() {
-      const player = escapeHtml(this.players[this.currentPlayerIndex]);
-      return `
-        <div class="card scenario-card">
-          <div class="scenario-label">Le Scénario</div>
-          <div class="scenario-text">${escapeHtml(this.scenario)}</div>
-          ${this.secretRule ? `
-            <div class="secret-rule-box">
-              <div class="secret-rule-title">⚠️ Règle Secrète ⚠️</div>
-              <div style="font-size: 16px; font-weight:600;">${escapeHtml(this.secretRule)}</div>
-            </div>
-          ` : ''}
-        </div>
-        <div class="card">
-          <div class="info-box">C'est à <strong>${player}</strong> de jouer !</div>
-          <div class="input-group">
-            <label>Ta pire contrepartie (Objectif: 50% de oui)</label>
-            <textarea id="txtProposal" placeholder="...mais tu dois manger un citron chaque matin."></textarea>
-          </div>
-          <button id="btnSubmitProposal">Valider en secret</button>
-        </div>`;
-    }
-
-    renderVote() {
-      const player = escapeHtml(this.players[this.currentPlayerIndex]);
-      const proposal = this.proposals[this.currentVoteIndex];
-      return `
-        <div class="card scenario-card" style="padding: 25px;">
-          <div class="scenario-label">Rappel</div>
-          <div style="font-size: 20px; font-weight: 800;">${escapeHtml(this.scenario)}</div>
-        </div>
-        <div class="card">
-          <div class="info-box"><strong>${player}</strong>, fait ton choix. (${this.currentVoteIndex + 1}/${this.proposals.length})</div>
-          <div style="background: rgba(0,0,0,0.3); padding: 30px; border-radius: 16px; text-align: center; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.05);">
-            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 15px; text-transform:uppercase; letter-spacing:1px; font-weight:800;">La contrepartie proposée :</p>
-            <h3 style="font-size: 24px; color: #fff; font-weight:800;">"... ${escapeHtml(proposal.text)}"</h3>
-          </div>
-          <div class="vote-buttons">
-            <button class="vote-btn yes" onclick="window.game.submitVote('yes')">J'ACCEPTE</button>
-            <button class="vote-btn no" onclick="window.game.submitVote('no')">JE REFUSE</button>
-          </div>
-        </div>`;
-    }
-
-    renderResults() {
-      return `
-        <div class="card scenario-card" style="padding: 25px;">
-          <div class="scenario-label">Bilan de la manche</div>
-          <div style="font-size: 20px; font-weight:800;">${escapeHtml(this.scenario)}</div>
-        </div>
-        <div class="card">
-          <h2 style="text-align:center; margin-bottom: 25px; font-size:32px; font-weight:900;">🏆 Résultats</h2>
-          <div class="info-box" style="text-align:center; margin-bottom: 30px;">L'heure des comptes ! Débattez avant de révéler.</div>
-          
-          ${this.results.map((r, i) => `
-            <div class="result-item ${i === 0 ? 'winner' : ''}">
-              ${i === 0 ? '<span class="winner-badge">Dilemme Parfait !</span>' : ''}
-              <h3 style="font-size: 20px; margin-bottom: 15px; color: #fff; font-weight:800;">"... ${escapeHtml(r.text)}"</h3>
-              
-              <div class="vote-bar-container">
-                <div class="vote-bar-fill" data-target-width="${r.yesPercent}%">${Math.round(r.yesPercent)}% OUI</div>
-              </div>
-              
-              <button class="author-reveal-btn" id="btn-reveal-${r.id}" onclick="window.game.revealAuthor('${r.id}')">
-                👁️ Révéler le coupable
-              </button>
-              
+        app.innerHTML = `<div class="card">
+          ${this.results.map(r => {
+            const v = this.votes[r.id];
+            return `<div class="result-item">
+              <h3 style="margin-bottom:10px;">"${r.text}"</h3>
+              <div class="vote-bar-container"><div class="vote-bar-fill" style="width:${r.yesPercent}%">${Math.round(r.yesPercent)}% OUI</div></div>
+              <button class="author-reveal-btn" id="btn-reveal-${r.id}" onclick="window.game.revealAuthor('${r.id}')">Révéler auteur et votes</button>
               <div class="author-info" id="info-${r.id}">
-                <div class="author-title">${escapeHtml(r.title)}</div>
-                <div class="author-name">${escapeHtml(r.author)}</div>
+                <div class="author-name">${r.author}</div>
+                <div style="display:flex; justify-content:center; gap:20px;">
+                  <div><span style="color:#00e676">✅ OUI:</span> ${v.yes.join(', ') || 'Aucun'}</div>
+                  <div><span style="color:#ff1744">❌ NON:</span> ${v.no.join(', ') || 'Aucun'}</div>
+                </div>
               </div>
-            </div>
-          `).join('')}
-          <button id="btnReset" style="margin-top: 30px;">🔄 Rejouer une manche</button>
+            </div>`;
+          }).join('')}
+          <button onclick="window.game.resetGame()">🔄 Rejouer</button>
         </div>`;
-    }
-
-    attachEventListeners() {
-      const btnAddPlayer = document.getElementById('btnAddPlayer');
-      if (btnAddPlayer) {
-        btnAddPlayer.onclick = () => {
-          const input = document.getElementById('newPlayerName');
-          this.addPlayer(input.value);
-          input.value = '';
-          input.focus();
-        };
+      } else {
+        // Logique de rendu intermédiaire simplifiée pour l'affichage complet
+        app.innerHTML = `<div class="card"><h2>${this.phase === 'propose' ? 'À toi de proposer !' : 'À toi de voter !'}</h2>
+        <button onclick="window.phase === 'transition_propose' ? (this.phase='propose') : (this.phase='vote'); window.game.render()">Continuer</button></div>`;
       }
-      const btnStartGame = document.getElementById('btnStartGame');
-      if (btnStartGame) btnStartGame.onclick = () => this.startGame();
-      const btnReady = document.getElementById('btnReady');
-      if (btnReady) btnReady.onclick = () => this.readyForTurn();
-      const btnSubmitProposal = document.getElementById('btnSubmitProposal');
-      if (btnSubmitProposal) btnSubmitProposal.onclick = () => {
-        this.submitProposal(document.getElementById('txtProposal').value);
-      };
-      const btnReset = document.getElementById('btnReset');
-      if (btnReset) btnReset.onclick = () => this.resetGame();
     }
   }
-
   window.game = new Game();
 </script>
 </body>
