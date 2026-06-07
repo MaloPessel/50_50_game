@@ -166,6 +166,14 @@
     .podium-name { font-weight:800; font-size:15px; margin-bottom:8px; word-wrap:break-word; }
     .podium-score { font-size:13px; color:#cbd5e1; font-weight:700; }
 
+    /* ===== SÉLECTEUR D'INTENSITÉ ===== */
+    .spice-select { margin-bottom: 30px; }
+    .spice-row { display:flex; gap:10px; margin-top:10px; }
+    .spice-btn { flex:1; padding:14px 6px; font-size:15px; background: rgba(0,0,0,0.25); border:2px solid rgba(255,255,255,0.12); border-radius:14px; box-shadow:none; text-transform:none; letter-spacing:0; color:#cbd5e1; }
+    .spice-btn:hover { transform:none; background: rgba(0,0,0,0.4); }
+    .spice-btn.active { border-color:#ff00cc; color:#fff; background: rgba(255,0,204,0.15); box-shadow: 0 0 15px rgba(255,0,204,0.25); }
+    .spice-hint { text-align:center; margin-top:12px; font-size:13px; color:#94a3b8; font-weight:600; min-height:18px; }
+
     /* ===== DIVERS ===== */
     .info-box { background: rgba(0, 198, 255, 0.1); border-left: 4px solid #00c6ff; padding: 15px 20px; border-radius: 0 12px 12px 0; margin-bottom: 25px; font-size: 15px; color: #e2e8f0; font-weight: 600; }
     .info-box.alert { background: rgba(255, 23, 68, 0.2); border-left-color: #ff1744; }
@@ -245,43 +253,79 @@
   const MIN_PLAYERS = 3; // En dessous de 3, un 50/50 est mathématiquement impossible
   const STORAGE_KEY = 'jeu5050_state_v1';
 
-  const SCENARIOS = [
-    "Vous gagnez 10 millions d'euros",
-    "Vous pouvez voler comme un oiseau",
-    "Vous lisez dans les pensées de tout le monde",
-    "Vous découvrez le secret de l'immortalité",
-    "Vous devenez la personne la plus célèbre du monde",
-    "Vous avez une santé parfaite jusqu'à 100 ans",
-    "Vous pouvez vous téléporter n'importe où",
-    "Vous parlez et comprenez tous les animaux",
-    "Vous pouvez arrêter le temps quand vous voulez",
-    "Vous devenez invisible à volonté",
-    "Vous parlez couramment toutes les langues du monde",
-    "Vous ne dormez plus jamais mais restez en pleine forme",
-    "Vous pouvez manger tout ce que vous voulez sans grossir",
-    "Vous gagnez au loto chaque semaine pendant 10 ans",
-    "Vous avez une mémoire parfaite et infaillible",
-    "Vous devenez le meilleur du monde dans le sport de votre choix",
-    "Vous pouvez revivre une journée de votre passé",
-    "Vous ne ressentez plus jamais la peur",
-    "Vous possédez une maison de rêve dans chaque pays",
-    "Vous pouvez guérir les gens d'un simple toucher"
-  ];
+  // Contenu par palier d'intensité (1 = Soft, 2 = Normal, 3 = Trash).
+  // La pioche cumule tous les paliers <= au niveau choisi.
+  const SCENARIOS_BY_TIER = {
+    1: [
+      "Vous gagnez 10 millions d'euros",
+      "Vous pouvez voler comme un oiseau",
+      "Vous pouvez vous téléporter n'importe où",
+      "Vous parlez et comprenez tous les animaux",
+      "Vous avez une santé parfaite jusqu'à 100 ans",
+      "Vous parlez couramment toutes les langues du monde",
+      "Vous devenez le meilleur du monde dans le sport de votre choix",
+      "Vous pouvez manger tout ce que vous voulez sans grossir",
+      "Vous avez une mémoire parfaite et infaillible",
+      "Vous possédez une maison de rêve dans chaque pays",
+      "Vous ne dormez plus jamais mais restez en pleine forme",
+      "Vous pouvez guérir les gens d'un simple toucher"
+    ],
+    2: [
+      "Vous lisez dans les pensées de tout le monde",
+      "Vous devenez invisible à volonté",
+      "Vous pouvez arrêter le temps quand vous voulez",
+      "Vous découvrez le secret de l'immortalité",
+      "Vous devenez la personne la plus célèbre du monde",
+      "Vous gagnez à chaque pari et chaque jeu d'argent",
+      "Vous pouvez revivre une journée de votre passé et la changer",
+      "Vous séduisez instantanément n'importe qui",
+      "Vous ne ressentez plus jamais la gueule de bois",
+      "Vous savez toujours quand quelqu'un vous ment"
+    ],
+    3: [
+      "Vous pouvez ressusciter une personne morte (une seule fois)",
+      "Vous savez en permanence ce que les gens pensent VRAIMENT de vous",
+      "Vous pouvez effacer un souvenir précis dans la tête de n'importe qui",
+      "Vous gagnez 1 million d'euros à chaque fois qu'un inconnu meurt dans le monde",
+      "Vous pouvez forcer quelqu'un à dire la vérité pendant une minute",
+      "Vous connaissez la date exacte de votre propre mort",
+      "Vous pouvez échanger de corps avec n'importe qui pendant 24 h",
+      "Vous gagnez 10 ans de vie à chaque couple que vous faites rompre",
+      "Tous vos ex retombent éperdument amoureux de vous, pour toujours",
+      "Vous devenez irrésistible, mais uniquement pour les gens que vous détestez"
+    ]
+  };
 
-  const SECRET_RULES = [
-    "La contrepartie doit obligatoirement impliquer un animal.",
-    "La contrepartie doit être liée à la nourriture.",
-    "La contrepartie doit impliquer un changement physique visible.",
-    "La contrepartie doit être extrêmement embarrassante en public.",
-    "La contrepartie doit faire intervenir un membre de ta famille.",
-    "La contrepartie doit te ruiner financièrement.",
-    "La contrepartie doit contenir le mot 'Toujours' ou 'Jamais'.",
-    "La contrepartie doit se produire chaque matin au réveil.",
-    "La contrepartie doit concerner ton téléphone ou les réseaux sociaux.",
-    "La contrepartie doit impliquer une odeur.",
-    "La contrepartie doit durer toute ta vie.",
-    "La contrepartie doit être un secret que personne ne doit jamais découvrir."
-  ];
+  const SECRET_RULES_BY_TIER = {
+    1: [
+      "La contrepartie doit obligatoirement impliquer un animal.",
+      "La contrepartie doit être liée à la nourriture.",
+      "La contrepartie doit impliquer un changement physique visible.",
+      "La contrepartie doit contenir le mot 'Toujours' ou 'Jamais'.",
+      "La contrepartie doit se produire chaque matin au réveil.",
+      "La contrepartie doit concerner ton téléphone ou les réseaux sociaux.",
+      "La contrepartie doit durer toute ta vie."
+    ],
+    2: [
+      "La contrepartie doit être extrêmement embarrassante en public.",
+      "La contrepartie doit faire intervenir un membre de ta famille.",
+      "La contrepartie doit te ruiner financièrement.",
+      "La contrepartie doit impliquer une odeur insupportable.",
+      "La contrepartie doit te faire perdre tous tes amis actuels.",
+      "La contrepartie doit se déclencher à chaque fois que tu mens."
+    ],
+    3: [
+      "La contrepartie doit impliquer ton ex.",
+      "La contrepartie doit concerner ta vie de couple ou ta vie intime.",
+      "La contrepartie doit raccourcir ta vie de quelques années.",
+      "La contrepartie doit impliquer la mort d'un parfait inconnu.",
+      "La contrepartie doit être un secret honteux que tout le monde finira par découvrir.",
+      "La contrepartie doit te forcer à trahir une personne que tu aimes.",
+      "La contrepartie doit impliquer une fonction corporelle bien gênante."
+    ]
+  };
+
+  const SPICE_LABELS = { 1: '😇 Soft', 2: '😏 Normal', 3: '🌶️ Trash' };
 
   // ==========================================
   // LOGIQUE DU JEU
@@ -290,6 +334,7 @@
     constructor() {
       this.players = [];        // [{ id, name, score }]
       this.phase = 'setup';
+      this.spice = 2;           // 1 Soft / 2 Normal / 3 Trash
       this.round = 0;
       this.usedScenarios = [];  // anti-répétition
       this.currentPlayerIndex = 0;
@@ -307,7 +352,7 @@
     save() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          players: this.players, phase: this.phase, round: this.round,
+          players: this.players, phase: this.phase, round: this.round, spice: this.spice,
           usedScenarios: this.usedScenarios, currentPlayerIndex: this.currentPlayerIndex,
           currentVoteIndex: this.currentVoteIndex, scenario: this.scenario,
           secretRule: this.secretRule, proposals: this.proposals, votes: this.votes, results: this.results
@@ -358,11 +403,30 @@
       this.render();
     }
 
+    /* ---------- Intensité & pioche ---------- */
+    setSpice(level) {
+      initInteraction(); vibrate(50); playSound('click');
+      this.spice = level;
+      this.render();
+    }
+
+    scenarioPool() {
+      let pool = [];
+      for (let lvl = 1; lvl <= this.spice; lvl++) pool = pool.concat(SCENARIOS_BY_TIER[lvl]);
+      return pool;
+    }
+    rulePool() {
+      let pool = [];
+      for (let lvl = 1; lvl <= this.spice; lvl++) pool = pool.concat(SECRET_RULES_BY_TIER[lvl]);
+      return pool;
+    }
+
     /* ---------- Pioche de scénario sans répétition ---------- */
     pickScenario() {
-      if (this.usedScenarios.length >= SCENARIOS.length) this.usedScenarios = [];
-      const pool = SCENARIOS.filter(s => !this.usedScenarios.includes(s));
-      const choice = pool[Math.floor(Math.random() * pool.length)];
+      const pool = this.scenarioPool();
+      let avail = pool.filter(s => !this.usedScenarios.includes(s));
+      if (avail.length === 0) { this.usedScenarios = []; avail = pool; }
+      const choice = avail[Math.floor(Math.random() * avail.length)];
       this.usedScenarios.push(choice);
       return choice;
     }
@@ -373,7 +437,8 @@
       if (this.players.length < MIN_PLAYERS) return;
       this.round++;
       this.scenario = this.pickScenario();
-      this.secretRule = Math.random() < 0.35 ? SECRET_RULES[Math.floor(Math.random() * SECRET_RULES.length)] : null;
+      const rules = this.rulePool();
+      this.secretRule = Math.random() < 0.35 ? rules[Math.floor(Math.random() * rules.length)] : null;
       this.proposals = []; this.votes = {}; this.currentPlayerIndex = 0;
       this.phase = 'transition_propose';
       this.render();
@@ -573,6 +638,16 @@
 
           ${this.renderLeaderboard()}
 
+          <div class="spice-select">
+            <label style="text-align:center;">🔥 Intensité de la soirée</label>
+            <div class="spice-row">
+              ${[1,2,3].map(lvl => `
+                <button class="spice-btn ${this.spice === lvl ? 'active' : ''}" data-action="spice" data-level="${lvl}">${SPICE_LABELS[lvl]}</button>
+              `).join('')}
+            </div>
+            <p class="spice-hint">${this.spice === 3 ? 'Humour noir / contenu border assumé 💀' : this.spice === 1 ? 'Tranquille, sortable en famille.' : 'Le bon équilibre pour chauffer la salle.'}</p>
+          </div>
+
           <h2 style="text-align:center; margin-bottom:25px; font-weight:800;">👥 Les Joueurs</h2>
           <div class="info-box">Ajoutez tous les joueurs présents (3 minimum). L'appareil va tourner !</div>
           <div style="margin-bottom: 25px; display:flex; flex-wrap:wrap; justify-content:center;">
@@ -767,6 +842,7 @@
         if (action === 'remove') this.removePlayer(el.getAttribute('data-id'));
         else if (action === 'vote') this.submitVote(el.getAttribute('data-vote'));
         else if (action === 'reveal') this.startRoulette(el.getAttribute('data-id'));
+        else if (action === 'spice') this.setSpice(parseInt(el.getAttribute('data-level'), 10));
       };
     }
   }
