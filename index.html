@@ -174,6 +174,9 @@
     .spice-btn.active { border-color:#ff00cc; color:#fff; background: rgba(255,0,204,0.15); box-shadow: 0 0 15px rgba(255,0,204,0.25); }
     .spice-hint { text-align:center; margin-top:12px; font-size:13px; color:#94a3b8; font-weight:600; min-height:18px; }
 
+    /* ===== SCÉNARIOS MAISON ===== */
+    .custom-box { background: rgba(0,0,0,0.18); border:2px dashed rgba(255,0,204,0.3); border-radius:16px; padding:20px; margin-bottom:30px; }
+
     /* ===== DIVERS ===== */
     .info-box { background: rgba(0, 198, 255, 0.1); border-left: 4px solid #00c6ff; padding: 15px 20px; border-radius: 0 12px 12px 0; margin-bottom: 25px; font-size: 15px; color: #e2e8f0; font-weight: 600; }
     .info-box.alert { background: rgba(255, 23, 68, 0.2); border-left-color: #ff1744; }
@@ -292,7 +295,17 @@
       "Vous pouvez échanger de corps avec n'importe qui pendant 24 h",
       "Vous gagnez 10 ans de vie à chaque couple que vous faites rompre",
       "Tous vos ex retombent éperdument amoureux de vous, pour toujours",
-      "Vous devenez irrésistible, mais uniquement pour les gens que vous détestez"
+      "Vous devenez irrésistible, mais uniquement pour les gens que vous détestez",
+      "Vous devenez immortel, mais vous continuez de vieillir éternellement",
+      "Vous pouvez faire disparaître quelqu'un de l'existence : plus personne ne se souviendra de lui",
+      "Vous lisez tous les messages privés de n'importe qui, à vie",
+      "Vous gagnez 100 000 € à chaque enterrement auquel vous assistez",
+      "Vous connaissez le pire secret de toutes les personnes que vous croisez",
+      "Vous ressuscitez après chaque mort, mais avec un membre en moins à chaque fois",
+      "Vous devenez ultra-riche, mais tous vos proches vous oublient totalement",
+      "Vous héritez de 50 millions d'euros à la mort de la personne à votre gauche",
+      "Vous pouvez rendre n'importe qui fou amoureux de vous, jusqu'à ce qu'il l'apprenne",
+      "Vous obtenez tous les pouvoirs du monde, sauf un seul, tiré au sort à jamais"
     ]
   };
 
@@ -321,7 +334,14 @@
       "La contrepartie doit impliquer la mort d'un parfait inconnu.",
       "La contrepartie doit être un secret honteux que tout le monde finira par découvrir.",
       "La contrepartie doit te forcer à trahir une personne que tu aimes.",
-      "La contrepartie doit impliquer une fonction corporelle bien gênante."
+      "La contrepartie doit impliquer une fonction corporelle bien gênante.",
+      "La contrepartie doit te faire passer pour un monstre aux yeux des autres.",
+      "La contrepartie doit te coûter une amitié à laquelle tu tiens vraiment.",
+      "La contrepartie doit être quelque chose dont tu auras honte sur ton lit de mort.",
+      "La contrepartie doit te suivre dans chacune de tes futures relations.",
+      "La contrepartie doit faire de toi la risée d'Internet pour toujours.",
+      "La contrepartie doit impliquer du sang ou une douleur physique.",
+      "La contrepartie doit mettre tes parents au courant de TOUT ce que tu fais."
     ]
   };
 
@@ -335,6 +355,7 @@
       this.players = [];        // [{ id, name, score }]
       this.phase = 'setup';
       this.spice = 2;           // 1 Soft / 2 Normal / 3 Trash
+      this.customScenarios = []; // [{ id, text }] ajoutés par les joueurs
       this.round = 0;
       this.usedScenarios = [];  // anti-répétition
       this.currentPlayerIndex = 0;
@@ -352,7 +373,7 @@
     save() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          players: this.players, phase: this.phase, round: this.round, spice: this.spice,
+          players: this.players, phase: this.phase, round: this.round, spice: this.spice, customScenarios: this.customScenarios,
           usedScenarios: this.usedScenarios, currentPlayerIndex: this.currentPlayerIndex,
           currentVoteIndex: this.currentVoteIndex, scenario: this.scenario,
           secretRule: this.secretRule, proposals: this.proposals, votes: this.votes, results: this.results
@@ -386,6 +407,7 @@
       if (!cleanName) return;
       if (this.players.some(p => p.name.toLowerCase() === cleanName.toLowerCase())) return;
       this.players.push({ id: generateId(), name: cleanName, score: 0 });
+      this.focusTarget = 'player';
       this.render();
     }
 
@@ -410,9 +432,26 @@
       this.render();
     }
 
+    /* ---------- Scénarios maison ---------- */
+    addScenario(text) {
+      initInteraction(); vibrate(50); playSound('click');
+      const clean = text.trim();
+      if (!clean) return;
+      if (this.customScenarios.some(s => s.text.toLowerCase() === clean.toLowerCase())) return;
+      this.customScenarios.push({ id: generateId(), text: clean });
+      this.focusTarget = 'scenario';
+      this.render();
+    }
+    removeScenario(id) {
+      initInteraction(); vibrate(50); playSound('click');
+      this.customScenarios = this.customScenarios.filter(s => s.id !== id);
+      this.render();
+    }
+
     scenarioPool() {
       let pool = [];
       for (let lvl = 1; lvl <= this.spice; lvl++) pool = pool.concat(SCENARIOS_BY_TIER[lvl]);
+      pool = pool.concat(this.customScenarios.map(s => s.text)); // les scénarios maison sortent toujours
       return pool;
     }
     rulePool() {
@@ -658,6 +697,19 @@
             <input type="text" id="newPlayerName" maxlength="20" placeholder="Prénom du joueur...">
           </div>
           <button id="btnAddPlayer" class="secondary" style="margin-bottom: 30px;">+ Ajouter à la partie</button>
+
+          <div class="custom-box">
+            <label style="text-align:center;">✍️ Vos scénarios maison <span style="color:#64748b;">(facultatif)</span></label>
+            <p class="spice-hint" style="margin-top:0; margin-bottom:12px;">Ajoutez vos propres "Vous gagnez..." : ils sortiront en plus, quel que soit le niveau.</p>
+            <div style="margin-bottom: 15px; display:flex; flex-wrap:wrap; justify-content:center;">
+              ${this.customScenarios.map(s => `<span class="player-tag" style="max-width:100%;">${escapeHtml(s.text)} <span class="remove-x" data-action="remove-scenario" data-id="${s.id}">✖</span></span>`).join('')}
+            </div>
+            <div class="input-group" style="margin-bottom:12px;">
+              <input type="text" id="newScenario" maxlength="90" placeholder="Vous pouvez parler aux fantômes...">
+            </div>
+            <button id="btnAddScenario" class="ghost">+ Ajouter ce scénario</button>
+          </div>
+
           <button id="btnStartGame" ${canStart ? '' : 'disabled'}>🚀 ${this.round === 0 ? 'Décoller' : 'Lancer la manche'}</button>
           ${!canStart ? `<p style="text-align:center; color:#94a3b8; font-size:13px; margin-top:12px;">Encore ${MIN_PLAYERS - this.players.length} joueur(s) avant de pouvoir lancer.</p>` : ''}
           ${this.round > 0 ? `<button id="btnResetScores" class="ghost" style="margin-top:14px;">♻️ Réinitialiser les scores</button>` : ''}
@@ -821,7 +873,21 @@
         const add = () => { this.addPlayer(input.value); };
         btnAddPlayer.onclick = add;
         input.onkeypress = (e) => { if (e.key === 'Enter') add(); };
-        input.focus();
+      }
+
+      const btnAddScenario = document.getElementById('btnAddScenario');
+      const scInput = document.getElementById('newScenario');
+      if (btnAddScenario && scInput) {
+        const addSc = () => { this.addScenario(scInput.value); };
+        btnAddScenario.onclick = addSc;
+        scInput.onkeypress = (e) => { if (e.key === 'Enter') addSc(); };
+      }
+
+      // Focus sur le champ qui vient d'être utilisé (sinon, le prénom par défaut)
+      if (this.phase === 'setup') {
+        const target = this.focusTarget === 'scenario' ? scInput : input;
+        if (target) target.focus();
+        this.focusTarget = null;
       }
 
       const bind = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
@@ -840,6 +906,7 @@
         if (!el) return;
         const action = el.getAttribute('data-action');
         if (action === 'remove') this.removePlayer(el.getAttribute('data-id'));
+        else if (action === 'remove-scenario') this.removeScenario(el.getAttribute('data-id'));
         else if (action === 'vote') this.submitVote(el.getAttribute('data-vote'));
         else if (action === 'reveal') this.startRoulette(el.getAttribute('data-id'));
         else if (action === 'spice') this.setSpice(parseInt(el.getAttribute('data-level'), 10));
