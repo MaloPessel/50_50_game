@@ -243,6 +243,7 @@
   function generateId() { return Math.random().toString(36).substring(2, 9); }
 
   const MIN_PLAYERS = 3; // En dessous de 3, un 50/50 est mathématiquement impossible
+  const STORAGE_KEY = 'jeu5050_state_v1';
 
   const SCENARIOS = [
     "Vous gagnez 10 millions d'euros",
@@ -298,7 +299,39 @@
       this.proposals = [];
       this.votes = {};
       this.results = [];
+      this.load();
       this.render();
+    }
+
+    /* ---------- Persistance (localStorage) ---------- */
+    save() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          players: this.players, phase: this.phase, round: this.round,
+          usedScenarios: this.usedScenarios, currentPlayerIndex: this.currentPlayerIndex,
+          currentVoteIndex: this.currentVoteIndex, scenario: this.scenario,
+          secretRule: this.secretRule, proposals: this.proposals, votes: this.votes, results: this.results
+        }));
+      } catch (e) { /* stockage indisponible : on continue sans sauvegarde */ }
+    }
+
+    load() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        Object.assign(this, JSON.parse(raw));
+      } catch (e) { /* sauvegarde corrompue ou indisponible : on ignore */ }
+    }
+
+    /* ---------- Saut des propositions dont on est l'auteur ---------- */
+    firstVotableIndex(playerId) {
+      return this.proposals.findIndex(p => p.authorId !== playerId);
+    }
+    nextVotableIndex(playerId, fromIndex) {
+      for (let i = fromIndex; i < this.proposals.length; i++) {
+        if (this.proposals[i].authorId !== playerId) return i;
+      }
+      return -1;
     }
 
     /* ---------- Gestion des joueurs ---------- */
@@ -361,7 +394,9 @@
 
       if (this.currentPlayerIndex >= this.players.length) {
         this.proposals = this.proposals.sort(() => Math.random() - 0.5);
-        this.currentPlayerIndex = 0; this.currentVoteIndex = 0; this.phase = 'transition_vote';
+        this.currentPlayerIndex = 0;
+        this.currentVoteIndex = this.firstVotableIndex(this.players[0].id);
+        this.phase = 'transition_vote';
       } else {
         this.phase = 'transition_propose';
       }
@@ -373,20 +408,21 @@
       const currentProposal = this.proposals[this.currentVoteIndex];
       const currentPlayer = this.players[this.currentPlayerIndex];
 
+      // La proposition affichée n'est jamais celle du joueur courant : on compte directement le vote
       if (!this.votes[currentProposal.id]) this.votes[currentProposal.id] = { yes: [], no: [] };
+      this.votes[currentProposal.id][voteValue].push(currentPlayer.name);
 
-      // L'auteur ne vote pas pour sa propre proposition
-      if (currentPlayer.id !== currentProposal.authorId) {
-        this.votes[currentProposal.id][voteValue].push(currentPlayer.name);
-      }
-
-      this.currentVoteIndex++;
-      if (this.currentVoteIndex >= this.proposals.length) {
-        this.currentVoteIndex = 0; this.currentPlayerIndex++;
+      // Proposition votable suivante pour ce joueur (on saute les siennes)
+      const next = this.nextVotableIndex(currentPlayer.id, this.currentVoteIndex + 1);
+      if (next !== -1) {
+        this.currentVoteIndex = next;
+      } else {
+        this.currentPlayerIndex++;
         if (this.currentPlayerIndex >= this.players.length) {
           this.calculateResults();
           this.phase = 'results';
         } else {
+          this.currentVoteIndex = this.firstVotableIndex(this.players[this.currentPlayerIndex].id);
           this.phase = 'transition_vote';
         }
       }
@@ -482,6 +518,7 @@
        MOTEUR DE RENDU
     ========================================== */
     render() {
+      this.save();
       const appDiv = document.getElementById('app');
       const pill = document.getElementById('roundPill');
       pill.innerHTML = (this.round > 0 && this.phase !== 'final') ? `<span class="round-pill">Manche ${this.round}</span>` : '';
@@ -587,7 +624,8 @@
     renderVote() {
       const player = this.players[this.currentPlayerIndex];
       const proposal = this.proposals[this.currentVoteIndex];
-      const isAuthor = player.id === proposal.authorId;
+      const votable = this.proposals.filter(p => p.authorId !== player.id);
+      const pos = votable.findIndex(p => p.id === proposal.id) + 1;
 
       return `
         <div class="card scenario-card" style="padding: 25px;">
@@ -595,10 +633,7 @@
           <div style="font-size: 20px; font-weight: 800;">${escapeHtml(this.scenario)}</div>
         </div>
         <div class="card">
-          ${isAuthor
-            ? `<div class="info-box alert">🚨 <strong>C'est TA proposition !</strong> Fais semblant de voter pour brouiller les pistes. (Ton clic ne sera pas comptabilisé).</div>`
-            : `<div class="info-box"><strong>${escapeHtml(player.name)}</strong>, fais ton choix. (${this.currentVoteIndex + 1}/${this.proposals.length})</div>`
-          }
+          <div class="info-box"><strong>${escapeHtml(player.name)}</strong>, fais ton choix. (${pos}/${votable.length})</div>
 
           <div style="background: rgba(0,0,0,0.3); padding: 30px; border-radius: 16px; text-align: center; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.05);">
             <p style="color: #94a3b8; font-size: 14px; margin-bottom: 15px; text-transform:uppercase; letter-spacing:1px; font-weight:800;">La contrepartie proposée :</p>
