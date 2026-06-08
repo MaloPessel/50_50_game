@@ -288,33 +288,68 @@
     }
 
     joinSubscription(code) {
-      this.code = code; this.error = null;
+      this.code = code; this.error = null; this._dcMode = null;
       localStorage.setItem('pseudo5050', this.pseudo.trim());
 
-      // Présence : marquer déconnecté si l'onglet se ferme
-      const connRef = this.rref(`rooms/${code}/players/${this.uid}/connected`);
-      set(connRef, true);
-      onDisconnect(connRef).set(false);
+      // Présence : on se marque en ligne ; la gestion de déconnexion est (ré)armée à chaque snapshot
+      set(this.rref(`rooms/${code}/players/${this.uid}/connected`), true);
 
       if (this.unsub) this.unsub();
       this.unsub = onValue(this.rref('rooms/' + code), (snap) => {
         if (!snap.exists()) { this.leaveLocal("La partie a été fermée."); return; }
         this.room = snap.val();
-        this.hostTick();   // l'hôte fait avancer le jeu si besoin
+        this.hostTick();                 // l'hôte fait avancer le jeu si besoin
+        this.updateDisconnectHandler();  // dernier connecté => suppression de la room en partant
         this.render();
       });
     }
 
+    // Recalcule, à chaque changement, ce qu'il faut faire si CET appareil se déconnecte.
+    // - Seul connecté  => programmer la suppression de TOUTE la room.
+    // - D'autres là    => se marquer simplement hors-ligne.
+    updateDisconnectHandler() {
+      if (!this.code || !this.uid) return;
+      const me = this.players()[this.uid];
+      if (!me) return;
+      const solo = this.connectedIds().length <= 1; // moi seul encore connecté
+      const mode = solo ? 'solo' : 'multi';
+      if (mode === this._dcMode) return;             // déjà dans le bon mode, on évite le spam réseau
+      this._dcMode = mode;
+
+      const connRef = this.rref(`rooms/${this.code}/players/${this.uid}/connected`);
+      const roomRef = this.rref('rooms/' + this.code);
+      onDisconnect(connRef).cancel();
+      onDisconnect(roomRef).cancel();
+      if (solo) onDisconnect(roomRef).remove();      // ménage complet quand le dernier s'en va
+      else      onDisconnect(connRef).set(false);    // sinon, juste hors-ligne
+    }
+
     leaveLocal(msg) {
       if (this.unsub) { this.unsub(); this.unsub = null; }
+      this._dcMode = null;
       this.code = null; this.room = null; this.error = msg || null; this.render();
     }
 
     async quitRoom() {
       initInteraction(); vibrate(50); playSound('click');
-      if (this.code) {
-        try { await remove(this.rref(`rooms/${this.code}/players/${this.uid}`)); } catch (e) {}
+      if (this.code && this.uid) {
+        const others = this.connectedIds().filter(id => id !== this.uid);
+        const connRef = this.rref(`rooms/${this.code}/players/${this.uid}/connected`);
+        const roomRef = this.rref('rooms/' + this.code);
+        // On annule les actions de déconnexion : on fait le ménage nous-mêmes, maintenant.
+        try { await onDisconnect(connRef).cancel(); } catch (e) {}
+        try { await onDisconnect(roomRef).cancel(); } catch (e) {}
+        try {
+          if (others.length === 0) {
+            // Dernier joueur : on supprime toute la room (on devient hôte si besoin, pour passer les règles)
+            if (!this.isHost()) { try { await update(this.rref(`rooms/${this.code}/meta`), { hostId: this.uid }); } catch (e) {} }
+            await remove(roomRef);
+          } else {
+            await remove(this.rref(`rooms/${this.code}/players/${this.uid}`));
+          }
+        } catch (e) {}
       }
+      this._dcMode = null;
       this.leaveLocal();
     }
 
