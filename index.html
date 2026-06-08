@@ -3,39 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>50/50 - Édition Neo-Pop Party</title>
-
+  <title>50/50 - Online Party</title>
   <link rel="icon" type="image/png" href="logo.png">
-
   <style>
-    /* ===== RESET & FONTS ===== */
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
-    /* ===== BACKGROUND ANIMÉ ===== */
     body {
       background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #e94560);
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
-      min-height: 100vh;
-      padding: 20px;
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow-x: hidden;
+      background-size: 400% 400%; animation: gradientBG 15s ease infinite;
+      min-height: 100vh; padding: 20px; color: #fff;
+      display: flex; justify-content: center; align-items: center; overflow-x: hidden;
     }
-    @keyframes gradientBG {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* ===== CONTAINER RESPONSIVE ===== */
+    @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     .container { width: 100%; max-width: 650px; margin: auto; }
 
-    /* ===== HEADER ===== */
-    .header { text-align: center; margin-bottom: 30px; }
+    .header { text-align: center; margin-bottom: 25px; }
     .header h1 {
       font-size: 56px; font-weight: 900; margin-bottom: 5px;
       background: -webkit-linear-gradient(0deg, #ff00cc, #3333ff);
@@ -43,20 +26,17 @@
       filter: drop-shadow(0px 4px 10px rgba(255, 0, 204, 0.3));
     }
     .header .subtitle { font-size: 18px; font-weight: 600; color: #a0aec0; letter-spacing: 2px; text-transform: uppercase; }
-    .round-pill {
-      display: inline-block; margin-top: 12px; padding: 6px 18px; border-radius: 20px;
-      background: rgba(0, 242, 254, 0.12); border: 1px solid rgba(0, 242, 254, 0.4);
-      color: #00f2fe; font-weight: 800; font-size: 13px; letter-spacing: 1px; text-transform: uppercase;
-    }
+    .pill-row { display:flex; gap:8px; justify-content:center; margin-top:12px; flex-wrap:wrap; }
+    .pill { display:inline-block; padding: 6px 16px; border-radius: 20px; font-weight: 800; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+    .pill.round { background: rgba(0, 242, 254, 0.12); border: 1px solid rgba(0, 242, 254, 0.4); color: #00f2fe; }
+    .pill.code { background: rgba(255, 0, 204, 0.12); border: 1px solid rgba(255, 0, 204, 0.4); color: #ff66dd; cursor:pointer; }
 
-    /* ===== GLASSMORPHISM CARDS ===== */
     .card {
       background: rgba(25, 30, 50, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 35px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.3); margin-bottom: 25px; transition: transform 0.3s ease;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3); margin-bottom: 25px;
     }
 
-    /* ===== SCÉNARIOS ET RÈGLES ===== */
     .scenario-card {
       background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
       color: #1a1a2e; text-align: center; padding: 40px 30px; position: relative; overflow: hidden; border: none;
@@ -64,45 +44,25 @@
     }
     .scenario-text { font-size: 26px; font-weight: 800; line-height: 1.4; margin-bottom: 15px; word-wrap: break-word; }
     .scenario-label { font-size: 14px; opacity: 0.8; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; margin-bottom: 15px; }
-
-    .secret-rule-box {
-      margin-top: 25px; padding: 15px; background: #1a1a2e; color: #fff; border-radius: 12px; border: 2px dashed #ff00cc;
-      box-shadow: 0 0 15px rgba(255, 0, 204, 0.2); animation: pulseRule 2s infinite;
-    }
+    .secret-rule-box { margin-top: 25px; padding: 15px; background: #1a1a2e; color: #fff; border-radius: 12px; border: 2px dashed #ff00cc; box-shadow: 0 0 15px rgba(255, 0, 204, 0.2); animation: pulseRule 2s infinite; }
     .secret-rule-title { font-weight: 900; color: #ff00cc; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; font-size: 13px; }
     @keyframes pulseRule { 0% { box-shadow: 0 0 0 0 rgba(255, 0, 204, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 0, 204, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 0, 204, 0); } }
 
-    /* ===== RÈGLES DU JEU (ACCUEIL) ===== */
-    .rules-box {
-      background: rgba(0, 0, 0, 0.2);
-      border: 2px dashed rgba(0, 242, 254, 0.4);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 30px;
-    }
+    .rules-box { background: rgba(0, 0, 0, 0.2); border: 2px dashed rgba(0, 242, 254, 0.4); border-radius: 16px; padding: 20px; margin-bottom: 30px; }
     .rules-box h3 { color: #00f2fe; text-align: center; font-weight: 900; margin-bottom: 5px; font-size: 22px; }
     .rules-list { list-style: none; margin-top: 15px; }
     .rules-list li { margin-bottom: 12px; font-size: 15px; line-height: 1.4; color: #cbd5e1; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; }
     .rules-list li strong { color: #fff; }
 
-    /* ===== INPUTS & TEXTAREA ===== */
     .input-group { margin-bottom: 25px; }
     label { display: block; margin-bottom: 10px; font-weight: 600; color: #cbd5e1; font-size: 14px; }
-    input, textarea {
-      width: 100%; padding: 18px; background: rgba(0, 0, 0, 0.2); color: #fff;
-      border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 16px; font-size: 16px; transition: all 0.3s;
-    }
+    input, textarea { width: 100%; padding: 18px; background: rgba(0, 0, 0, 0.2); color: #fff; border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 16px; font-size: 16px; transition: all 0.3s; }
     input::placeholder, textarea::placeholder { color: #64748b; }
     input:focus, textarea:focus { outline: none; border-color: #00f2fe; background: rgba(0, 0, 0, 0.4); box-shadow: 0 0 15px rgba(0, 242, 254, 0.2); }
     textarea { resize: vertical; min-height: 120px; }
+    .code-input { text-align:center; font-size:32px; font-weight:900; letter-spacing:8px; text-transform:uppercase; }
 
-    /* ===== BOUTONS ===== */
-    button {
-      width: 100%; padding: 18px; background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-      color: white; border: none; border-radius: 16px; font-size: 18px; font-weight: 800; cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-transform: uppercase; letter-spacing: 1px;
-      box-shadow: 0 10px 20px rgba(0, 114, 255, 0.3);
-    }
+    button { width: 100%; padding: 18px; background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%); color: white; border: none; border-radius: 16px; font-size: 18px; font-weight: 800; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 20px rgba(0, 114, 255, 0.3); }
     button:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(0, 114, 255, 0.4); }
     button:active { transform: translateY(1px); }
     button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
@@ -111,7 +71,6 @@
     button.ghost { background: transparent; box-shadow: none; border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; font-size: 14px; padding: 14px; }
     button.ghost:hover { background: rgba(255,255,255,0.06); transform: none; }
 
-    /* ===== VOTES ===== */
     .vote-buttons { display: flex; gap: 15px; margin-top: 25px; }
     .vote-btn { flex: 1; padding: 20px 10px; background: rgba(0,0,0,0.3); border: 2px solid; border-radius: 16px; font-weight: 800; font-size: 18px; box-shadow: none; }
     .vote-btn.yes { border-color: #00e676; color: #00e676; }
@@ -119,40 +78,18 @@
     .vote-btn.no { border-color: #ff1744; color: #ff1744; }
     .vote-btn.no:active { background: #ff1744; color: #1a1a2e; }
 
-    /* ===== RÉSULTATS & ANIMATIONS ===== */
     .result-item { background: rgba(0, 0, 0, 0.2); border-radius: 16px; padding: 25px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); position: relative; }
     .result-item.winner { border: 2px solid #ffd700; background: rgba(255, 215, 0, 0.05); box-shadow: 0 0 20px rgba(255, 215, 0, 0.1); }
     .winner-badge { position: absolute; top: -12px; right: 20px; background: #ffd700; color: #000; padding: 6px 15px; border-radius: 20px; font-size: 12px; font-weight: 900; text-transform: uppercase; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4); }
-
     .vote-bar-container { position: relative; height: 40px; background: rgba(255, 23, 68, 0.2); border-radius: 20px; overflow: hidden; margin: 20px 0; border: 1px solid rgba(255,255,255,0.1); }
-    .vote-bar-fill { position: absolute; left: 0; top: 0; height: 100%; background: linear-gradient(90deg, #00e676, #1de9b6); width: 0%; transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); display: flex; align-items: center; padding-left: 15px; color: #000; font-weight: 900; font-size: 16px; }
-
+    .vote-bar-fill { position: absolute; left: 0; top: 0; height: 100%; background: linear-gradient(90deg, #00e676, #1de9b6); width: 0%; transition: width 1.4s cubic-bezier(0.2, 0.8, 0.2, 1); display: flex; align-items: center; padding-left: 15px; color: #000; font-weight: 900; font-size: 16px; }
     .points-tag { display:inline-block; margin-top: 14px; padding: 6px 14px; border-radius: 20px; background: rgba(255,215,0,0.12); border:1px solid rgba(255,215,0,0.4); color:#ffd700; font-weight:800; font-size:13px; }
+    .author-line { margin-top: 16px; text-align:center; }
+    .author-title { font-size: 13px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px; }
+    .author-name { font-size: 22px; font-weight: 900; color: #ffd700; text-shadow: 0 0 15px rgba(255, 215, 0, 0.4); margin-top: 4px; }
+    .who-voted { display:flex; justify-content:center; gap:20px; font-size: 14px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-top: 14px; }
 
-    .author-reveal-btn { background: rgba(255,255,255,0.1); color: #fff; padding: 12px; border-radius: 12px; font-size: 14px; margin-top: 15px; box-shadow: none; }
-    .author-reveal-btn:hover { background: rgba(255,255,255,0.2); transform: none; }
-
-    .author-info { margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center; }
-    .author-title { font-size: 14px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 2px; }
-
-    /* Roulette Animations */
-    .roulette-box { font-size: 32px; font-weight: 900; color: #00f2fe; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
-    .roulette-blur { filter: blur(2px); opacity: 0.7; transform: scale(1.05); transition: 0.1s; }
-    .author-reveal-final { animation: tada 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: #ffd700; text-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
-
-    @keyframes tada {
-      0% { transform: scale(1); }
-      10%, 20% { transform: scale(0.9) rotate(-3deg); }
-      30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }
-      40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
-      100% { transform: scale(1) rotate(0); }
-    }
-
-    .fade-in-up { animation: fadeInUp 0.6s ease forwards; }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* ===== CLASSEMENT ===== */
-    .leaderboard { margin-bottom: 30px; }
+    .leaderboard { margin-bottom: 25px; }
     .leaderboard h3 { color:#ffd700; text-align:center; font-weight:900; font-size:20px; margin-bottom:15px; text-transform:uppercase; letter-spacing:1px; }
     .lb-row { display:flex; align-items:center; gap:12px; background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.05); border-radius:14px; padding:12px 16px; margin-bottom:10px; }
     .lb-row.lead { border-color: rgba(255,215,0,0.5); background: rgba(255,215,0,0.06); }
@@ -166,582 +103,505 @@
     .podium-name { font-weight:800; font-size:15px; margin-bottom:8px; word-wrap:break-word; }
     .podium-score { font-size:13px; color:#cbd5e1; font-weight:700; }
 
-    /* ===== SÉLECTEUR D'INTENSITÉ ===== */
-    .spice-select { margin-bottom: 30px; }
+    .spice-select { margin-bottom: 25px; }
     .spice-row { display:flex; gap:10px; margin-top:10px; }
     .spice-btn { flex:1; padding:14px 6px; font-size:15px; background: rgba(0,0,0,0.25); border:2px solid rgba(255,255,255,0.12); border-radius:14px; box-shadow:none; text-transform:none; letter-spacing:0; color:#cbd5e1; }
     .spice-btn:hover { transform:none; background: rgba(0,0,0,0.4); }
     .spice-btn.active { border-color:#ff00cc; color:#fff; background: rgba(255,0,204,0.15); box-shadow: 0 0 15px rgba(255,0,204,0.25); }
-    .spice-hint { text-align:center; margin-top:12px; font-size:13px; color:#94a3b8; font-weight:600; min-height:18px; }
+    .hint { text-align:center; margin-top:12px; font-size:13px; color:#94a3b8; font-weight:600; min-height:18px; }
+    .custom-box { background: rgba(0,0,0,0.18); border:2px dashed rgba(255,0,204,0.3); border-radius:16px; padding:20px; margin-bottom:25px; }
 
-    /* ===== SCÉNARIOS MAISON ===== */
-    .custom-box { background: rgba(0,0,0,0.18); border:2px dashed rgba(255,0,204,0.3); border-radius:16px; padding:20px; margin-bottom:30px; }
-
-    /* ===== DIVERS ===== */
     .info-box { background: rgba(0, 198, 255, 0.1); border-left: 4px solid #00c6ff; padding: 15px 20px; border-radius: 0 12px 12px 0; margin-bottom: 25px; font-size: 15px; color: #e2e8f0; font-weight: 600; }
     .info-box.alert { background: rgba(255, 23, 68, 0.2); border-left-color: #ff1744; }
-    .player-tag { display: inline-flex; align-items:center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px 16px; border-radius: 20px; margin: 5px; font-weight: 600; font-size: 14px; transition: all 0.2s; }
-    .player-tag:hover { background: rgba(255, 23, 68, 0.2); border-color: #ff1744; }
+    .info-box.ok { background: rgba(0, 230, 118, 0.12); border-left-color: #00e676; }
+    .player-tag { display: inline-flex; align-items:center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px 16px; border-radius: 20px; margin: 5px; font-weight: 600; font-size: 14px; }
+    .player-tag .dot { width:8px; height:8px; border-radius:50%; margin-right:8px; background:#00e676; }
+    .player-tag .dot.off { background:#64748b; }
+    .player-tag .crown { margin-left:8px; }
+    .player-tag .check { margin-left:8px; color:#00e676; font-weight:900; }
     .player-tag .remove-x { cursor:pointer; color:#ff1744; margin-left:10px; font-weight:900; }
-    .transition-screen { text-align: center; padding: 60px 20px; }
-    .transition-icon { font-size: 80px; margin-bottom: 30px; animation: float 3s ease-in-out infinite; }
+
+    .transition-screen { text-align: center; padding: 50px 20px; }
+    .transition-icon { font-size: 80px; margin-bottom: 25px; animation: float 3s ease-in-out infinite; }
     @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
+    .spinner { width:48px; height:48px; border:5px solid rgba(255,255,255,0.15); border-top-color:#00f2fe; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 20px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .progress-text { font-size:22px; font-weight:900; color:#00f2fe; margin:10px 0; }
+    .banner-error { background: rgba(255,23,68,0.15); border:1px solid #ff1744; color:#ffb3c1; border-radius:12px; padding:12px 16px; margin-bottom:20px; font-weight:700; font-size:14px; text-align:center; }
   </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
     <h1>50/50</h1>
-    <div class="subtitle">Party Édition 📱</div>
-    <div id="roundPill"></div>
+    <div class="subtitle">Online Party 🌐</div>
+    <div class="pill-row" id="pills"></div>
   </div>
   <div id="app"></div>
 </div>
 
 <script type="module">
-  // ==========================================
-  // SYSTÈME DE JUICE : AUDIO & VIBRATIONS NATIVES
-  // ==========================================
-  let audioCtx = null;
+  // ============================================================
+  // 🔧 CONFIG FIREBASE — colle ici la config de TON projet
+  //    (Console Firebase > ⚙️ Paramètres du projet > Tes applications > Config)
+  //    Garde bien la ligne databaseURL : c'est la Realtime Database.
+  // ============================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyB7LbCuh3RPSPVIfwtzaogNsYphR9NRQlA",
+    authDomain: "game-b0fcc.firebaseapp.com",
+    databaseURL: "https://game-b0fcc-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "game-b0fcc",
+    storageBucket: "game-b0fcc.firebasestorage.app",
+    messagingSenderId: "746284742359",
+    appId: "1:746284742359:web:8e6f9091314ff6966d2292"
+  };
 
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getDatabase, ref, onValue, get, set, update, remove, onDisconnect, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // ============================================================
+  // AUDIO & VIBRATION
+  // ============================================================
+  let audioCtx = null;
   function initInteraction() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
   }
-
   function playSound(type) {
     if (!audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    const now = audioCtx.currentTime;
-
-    if (type === 'click') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(600, now);
-      osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
-      gain.gain.setValueAtTime(0.1, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-      osc.start(now); osc.stop(now + 0.1);
-    } else if (type === 'tick') {
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(800, now);
-      gain.gain.setValueAtTime(0.05, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-      osc.start(now); osc.stop(now + 0.05);
-    } else if (type === 'tada') {
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(400, now);
-      osc.frequency.setValueAtTime(600, now + 0.1);
-      gain.gain.setValueAtTime(0.1, now);
-      gain.gain.linearRampToValueAtTime(0, now + 0.5);
-      osc.start(now); osc.stop(now + 0.5);
-    }
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination); const now = audioCtx.currentTime;
+    if (type === 'click') { osc.type='sine'; osc.frequency.setValueAtTime(600,now); osc.frequency.exponentialRampToValueAtTime(300,now+0.1); gain.gain.setValueAtTime(0.1,now); gain.gain.exponentialRampToValueAtTime(0.01,now+0.1); osc.start(now); osc.stop(now+0.1); }
+    else if (type === 'tada') { osc.type='square'; osc.frequency.setValueAtTime(400,now); osc.frequency.setValueAtTime(600,now+0.1); gain.gain.setValueAtTime(0.1,now); gain.gain.linearRampToValueAtTime(0,now+0.5); osc.start(now); osc.stop(now+0.5); }
   }
+  function vibrate(p) { if (navigator.vibrate) navigator.vibrate(p); }
 
-  function vibrate(pattern) {
-    if (navigator.vibrate) navigator.vibrate(pattern);
-  }
-
-  // ==========================================
+  // ============================================================
   // UTILITAIRES
-  // ==========================================
-  function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div'); div.textContent = text; return div.innerHTML;
-  }
-  function generateId() { return Math.random().toString(36).substring(2, 9); }
+  // ============================================================
+  function escapeHtml(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+  const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  function randomCode(n = 4) { let s = ''; for (let i = 0; i < n; i++) s += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]; return s; }
+  function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-  const MIN_PLAYERS = 3; // En dessous de 3, un 50/50 est mathématiquement impossible
-  const STORAGE_KEY = 'jeu5050_state_v1';
+  const MIN_PLAYERS = 3;
 
-  // Contenu par palier d'intensité (1 = Soft, 2 = Normal, 3 = Trash).
-  // La pioche cumule tous les paliers <= au niveau choisi.
   const SCENARIOS_BY_TIER = {
-    1: [
-      "Vous gagnez 10 millions d'euros",
-      "Vous pouvez voler comme un oiseau",
-      "Vous pouvez vous téléporter n'importe où",
-      "Vous parlez et comprenez tous les animaux",
-      "Vous avez une santé parfaite jusqu'à 100 ans",
-      "Vous parlez couramment toutes les langues du monde",
-      "Vous devenez le meilleur du monde dans le sport de votre choix",
-      "Vous pouvez manger tout ce que vous voulez sans grossir",
-      "Vous avez une mémoire parfaite et infaillible",
-      "Vous possédez une maison de rêve dans chaque pays",
-      "Vous ne dormez plus jamais mais restez en pleine forme",
-      "Vous pouvez guérir les gens d'un simple toucher"
-    ],
-    2: [
-      "Vous lisez dans les pensées de tout le monde",
-      "Vous devenez invisible à volonté",
-      "Vous pouvez arrêter le temps quand vous voulez",
-      "Vous découvrez le secret de l'immortalité",
-      "Vous devenez la personne la plus célèbre du monde",
-      "Vous gagnez à chaque pari et chaque jeu d'argent",
-      "Vous pouvez revivre une journée de votre passé et la changer",
-      "Vous séduisez instantanément n'importe qui",
-      "Vous ne ressentez plus jamais la gueule de bois",
-      "Vous savez toujours quand quelqu'un vous ment"
-    ],
-    3: [
-      "Vous pouvez ressusciter une personne morte (une seule fois)",
-      "Vous savez en permanence ce que les gens pensent VRAIMENT de vous",
-      "Vous pouvez effacer un souvenir précis dans la tête de n'importe qui",
-      "Vous gagnez 1 million d'euros à chaque fois qu'un inconnu meurt dans le monde",
-      "Vous pouvez forcer quelqu'un à dire la vérité pendant une minute",
-      "Vous connaissez la date exacte de votre propre mort",
-      "Vous pouvez échanger de corps avec n'importe qui pendant 24 h",
-      "Vous gagnez 10 ans de vie à chaque couple que vous faites rompre",
-      "Tous vos ex retombent éperdument amoureux de vous, pour toujours",
-      "Vous devenez irrésistible, mais uniquement pour les gens que vous détestez",
-      "Vous devenez immortel, mais vous continuez de vieillir éternellement",
-      "Vous pouvez faire disparaître quelqu'un de l'existence : plus personne ne se souviendra de lui",
-      "Vous lisez tous les messages privés de n'importe qui, à vie",
-      "Vous gagnez 100 000 € à chaque enterrement auquel vous assistez",
-      "Vous connaissez le pire secret de toutes les personnes que vous croisez",
-      "Vous ressuscitez après chaque mort, mais avec un membre en moins à chaque fois",
-      "Vous devenez ultra-riche, mais tous vos proches vous oublient totalement",
-      "Vous héritez de 50 millions d'euros à la mort de la personne à votre gauche",
-      "Vous pouvez rendre n'importe qui fou amoureux de vous, jusqu'à ce qu'il l'apprenne",
-      "Vous obtenez tous les pouvoirs du monde, sauf un seul, tiré au sort à jamais"
-    ]
+    1: ["Vous gagnez 10 millions d'euros","Vous pouvez voler comme un oiseau","Vous pouvez vous téléporter n'importe où","Vous parlez et comprenez tous les animaux","Vous avez une santé parfaite jusqu'à 100 ans","Vous parlez couramment toutes les langues du monde","Vous devenez le meilleur du monde dans le sport de votre choix","Vous pouvez manger tout ce que vous voulez sans grossir","Vous avez une mémoire parfaite et infaillible","Vous possédez une maison de rêve dans chaque pays","Vous ne dormez plus jamais mais restez en pleine forme","Vous pouvez guérir les gens d'un simple toucher"],
+    2: ["Vous lisez dans les pensées de tout le monde","Vous devenez invisible à volonté","Vous pouvez arrêter le temps quand vous voulez","Vous découvrez le secret de l'immortalité","Vous devenez la personne la plus célèbre du monde","Vous gagnez à chaque pari et chaque jeu d'argent","Vous pouvez revivre une journée de votre passé et la changer","Vous séduisez instantanément n'importe qui","Vous ne ressentez plus jamais la gueule de bois","Vous savez toujours quand quelqu'un vous ment"],
+    3: ["Vous pouvez ressusciter une personne morte (une seule fois)","Vous savez en permanence ce que les gens pensent VRAIMENT de vous","Vous pouvez effacer un souvenir précis dans la tête de n'importe qui","Vous gagnez 1 million d'euros à chaque fois qu'un inconnu meurt dans le monde","Vous pouvez forcer quelqu'un à dire la vérité pendant une minute","Vous connaissez la date exacte de votre propre mort","Vous pouvez échanger de corps avec n'importe qui pendant 24 h","Vous gagnez 10 ans de vie à chaque couple que vous faites rompre","Tous vos ex retombent éperdument amoureux de vous, pour toujours","Vous devenez irrésistible, mais uniquement pour les gens que vous détestez","Vous devenez immortel, mais vous continuez de vieillir éternellement","Vous pouvez faire disparaître quelqu'un de l'existence : plus personne ne se souviendra de lui","Vous lisez tous les messages privés de n'importe qui, à vie","Vous gagnez 100 000 € à chaque enterrement auquel vous assistez","Vous connaissez le pire secret de toutes les personnes que vous croisez","Vous ressuscitez après chaque mort, mais avec un membre en moins à chaque fois","Vous devenez ultra-riche, mais tous vos proches vous oublient totalement","Vous héritez de 50 millions d'euros à la mort de la personne à votre gauche","Vous pouvez rendre n'importe qui fou amoureux de vous, jusqu'à ce qu'il l'apprenne","Vous obtenez tous les pouvoirs du monde, sauf un seul, tiré au sort à jamais"]
   };
-
   const SECRET_RULES_BY_TIER = {
-    1: [
-      "La contrepartie doit obligatoirement impliquer un animal.",
-      "La contrepartie doit être liée à la nourriture.",
-      "La contrepartie doit impliquer un changement physique visible.",
-      "La contrepartie doit contenir le mot 'Toujours' ou 'Jamais'.",
-      "La contrepartie doit se produire chaque matin au réveil.",
-      "La contrepartie doit concerner ton téléphone ou les réseaux sociaux.",
-      "La contrepartie doit durer toute ta vie."
-    ],
-    2: [
-      "La contrepartie doit être extrêmement embarrassante en public.",
-      "La contrepartie doit faire intervenir un membre de ta famille.",
-      "La contrepartie doit te ruiner financièrement.",
-      "La contrepartie doit impliquer une odeur insupportable.",
-      "La contrepartie doit te faire perdre tous tes amis actuels.",
-      "La contrepartie doit se déclencher à chaque fois que tu mens."
-    ],
-    3: [
-      "La contrepartie doit impliquer ton ex.",
-      "La contrepartie doit concerner ta vie de couple ou ta vie intime.",
-      "La contrepartie doit raccourcir ta vie de quelques années.",
-      "La contrepartie doit impliquer la mort d'un parfait inconnu.",
-      "La contrepartie doit être un secret honteux que tout le monde finira par découvrir.",
-      "La contrepartie doit te forcer à trahir une personne que tu aimes.",
-      "La contrepartie doit impliquer une fonction corporelle bien gênante.",
-      "La contrepartie doit te faire passer pour un monstre aux yeux des autres.",
-      "La contrepartie doit te coûter une amitié à laquelle tu tiens vraiment.",
-      "La contrepartie doit être quelque chose dont tu auras honte sur ton lit de mort.",
-      "La contrepartie doit te suivre dans chacune de tes futures relations.",
-      "La contrepartie doit faire de toi la risée d'Internet pour toujours.",
-      "La contrepartie doit impliquer du sang ou une douleur physique.",
-      "La contrepartie doit mettre tes parents au courant de TOUT ce que tu fais."
-    ]
+    1: ["La contrepartie doit obligatoirement impliquer un animal.","La contrepartie doit être liée à la nourriture.","La contrepartie doit impliquer un changement physique visible.","La contrepartie doit contenir le mot 'Toujours' ou 'Jamais'.","La contrepartie doit se produire chaque matin au réveil.","La contrepartie doit concerner ton téléphone ou les réseaux sociaux.","La contrepartie doit durer toute ta vie."],
+    2: ["La contrepartie doit être extrêmement embarrassante en public.","La contrepartie doit faire intervenir un membre de ta famille.","La contrepartie doit te ruiner financièrement.","La contrepartie doit impliquer une odeur insupportable.","La contrepartie doit te faire perdre tous tes amis actuels.","La contrepartie doit se déclencher à chaque fois que tu mens."],
+    3: ["La contrepartie doit impliquer ton ex.","La contrepartie doit concerner ta vie de couple ou ta vie intime.","La contrepartie doit raccourcir ta vie de quelques années.","La contrepartie doit impliquer la mort d'un parfait inconnu.","La contrepartie doit être un secret honteux que tout le monde finira par découvrir.","La contrepartie doit te forcer à trahir une personne que tu aimes.","La contrepartie doit impliquer une fonction corporelle bien gênante.","La contrepartie doit te faire passer pour un monstre aux yeux des autres.","La contrepartie doit te coûter une amitié à laquelle tu tiens vraiment.","La contrepartie doit être quelque chose dont tu auras honte sur ton lit de mort.","La contrepartie doit te suivre dans chacune de tes futures relations.","La contrepartie doit faire de toi la risée d'Internet pour toujours.","La contrepartie doit impliquer du sang ou une douleur physique.","La contrepartie doit mettre tes parents au courant de TOUT ce que tu fais."]
   };
-
   const SPICE_LABELS = { 1: '😇 Soft', 2: '😏 Normal', 3: '🌶️ Trash' };
 
-  // ==========================================
-  // LOGIQUE DU JEU
-  // ==========================================
-  class Game {
+  function honoraryTitle(p) {
+    if (p === 50) return "👑 Le Maître Chanteur Parfait";
+    if (p === 100) return "🧸 Le Bisounours (Trop gentil)";
+    if (p === 0) return "😈 Le Tortionnaire Sadique";
+    if (Math.abs(50 - p) <= 15) return "⚖️ L'Équilibriste";
+    if (p > 75) return "🤝 Le Négociateur Sympa";
+    if (p < 25) return "🏴‍☠️ Le Bourreau Sans Pitié";
+    return "🤷 Le Créateur de Chaos";
+  }
+  function pointsFromDeviation(d) { return Math.round(Math.max(0, (50 - d) / 50 * 100)); }
+
+  // ============================================================
+  // COUCHE RÉSEAU + LOGIQUE
+  // ============================================================
+  class App {
     constructor() {
-      this.players = [];        // [{ id, name, score }]
-      this.phase = 'setup';
-      this.spice = 2;           // 1 Soft / 2 Normal / 3 Trash
-      this.customScenarios = []; // [{ id, text }] ajoutés par les joueurs
-      this.round = 0;
-      this.usedScenarios = [];  // anti-répétition
-      this.currentPlayerIndex = 0;
-      this.currentVoteIndex = 0;
-      this.scenario = '';
-      this.secretRule = null;
-      this.proposals = [];
-      this.votes = {};
-      this.results = [];
-      this.load();
-      this.render();
-    }
+      this.uid = null;
+      this.code = null;          // room courante
+      this.room = null;          // dernier snapshot de la room
+      this.unsub = null;         // désabonnement onValue
+      this.error = null;
+      this.pseudo = localStorage.getItem('pseudo5050') || '';
+      this.fatal = null;
 
-    /* ---------- Persistance (localStorage) ---------- */
-    save() {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          players: this.players, phase: this.phase, round: this.round, spice: this.spice, customScenarios: this.customScenarios,
-          usedScenarios: this.usedScenarios, currentPlayerIndex: this.currentPlayerIndex,
-          currentVoteIndex: this.currentVoteIndex, scenario: this.scenario,
-          secretRule: this.secretRule, proposals: this.proposals, votes: this.votes, results: this.results
-        }));
-      } catch (e) { /* stockage indisponible : on continue sans sauvegarde */ }
-    }
-
-    load() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return;
-        Object.assign(this, JSON.parse(raw));
-      } catch (e) { /* sauvegarde corrompue ou indisponible : on ignore */ }
-    }
-
-    /* ---------- Saut des propositions dont on est l'auteur ---------- */
-    firstVotableIndex(playerId) {
-      return this.proposals.findIndex(p => p.authorId !== playerId);
-    }
-    nextVotableIndex(playerId, fromIndex) {
-      for (let i = fromIndex; i < this.proposals.length; i++) {
-        if (this.proposals[i].authorId !== playerId) return i;
+        const fbApp = initializeApp(firebaseConfig);
+        this.auth = getAuth(fbApp);
+        this.db = getDatabase(fbApp);
+      } catch (e) {
+        this.fatal = "Config Firebase invalide. As-tu collé ta vraie config en haut du fichier ?";
+        this.render(); return;
       }
-      return -1;
-    }
 
-    /* ---------- Gestion des joueurs ---------- */
-    addPlayer(name) {
-      initInteraction(); vibrate(50); playSound('click');
-      const cleanName = name.trim();
-      if (!cleanName) return;
-      if (this.players.some(p => p.name.toLowerCase() === cleanName.toLowerCase())) return;
-      this.players.push({ id: generateId(), name: cleanName, score: 0 });
-      this.focusTarget = 'player';
+      signInAnonymously(this.auth).catch(() => {
+        this.fatal = "Connexion anonyme refusée. Active 'Anonyme' dans Firebase > Authentication > Sign-in method.";
+        this.render();
+      });
+      onAuthStateChanged(this.auth, (user) => {
+        if (user) { this.uid = user.uid; this.render(); }
+      });
       this.render();
     }
 
-    removePlayer(id) {
+    rref(path) { return ref(this.db, path); }
+    meta() { return (this.room && this.room.meta) || {}; }
+    players() { return (this.room && this.room.players) || {}; }
+    proposals() { return (this.room && this.room.proposals) || {}; }
+    votes() { return (this.room && this.room.votes) || {}; }
+    me() { return this.players()[this.uid] || null; }
+    isHost() { return this.meta().hostId === this.uid; }
+    connectedIds() { const p = this.players(); return Object.keys(p).filter(id => p[id].connected); }
+    roundPlayers() { return this.meta().roundPlayers || []; }
+
+    /* ---------- Création / connexion ---------- */
+    async createRoom() {
       initInteraction(); vibrate(50); playSound('click');
-      this.players = this.players.filter(p => p.id !== id);
-      this.render();
+      const name = this.pseudo.trim();
+      if (!name) { this.error = "Choisis d'abord un pseudo."; return this.render(); }
+      let code, exists = true, tries = 0;
+      do { code = randomCode(4); exists = (await get(this.rref('rooms/' + code))).exists(); tries++; } while (exists && tries < 10);
+
+      await set(this.rref('rooms/' + code), {
+        meta: { phase: 'lobby', round: 0, spice: 2, hostId: this.uid, scored: -1, createdAt: serverTimestamp() },
+        players: { [this.uid]: { name, score: 0, connected: true, isHost: true } }
+      });
+      this.joinSubscription(code);
     }
 
-    resetScores() {
+    async joinRoom(codeRaw) {
       initInteraction(); vibrate(50); playSound('click');
-      this.players.forEach(p => p.score = 0);
-      this.round = 0;
-      this.usedScenarios = [];
-      this.render();
+      const name = this.pseudo.trim();
+      const code = (codeRaw || '').trim().toUpperCase();
+      if (!name) { this.error = "Choisis d'abord un pseudo."; return this.render(); }
+      if (code.length !== 4) { this.error = "Le code fait 4 caractères."; return this.render(); }
+      const snap = await get(this.rref('rooms/' + code));
+      if (!snap.exists()) { this.error = "Aucune partie avec ce code."; return this.render(); }
+      const data = snap.val();
+      if (data.meta.phase !== 'lobby' && !(data.players && data.players[this.uid])) {
+        this.error = "La partie a déjà commencé."; return this.render();
+      }
+      const existing = data.players && data.players[this.uid];
+      await update(this.rref(`rooms/${code}/players/${this.uid}`), {
+        name, connected: true, score: existing ? existing.score : 0, isHost: data.meta.hostId === this.uid
+      });
+      this.joinSubscription(code);
     }
 
-    /* ---------- Intensité & pioche ---------- */
-    setSpice(level) {
-      initInteraction(); vibrate(50); playSound('click');
-      this.spice = level;
-      this.render();
+    joinSubscription(code) {
+      this.code = code; this.error = null;
+      localStorage.setItem('pseudo5050', this.pseudo.trim());
+
+      // Présence : marquer déconnecté si l'onglet se ferme
+      const connRef = this.rref(`rooms/${code}/players/${this.uid}/connected`);
+      set(connRef, true);
+      onDisconnect(connRef).set(false);
+
+      if (this.unsub) this.unsub();
+      this.unsub = onValue(this.rref('rooms/' + code), (snap) => {
+        if (!snap.exists()) { this.leaveLocal("La partie a été fermée."); return; }
+        this.room = snap.val();
+        this.hostTick();   // l'hôte fait avancer le jeu si besoin
+        this.render();
+      });
     }
 
-    /* ---------- Scénarios maison ---------- */
-    addScenario(text) {
-      initInteraction(); vibrate(50); playSound('click');
-      const clean = text.trim();
-      if (!clean) return;
-      if (this.customScenarios.some(s => s.text.toLowerCase() === clean.toLowerCase())) return;
-      this.customScenarios.push({ id: generateId(), text: clean });
-      this.focusTarget = 'scenario';
-      this.render();
-    }
-    removeScenario(id) {
-      initInteraction(); vibrate(50); playSound('click');
-      this.customScenarios = this.customScenarios.filter(s => s.id !== id);
-      this.render();
+    leaveLocal(msg) {
+      if (this.unsub) { this.unsub(); this.unsub = null; }
+      this.code = null; this.room = null; this.error = msg || null; this.render();
     }
 
+    async quitRoom() {
+      initInteraction(); vibrate(50); playSound('click');
+      if (this.code) {
+        try { await remove(this.rref(`rooms/${this.code}/players/${this.uid}`)); } catch (e) {}
+      }
+      this.leaveLocal();
+    }
+
+    /* ---------- Réglages lobby (hôte) ---------- */
+    setSpice(level) { if (!this.isHost()) return; initInteraction(); playSound('click'); update(this.rref(`rooms/${this.code}/meta`), { spice: level }); }
+    addCustomScenario(text) {
+      if (!this.isHost()) return;
+      const clean = (text || '').trim(); if (!clean) return;
+      initInteraction(); playSound('click');
+      const id = randomCode(6);
+      set(this.rref(`rooms/${this.code}/customScenarios/${id}`), { text: clean });
+      this.focusScenario = true;
+    }
+    removeCustomScenario(id) { if (!this.isHost()) return; playSound('click'); remove(this.rref(`rooms/${this.code}/customScenarios/${id}`)); }
+    kickPlayer(id) { if (!this.isHost() || id === this.uid) return; playSound('click'); remove(this.rref(`rooms/${this.code}/players/${id}`)); }
+
+    /* ---------- Pioche ---------- */
     scenarioPool() {
+      const spice = this.meta().spice || 2;
       let pool = [];
-      for (let lvl = 1; lvl <= this.spice; lvl++) pool = pool.concat(SCENARIOS_BY_TIER[lvl]);
-      pool = pool.concat(this.customScenarios.map(s => s.text)); // les scénarios maison sortent toujours
-      return pool;
+      for (let l = 1; l <= spice; l++) pool = pool.concat(SCENARIOS_BY_TIER[l]);
+      const custom = this.room.customScenarios ? Object.values(this.room.customScenarios).map(s => s.text) : [];
+      return pool.concat(custom);
     }
-    rulePool() {
-      let pool = [];
-      for (let lvl = 1; lvl <= this.spice; lvl++) pool = pool.concat(SECRET_RULES_BY_TIER[lvl]);
-      return pool;
-    }
+    rulePool() { const spice = this.meta().spice || 2; let pool = []; for (let l = 1; l <= spice; l++) pool = pool.concat(SECRET_RULES_BY_TIER[l]); return pool; }
 
-    /* ---------- Pioche de scénario sans répétition ---------- */
-    pickScenario() {
+    /* ---------- Démarrer une manche (hôte) ---------- */
+    async startRound() {
+      if (!this.isHost()) return;
+      initInteraction(); vibrate([50,50,50]); playSound('tada');
+      const connected = this.connectedIds();
+      if (connected.length < MIN_PLAYERS) return;
+
+      const used = this.meta().usedScenarios || [];
       const pool = this.scenarioPool();
-      let avail = pool.filter(s => !this.usedScenarios.includes(s));
-      if (avail.length === 0) { this.usedScenarios = []; avail = pool; }
-      const choice = avail[Math.floor(Math.random() * avail.length)];
-      this.usedScenarios.push(choice);
-      return choice;
-    }
-
-    /* ---------- Déroulé de la manche ---------- */
-    startGame() {
-      initInteraction(); vibrate([50, 50, 50]); playSound('tada');
-      if (this.players.length < MIN_PLAYERS) return;
-      this.round++;
-      this.scenario = this.pickScenario();
+      let avail = pool.filter(s => !used.includes(s));
+      if (avail.length === 0) avail = pool;
+      const scenario = avail[Math.floor(Math.random() * avail.length)];
       const rules = this.rulePool();
-      this.secretRule = Math.random() < 0.35 ? rules[Math.floor(Math.random() * rules.length)] : null;
-      this.proposals = []; this.votes = {}; this.currentPlayerIndex = 0;
-      this.phase = 'transition_propose';
-      this.render();
+      const secretRule = Math.random() < 0.35 ? rules[Math.floor(Math.random() * rules.length)] : null;
+
+      await update(this.rref(`rooms/${this.code}`), {
+        proposals: null, votes: null,
+        meta: {
+          ...this.meta(),
+          phase: 'propose',
+          round: (this.meta().round || 0) + 1,
+          scenario, secretRule: secretRule || null,
+          roundPlayers: connected,
+          order: null,
+          usedScenarios: [...used, scenario].slice(-40),
+          scored: this.meta().scored
+        }
+      });
     }
 
-    readyForTurn() {
-      initInteraction(); vibrate(50); playSound('click');
-      if (this.phase === 'transition_propose') this.phase = 'propose';
-      if (this.phase === 'transition_vote') this.phase = 'vote';
-      this.render();
-    }
-
+    /* ---------- Soumettre une proposition ---------- */
     submitProposal(text) {
       initInteraction(); vibrate(50); playSound('click');
-      if (!text.trim()) return;
-      this.proposals.push({ id: generateId(), authorId: this.players[this.currentPlayerIndex].id, text: text.trim() });
-      this.currentPlayerIndex++;
-
-      if (this.currentPlayerIndex >= this.players.length) {
-        this.proposals = this.proposals.sort(() => Math.random() - 0.5);
-        this.currentPlayerIndex = 0;
-        this.currentVoteIndex = this.firstVotableIndex(this.players[0].id);
-        this.phase = 'transition_vote';
-      } else {
-        this.phase = 'transition_propose';
-      }
-      this.render();
+      const clean = (text || '').trim(); if (!clean) return;
+      set(this.rref(`rooms/${this.code}/proposals/${this.uid}`), { text: clean });
     }
 
-    submitVote(voteValue) {
+    /* ---------- Voter ---------- */
+    submitVote(authorId, value) {
       initInteraction(); vibrate(50); playSound('click');
-      const currentProposal = this.proposals[this.currentVoteIndex];
-      const currentPlayer = this.players[this.currentPlayerIndex];
+      set(this.rref(`rooms/${this.code}/votes/${authorId}/${this.uid}`), value);
+    }
 
-      // La proposition affichée n'est jamais celle du joueur courant : on compte directement le vote
-      if (!this.votes[currentProposal.id]) this.votes[currentProposal.id] = { yes: [], no: [] };
-      this.votes[currentProposal.id][voteValue].push(currentPlayer.name);
-
-      // Proposition votable suivante pour ce joueur (on saute les siennes)
-      const next = this.nextVotableIndex(currentPlayer.id, this.currentVoteIndex + 1);
-      if (next !== -1) {
-        this.currentVoteIndex = next;
-      } else {
-        this.currentPlayerIndex++;
-        if (this.currentPlayerIndex >= this.players.length) {
-          this.calculateResults();
-          this.phase = 'results';
-        } else {
-          this.currentVoteIndex = this.firstVotableIndex(this.players[this.currentPlayerIndex].id);
-          this.phase = 'transition_vote';
+    /* ---------- Transitions pilotées par l'hôte ---------- */
+    hostTick() {
+      // Migration d'hôte : si l'hôte est déconnecté, le 1er joueur connecté (ordre alphabétique d'uid) reprend la main
+      const players = this.players();
+      const hostId = this.meta().hostId;
+      const hostOk = hostId && players[hostId] && players[hostId].connected;
+      if (!hostOk) {
+        const candidate = this.connectedIds().sort()[0];
+        if (candidate && candidate === this.uid) {
+          update(this.rref(`rooms/${this.code}/meta`), { hostId: this.uid });
+          update(this.rref(`rooms/${this.code}/players/${this.uid}`), { isHost: true });
         }
+        return; // on attend la stabilisation
       }
-      this.render();
+      if (!this.isHost()) return;
+
+      const phase = this.meta().phase;
+      if (phase === 'propose' && this.allProposed()) this.openVote();
+      else if (phase === 'vote' && this.allVoted()) this.computeResults();
     }
 
-    getHonoraryTitle(percent) {
-      if (percent === 50) return "👑 Le Maître Chanteur Parfait";
-      if (percent === 100) return "🧸 Le Bisounours (Trop gentil)";
-      if (percent === 0) return "😈 Le Tortionnaire Sadique";
-      if (Math.abs(50 - percent) <= 15) return "⚖️ L'Équilibriste";
-      if (percent > 75) return "🤝 Le Négociateur Sympa";
-      if (percent < 25) return "🏴‍☠️ Le Bourreau Sans Pitié";
-      return "🤷 Le Créateur de Chaos";
+    activeRoundPlayers() {
+      const players = this.players();
+      return this.roundPlayers().filter(id => players[id]); // encore présents
     }
 
-    // Plus on est proche de 50/50, plus on marque (100 pts pour un 50/50 parfait, 0 pour 0%/100%)
-    pointsFromDeviation(deviation) {
-      return Math.round(Math.max(0, (50 - deviation) / 50 * 100));
+    allProposed() {
+      const props = this.proposals();
+      return this.activeRoundPlayers().every(id => props[id]);
     }
 
-    calculateResults() {
-      this.results = this.proposals.map(p => {
-        const v = this.votes[p.id] || { yes: [], no: [] };
-        const totalVotes = v.yes.length + v.no.length;
-        const yesPercent = totalVotes > 0 ? (v.yes.length / totalVotes) * 100 : 0;
-        const deviation = Math.abs(50 - yesPercent);
-        const points = this.pointsFromDeviation(deviation);
-        const author = this.players.find(pl => pl.id === p.authorId);
-        return { ...p, yesPercent, deviation, points, authorName: author ? author.name : '???', title: this.getHonoraryTitle(yesPercent) };
+    async openVote() {
+      const order = shuffle(this.activeRoundPlayers().filter(id => this.proposals()[id]));
+      await update(this.rref(`rooms/${this.code}/meta`), { phase: 'vote', order });
+    }
+
+    voterDone(voterId) {
+      const order = this.meta().order || [];
+      const votes = this.votes();
+      return order.filter(a => a !== voterId).every(a => votes[a] && votes[a][voterId] !== undefined);
+    }
+    allVoted() {
+      const voters = this.activeRoundPlayers();
+      return voters.length > 0 && voters.every(v => this.voterDone(v));
+    }
+
+    async computeResults() {
+      if (this.meta().scored === this.meta().round) return; // déjà compté
+      const order = this.meta().order || [];
+      const votes = this.votes();
+      const players = this.players();
+      const scoreUpdates = {};
+      order.forEach(authorId => {
+        const v = votes[authorId] || {};
+        const vals = Object.values(v);
+        const yes = vals.filter(x => x === 'yes').length;
+        const total = vals.length;
+        const yesPercent = total > 0 ? (yes / total) * 100 : 0;
+        const pts = pointsFromDeviation(Math.abs(50 - yesPercent));
+        if (players[authorId]) scoreUpdates[`players/${authorId}/score`] = (players[authorId].score || 0) + pts;
       });
-      this.results.sort((a, b) => a.deviation - b.deviation);
-
-      // Attribution des points au classement général
-      this.results.forEach(r => {
-        const author = this.players.find(pl => pl.id === r.authorId);
-        if (author) author.score += r.points;
-      });
+      scoreUpdates['meta/phase'] = 'results';
+      scoreUpdates['meta/scored'] = this.meta().round;
+      await update(this.rref('rooms/' + this.code), scoreUpdates);
     }
 
-    startRoulette(proposalId) {
-      initInteraction();
-      const result = this.results.find(r => r.id === proposalId);
-      if (!result) return;
-      const realAuthor = result.authorName;
-
-      const btn = document.getElementById(`btn-reveal-${proposalId}`);
-      const infoDiv = document.getElementById(`info-${proposalId}`);
-      const rouletteText = document.getElementById(`roulette-text-${proposalId}`);
-      const secretStats = document.getElementById(`secret-stats-${proposalId}`);
-
-      btn.style.display = 'none';
-      infoDiv.style.display = 'block';
-
-      let ticks = 0;
-      const maxTicks = 20;
-
-      const interval = setInterval(() => {
-        playSound('tick');
-        vibrate(20);
-        rouletteText.innerText = this.players[Math.floor(Math.random() * this.players.length)].name;
-        rouletteText.classList.add('roulette-blur');
-
-        ticks++;
-        if (ticks >= maxTicks) {
-          clearInterval(interval);
-          rouletteText.classList.remove('roulette-blur');
-          rouletteText.classList.add('author-reveal-final');
-          rouletteText.innerText = `👑 ${realAuthor} 👑`;
-
-          playSound('tada');
-          vibrate([100, 50, 100, 50, 200]);
-
-          setTimeout(() => { secretStats.style.display = 'block'; }, 500);
-        }
-      }, 100);
+    forceNext() {
+      if (!this.isHost()) return;
+      initInteraction(); playSound('click');
+      if (this.meta().phase === 'propose') this.openVote();
+      else if (this.meta().phase === 'vote') this.computeResults();
     }
 
-    nextRound() { this.startGame(); }
+    nextRound() { this.startRound(); }
+    async finishGame() { if (!this.isHost()) return; playSound('tada'); await update(this.rref(`rooms/${this.code}/meta`), { phase: 'final' }); }
+    async backToLobby() { if (!this.isHost()) return; playSound('click'); await update(this.rref(`rooms/${this.code}/meta`), { phase: 'lobby' }); }
 
-    finishGame() {
-      initInteraction(); vibrate([50, 50, 50]); playSound('tada');
-      this.phase = 'final';
-      this.render();
-    }
-
-    resetGame() {
-      initInteraction(); vibrate(50); playSound('click');
-      this.phase = 'setup'; this.render();
-    }
-
-    /* ==========================================
-       MOTEUR DE RENDU
-    ========================================== */
+    /* ==========================================================
+       RENDU
+    ========================================================== */
     render() {
-      this.save();
       const appDiv = document.getElementById('app');
-      const pill = document.getElementById('roundPill');
-      pill.innerHTML = (this.round > 0 && this.phase !== 'final') ? `<span class="round-pill">Manche ${this.round}</span>` : '';
+      const pills = document.getElementById('pills');
+      pills.innerHTML = '';
 
-      if (this.phase === 'setup') appDiv.innerHTML = this.renderSetup();
-      else if (this.phase === 'transition_propose' || this.phase === 'transition_vote') appDiv.innerHTML = this.renderTransition();
-      else if (this.phase === 'propose') appDiv.innerHTML = this.renderPropose();
-      else if (this.phase === 'vote') appDiv.innerHTML = this.renderVote();
-      else if (this.phase === 'final') appDiv.innerHTML = this.renderFinal();
-      else if (this.phase === 'results') {
-        appDiv.innerHTML = this.renderResults();
-        setTimeout(() => {
-          document.querySelectorAll('.vote-bar-fill').forEach(bar => { bar.style.width = bar.getAttribute('data-target-width'); });
-        }, 100);
-      }
-      this.attachEventListeners();
+      if (this.fatal) { appDiv.innerHTML = `<div class="card"><div class="banner-error">⚠️ ${escapeHtml(this.fatal)}</div></div>`; return; }
+      if (!this.uid) { appDiv.innerHTML = `<div class="card transition-screen"><div class="spinner"></div><p style="color:#cbd5e1;">Connexion…</p></div>`; return; }
+
+      if (!this.code || !this.room) { appDiv.innerHTML = this.renderHome(); this.bindHome(); return; }
+
+      // Pills (code room + manche)
+      const phase = this.meta().phase;
+      pills.innerHTML = `<span class="pill code" id="pillCode">CODE ${escapeHtml(this.code)} 📋</span>` +
+        (this.meta().round > 0 && phase !== 'final' ? `<span class="pill round">Manche ${this.meta().round}</span>` : '');
+
+      if (phase === 'lobby') appDiv.innerHTML = this.renderLobby();
+      else if (phase === 'propose') appDiv.innerHTML = this.renderPropose();
+      else if (phase === 'vote') appDiv.innerHTML = this.renderVote();
+      else if (phase === 'results') { appDiv.innerHTML = this.renderResults(); setTimeout(() => document.querySelectorAll('.vote-bar-fill').forEach(b => b.style.width = b.dataset.w), 80); }
+      else if (phase === 'final') appDiv.innerHTML = this.renderFinal();
+
+      this.bindRoom();
+    }
+
+    renderHome() {
+      return `
+        <div class="card">
+          ${this.error ? `<div class="banner-error">${escapeHtml(this.error)}</div>` : ''}
+          <div class="rules-box">
+            <h3>📜 Le principe</h3>
+            <ul class="rules-list">
+              <li>⚡ <strong>1.</strong> Le jeu donne un super-pouvoir à tout le monde.</li>
+              <li>😈 <strong>2.</strong> Chacun invente en secret une contrepartie ("...mais...").</li>
+              <li>🗳️ <strong>3.</strong> Tout le monde vote sur chaque contrepartie (sauf la sienne).</li>
+              <li>⚖️ <strong>4.</strong> Tu marques un max de points en t'approchant du <strong>50/50</strong> !</li>
+            </ul>
+          </div>
+          <div class="input-group">
+            <label>Ton pseudo</label>
+            <input type="text" id="pseudo" maxlength="16" placeholder="Ton prénom..." value="${escapeHtml(this.pseudo)}">
+          </div>
+          <button id="btnCreate">🚀 Créer une partie</button>
+          <div style="text-align:center; color:#64748b; margin:18px 0; font-weight:700;">— ou —</div>
+          <div class="input-group">
+            <label>Rejoindre avec un code</label>
+            <input type="text" id="joinCode" maxlength="4" class="code-input" placeholder="ABCD">
+          </div>
+          <button id="btnJoin" class="secondary">Rejoindre la partie</button>
+        </div>`;
+    }
+
+    renderPlayerTags(opts = {}) {
+      const players = this.players();
+      const props = this.proposals();
+      return Object.keys(players).map(id => {
+        const p = players[id];
+        const host = this.meta().hostId === id;
+        const submitted = opts.showSubmitted && props[id];
+        const canKick = this.isHost() && id !== this.uid && this.meta().phase === 'lobby';
+        return `<span class="player-tag">
+          <span class="dot ${p.connected ? '' : 'off'}"></span>${escapeHtml(p.name)}
+          ${host ? '<span class="crown">👑</span>' : ''}
+          ${submitted ? '<span class="check">✓</span>' : ''}
+          ${canKick ? `<span class="remove-x" data-action="kick" data-id="${id}">✖</span>` : ''}
+        </span>`;
+      }).join('');
     }
 
     renderLeaderboard() {
-      if (this.players.every(p => p.score === 0)) return '';
-      const sorted = [...this.players].sort((a, b) => b.score - a.score);
+      const players = this.players();
+      if (Object.values(players).every(p => !p.score)) return '';
+      const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
       const medals = ['🥇', '🥈', '🥉'];
-      return `
-        <div class="leaderboard">
-          <h3>🏅 Classement général</h3>
-          ${sorted.map((p, i) => `
-            <div class="lb-row ${i === 0 ? 'lead' : ''}">
-              <span class="lb-rank">${medals[i] || (i + 1)}</span>
-              <span class="lb-name">${escapeHtml(p.name)}</span>
-              <span class="lb-score">${p.score} pts</span>
-            </div>`).join('')}
-        </div>`;
+      return `<div class="leaderboard"><h3>🏅 Classement</h3>${sorted.map((p, i) =>
+        `<div class="lb-row ${i === 0 ? 'lead' : ''}"><span class="lb-rank">${medals[i] || (i + 1)}</span><span class="lb-name">${escapeHtml(p.name)}</span><span class="lb-score">${p.score || 0} pts</span></div>`).join('')}</div>`;
     }
 
-    renderSetup() {
-      const canStart = this.players.length >= MIN_PLAYERS;
+    renderLobby() {
+      const spice = this.meta().spice || 2;
+      const count = this.connectedIds().length;
+      const custom = this.room.customScenarios || {};
       return `
         <div class="card">
-          ${this.round === 0 ? `
-          <div class="rules-box">
-            <h3>📜 Comment on joue ?</h3>
-            <p style="text-align:center; margin-bottom: 15px; font-size: 13px; color: #a0aec0; text-transform:uppercase; letter-spacing:1px; font-weight:800;">
-              Le but : Couper les copains en deux ! ✂️
-            </p>
-            <ul class="rules-list">
-              <li>⚡ <strong>1. Le Super-Pouvoir :</strong> Le jeu te donne une capacité extraordinaire (ex: "Tu peux voler !").</li>
-              <li>😈 <strong>2. Le Piège :</strong> Tu inventes en cachette un "MAIS..." (ex: "...mais tu as des plumes sur le nez").</li>
-              <li>🗳️ <strong>3. Le Vote :</strong> Les autres décident s'ils veulent ton super-pouvoir ou pas.</li>
-              <li>⚖️ <strong>4. La Victoire :</strong> Tu marques un maximum de points si tu t'approches le plus possible du <strong>50/50</strong> !</li>
-            </ul>
-          </div>` : ''}
-
           ${this.renderLeaderboard()}
+          <div class="info-box ok">Partagez le code <strong>${escapeHtml(this.code)}</strong> aux autres joueurs pour qu'ils rejoignent !</div>
+          <h2 style="text-align:center; margin-bottom:18px; font-weight:800;">👥 Salon (${count})</h2>
+          <div style="margin-bottom: 25px; display:flex; flex-wrap:wrap; justify-content:center;">${this.renderPlayerTags()}</div>
 
-          <div class="spice-select">
-            <label style="text-align:center;">🔥 Intensité de la soirée</label>
-            <div class="spice-row">
-              ${[1,2,3].map(lvl => `
-                <button class="spice-btn ${this.spice === lvl ? 'active' : ''}" data-action="spice" data-level="${lvl}">${SPICE_LABELS[lvl]}</button>
-              `).join('')}
+          ${this.isHost() ? `
+            <div class="spice-select">
+              <label style="text-align:center;">🔥 Intensité</label>
+              <div class="spice-row">${[1,2,3].map(l => `<button class="spice-btn ${spice === l ? 'active' : ''}" data-action="spice" data-level="${l}">${SPICE_LABELS[l]}</button>`).join('')}</div>
+              <p class="hint">${spice === 3 ? 'Humour noir / contenu border assumé 💀' : spice === 1 ? 'Tranquille, sortable en famille.' : 'Le bon équilibre pour chauffer la salle.'}</p>
             </div>
-            <p class="spice-hint">${this.spice === 3 ? 'Humour noir / contenu border assumé 💀' : this.spice === 1 ? 'Tranquille, sortable en famille.' : 'Le bon équilibre pour chauffer la salle.'}</p>
-          </div>
-
-          <h2 style="text-align:center; margin-bottom:25px; font-weight:800;">👥 Les Joueurs</h2>
-          <div class="info-box">Ajoutez tous les joueurs présents (3 minimum). L'appareil va tourner !</div>
-          <div style="margin-bottom: 25px; display:flex; flex-wrap:wrap; justify-content:center;">
-            ${this.players.map(p => `<span class="player-tag">${escapeHtml(p.name)} <span class="remove-x" data-action="remove" data-id="${p.id}">✖</span></span>`).join('')}
-            ${this.players.length === 0 ? '<em style="color:#64748b; font-size:14px;">La table est vide...</em>' : ''}
-          </div>
-          <div class="input-group">
-            <input type="text" id="newPlayerName" maxlength="20" placeholder="Prénom du joueur...">
-          </div>
-          <button id="btnAddPlayer" class="secondary" style="margin-bottom: 30px;">+ Ajouter à la partie</button>
-
-          <div class="custom-box">
-            <label style="text-align:center;">✍️ Vos scénarios maison <span style="color:#64748b;">(facultatif)</span></label>
-            <p class="spice-hint" style="margin-top:0; margin-bottom:12px;">Ajoutez vos propres "Vous gagnez..." : ils sortiront en plus, quel que soit le niveau.</p>
-            <div style="margin-bottom: 15px; display:flex; flex-wrap:wrap; justify-content:center;">
-              ${this.customScenarios.map(s => `<span class="player-tag" style="max-width:100%;">${escapeHtml(s.text)} <span class="remove-x" data-action="remove-scenario" data-id="${s.id}">✖</span></span>`).join('')}
+            <div class="custom-box">
+              <label style="text-align:center;">✍️ Scénarios maison <span style="color:#64748b;">(facultatif)</span></label>
+              <div style="margin:10px 0; display:flex; flex-wrap:wrap; justify-content:center;">
+                ${Object.keys(custom).map(id => `<span class="player-tag" style="max-width:100%;">${escapeHtml(custom[id].text)} <span class="remove-x" data-action="rmscenario" data-id="${id}">✖</span></span>`).join('')}
+              </div>
+              <div class="input-group" style="margin-bottom:12px;"><input type="text" id="newScenario" maxlength="90" placeholder="Vous pouvez parler aux fantômes..."></div>
+              <button id="btnAddScenario" class="ghost">+ Ajouter ce scénario</button>
             </div>
-            <div class="input-group" style="margin-bottom:12px;">
-              <input type="text" id="newScenario" maxlength="90" placeholder="Vous pouvez parler aux fantômes...">
-            </div>
-            <button id="btnAddScenario" class="ghost">+ Ajouter ce scénario</button>
-          </div>
-
-          <button id="btnStartGame" ${canStart ? '' : 'disabled'}>🚀 ${this.round === 0 ? 'Décoller' : 'Lancer la manche'}</button>
-          ${!canStart ? `<p style="text-align:center; color:#94a3b8; font-size:13px; margin-top:12px;">Encore ${MIN_PLAYERS - this.players.length} joueur(s) avant de pouvoir lancer.</p>` : ''}
-          ${this.round > 0 ? `<button id="btnResetScores" class="ghost" style="margin-top:14px;">♻️ Réinitialiser les scores</button>` : ''}
+            <button id="btnStart" ${count >= MIN_PLAYERS ? '' : 'disabled'}>🎬 ${this.meta().round > 0 ? 'Manche suivante' : 'Lancer la partie'}</button>
+            ${count < MIN_PLAYERS ? `<p class="hint">Il faut au moins ${MIN_PLAYERS} joueurs connectés.</p>` : ''}
+          ` : `<div class="info-box">En attente de l'hôte 👑 pour lancer la manche…</div>`}
+          <button id="btnQuit" class="ghost" style="margin-top:14px;">🚪 Quitter</button>
         </div>`;
     }
 
-    renderTransition() {
-      const action = this.phase === 'transition_propose' ? 'faire ta proposition' : 'voter';
-      const player = escapeHtml(this.players[this.currentPlayerIndex].name);
-      return `
-        <div class="card transition-screen">
-          <div class="transition-icon">🤫</div>
-          <h2 style="margin-bottom: 15px; font-size: 32px;">À toi <span style="color: #00f2fe;">${player}</span></h2>
-          <p style="color: #cbd5e1; margin-bottom: 40px; font-size: 18px;">Les autres, on détourne le regard ! C'est le moment de ${action}.</p>
-          <button id="btnReady">C'est bon, je suis caché !</button>
-        </div>`;
+    renderScenarioCard(small) {
+      const m = this.meta();
+      return `<div class="card scenario-card" ${small ? 'style="padding:25px;"' : ''}>
+        <div class="scenario-label">${small ? 'Rappel' : 'Le Scénario'}</div>
+        <div class="${small ? '' : 'scenario-text'}" style="${small ? 'font-size:20px;font-weight:800;' : ''}">${escapeHtml(m.scenario)}</div>
+        ${(!small && m.secretRule) ? `<div class="secret-rule-box"><div class="secret-rule-title">⚠️ Règle Secrète ⚠️</div><div style="font-size:16px;font-weight:600;">${escapeHtml(m.secretRule)}</div></div>` : ''}
+      </div>`;
     }
 
     renderPropose() {
-      const player = escapeHtml(this.players[this.currentPlayerIndex].name);
-      return `
-        <div class="card scenario-card">
-          <div class="scenario-label">Le Scénario</div>
-          <div class="scenario-text">${escapeHtml(this.scenario)}</div>
-          ${this.secretRule ? `
-            <div class="secret-rule-box"><div class="secret-rule-title">⚠️ Règle Secrète ⚠️</div><div style="font-size: 16px; font-weight:600;">${escapeHtml(this.secretRule)}</div></div>
-          ` : ''}
-        </div>
+      const props = this.proposals();
+      const mine = props[this.uid];
+      const total = this.activeRoundPlayers().length;
+      const done = this.activeRoundPlayers().filter(id => props[id]).length;
+      if (mine) {
+        return this.renderScenarioCard(true) + `
+          <div class="card transition-screen">
+            <div class="transition-icon">⏳</div>
+            <h2 style="margin-bottom:10px;">Proposition envoyée !</h2>
+            <div class="progress-text">${done}/${total}</div>
+            <p style="color:#cbd5e1;">On attend les autres joueurs…</p>
+            <div style="margin-top:20px; display:flex; flex-wrap:wrap; justify-content:center;">${this.renderPlayerTags({ showSubmitted: true })}</div>
+            ${this.isHost() && done >= MIN_PLAYERS ? `<button id="btnForce" class="ghost" style="margin-top:20px;">⏭️ Forcer le vote (sans les retardataires)</button>` : ''}
+          </div>`;
+      }
+      return this.renderScenarioCard(false) + `
         <div class="card">
-          <div class="info-box">C'est à <strong>${player}</strong> de jouer !</div>
           <div class="input-group">
-            <label>Ta pire contrepartie (Objectif : 50% de oui)</label>
+            <label>Ta pire contrepartie (objectif : 50% de oui)</label>
             <textarea id="txtProposal" placeholder="...mais tu dois manger un citron chaque matin."></textarea>
           </div>
           <button id="btnSubmitProposal">Valider en secret</button>
@@ -749,172 +609,155 @@
     }
 
     renderVote() {
-      const player = this.players[this.currentPlayerIndex];
-      const proposal = this.proposals[this.currentVoteIndex];
-      const votable = this.proposals.filter(p => p.authorId !== player.id);
-      const pos = votable.findIndex(p => p.id === proposal.id) + 1;
+      const order = this.meta().order || [];
+      const votes = this.votes();
+      const votable = order.filter(a => a !== this.uid);
+      const next = votable.find(a => !(votes[a] && votes[a][this.uid] !== undefined));
 
-      return `
-        <div class="card scenario-card" style="padding: 25px;">
-          <div class="scenario-label">Rappel</div>
-          <div style="font-size: 20px; font-weight: 800;">${escapeHtml(this.scenario)}</div>
-        </div>
+      if (!next) {
+        const voters = this.activeRoundPlayers();
+        const done = voters.filter(v => this.voterDone(v)).length;
+        return this.renderScenarioCard(true) + `
+          <div class="card transition-screen">
+            <div class="transition-icon">🗳️</div>
+            <h2 style="margin-bottom:10px;">Vote terminé !</h2>
+            <div class="progress-text">${done}/${voters.length}</div>
+            <p style="color:#cbd5e1;">On attend les derniers votes…</p>
+            ${this.isHost() ? `<button id="btnForce" class="ghost" style="margin-top:20px;">⏭️ Forcer les résultats</button>` : ''}
+          </div>`;
+      }
+
+      const proposal = this.proposals()[next];
+      const pos = votable.filter(a => votes[a] && votes[a][this.uid] !== undefined).length + 1;
+      return this.renderScenarioCard(true) + `
         <div class="card">
-          <div class="info-box"><strong>${escapeHtml(player.name)}</strong>, fais ton choix. (${pos}/${votable.length})</div>
-
+          <div class="info-box">À ton tour de voter. (${pos}/${votable.length})</div>
           <div style="background: rgba(0,0,0,0.3); padding: 30px; border-radius: 16px; text-align: center; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.05);">
-            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 15px; text-transform:uppercase; letter-spacing:1px; font-weight:800;">La contrepartie proposée :</p>
-            <h3 style="font-size: 24px; color: #fff; font-weight:800;">"... ${escapeHtml(proposal.text)}"</h3>
+            <p style="color:#94a3b8; font-size:14px; margin-bottom:15px; text-transform:uppercase; letter-spacing:1px; font-weight:800;">La contrepartie proposée :</p>
+            <h3 style="font-size:24px; color:#fff; font-weight:800;">"... ${escapeHtml(proposal.text)}"</h3>
           </div>
           <div class="vote-buttons">
-            <button class="vote-btn yes" data-action="vote" data-vote="yes">J'ACCEPTE</button>
-            <button class="vote-btn no" data-action="vote" data-vote="no">JE REFUSE</button>
+            <button class="vote-btn yes" data-action="vote" data-author="${next}" data-value="yes">J'ACCEPTE</button>
+            <button class="vote-btn no" data-action="vote" data-author="${next}" data-value="no">JE REFUSE</button>
           </div>
         </div>`;
     }
 
     renderResults() {
-      return `
-        <div class="card scenario-card" style="padding: 25px;">
-          <div class="scenario-label">Bilan de la manche</div>
-          <div style="font-size: 20px; font-weight:800;">${escapeHtml(this.scenario)}</div>
-        </div>
-        <div class="card">
-          <h2 style="text-align:center; margin-bottom: 25px; font-size:32px; font-weight:900;">🏆 Résultats</h2>
-          <div class="info-box" style="text-align:center; margin-bottom: 30px;">L'heure des comptes ! Débattez avant de lancer la roulette.</div>
+      const order = this.meta().order || [];
+      const votes = this.votes();
+      const props = this.proposals();
+      const players = this.players();
+      const rows = order.map(authorId => {
+        const v = votes[authorId] || {};
+        const entries = Object.entries(v);
+        const yes = entries.filter(([, x]) => x === 'yes').map(([id]) => players[id] ? players[id].name : '?');
+        const no = entries.filter(([, x]) => x === 'no').map(([id]) => players[id] ? players[id].name : '?');
+        const total = yes.length + no.length;
+        const yesPercent = total > 0 ? (yes.length / total) * 100 : 0;
+        return {
+          authorId, text: props[authorId] ? props[authorId].text : '',
+          authorName: players[authorId] ? players[authorId].name : '???',
+          yesPercent, deviation: Math.abs(50 - yesPercent), points: pointsFromDeviation(Math.abs(50 - yesPercent)),
+          title: honoraryTitle(yesPercent), yes, no
+        };
+      }).sort((a, b) => a.deviation - b.deviation);
 
-          ${this.results.map((r, i) => {
-            const v = this.votes[r.id] || { yes: [], no: [] };
-            return `
+      return this.renderScenarioCard(true) + `
+        <div class="card">
+          <h2 style="text-align:center; margin-bottom:25px; font-size:32px; font-weight:900;">🏆 Résultats</h2>
+          ${rows.map((r, i) => `
             <div class="result-item ${i === 0 ? 'winner' : ''}">
               ${i === 0 ? '<span class="winner-badge">Dilemme Parfait !</span>' : ''}
-              <h3 style="font-size: 20px; margin-bottom: 15px; color: #fff; font-weight:800;">"... ${escapeHtml(r.text)}"</h3>
-              <div class="vote-bar-container"><div class="vote-bar-fill" data-target-width="${r.yesPercent}%">${Math.round(r.yesPercent)}% OUI</div></div>
-              <div class="points-tag">+${r.points} pts pour l'auteur</div>
-
-              <button class="author-reveal-btn" id="btn-reveal-${r.id}" data-action="reveal" data-id="${r.id}">
-                🎰 Lancer la roulette du coupable
-              </button>
-
-              <div class="author-info" id="info-${r.id}" style="display:none;">
+              <h3 style="font-size:20px; margin-bottom:15px; color:#fff; font-weight:800;">"... ${escapeHtml(r.text)}"</h3>
+              <div class="vote-bar-container"><div class="vote-bar-fill" data-w="${r.yesPercent}%">${Math.round(r.yesPercent)}% OUI</div></div>
+              <div class="points-tag">+${r.points} pts</div>
+              <div class="author-line">
                 <div class="author-title">${escapeHtml(r.title)}</div>
-                <div class="roulette-box" id="roulette-text-${r.id}">???</div>
-
-                <div id="secret-stats-${r.id}" class="fade-in-up" style="display:none;">
-                  <div style="display:flex; justify-content:center; gap:20px; font-size: 15px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-                    <div style="flex: 1; text-align: center;">
-                      <span style="color:#00e676; font-weight:900; display:block; margin-bottom:5px;">✅ OUI</span>
-                      <span style="color:#e2e8f0;">${v.yes.map(escapeHtml).join('<br>') || 'Aucun'}</span>
-                    </div>
-                    <div style="width: 1px; background: rgba(255,255,255,0.1);"></div>
-                    <div style="flex: 1; text-align: center;">
-                      <span style="color:#ff1744; font-weight:900; display:block; margin-bottom:5px;">❌ NON</span>
-                      <span style="color:#e2e8f0;">${v.no.map(escapeHtml).join('<br>') || 'Aucun'}</span>
-                    </div>
-                  </div>
-                </div>
+                <div class="author-name">👑 ${escapeHtml(r.authorName)}</div>
               </div>
-            </div>`;
-          }).join('')}
-
+              <div class="who-voted">
+                <div style="flex:1;"><span style="color:#00e676; font-weight:900; display:block; margin-bottom:5px;">✅ OUI</span><span style="color:#e2e8f0;">${r.yes.map(escapeHtml).join('<br>') || 'Aucun'}</span></div>
+                <div style="width:1px; background:rgba(255,255,255,0.1);"></div>
+                <div style="flex:1;"><span style="color:#ff1744; font-weight:900; display:block; margin-bottom:5px;">❌ NON</span><span style="color:#e2e8f0;">${r.no.map(escapeHtml).join('<br>') || 'Aucun'}</span></div>
+              </div>
+            </div>`).join('')}
           ${this.renderLeaderboard()}
-
-          <button id="btnNextRound" style="margin-top: 10px;">▶️ Manche suivante</button>
-          <button id="btnFinish" class="secondary">🏁 Terminer la partie</button>
+          ${this.isHost()
+            ? `<button id="btnNextRound" style="margin-top:10px;">▶️ Manche suivante</button><button id="btnFinish" class="secondary">🏁 Terminer la partie</button>`
+            : `<div class="info-box">En attente de l'hôte 👑…</div>`}
         </div>`;
     }
 
     renderFinal() {
-      const sorted = [...this.players].sort((a, b) => b.score - a.score);
+      const sorted = Object.values(this.players()).sort((a, b) => (b.score || 0) - (a.score || 0));
       const top = sorted.slice(0, 3);
-      const order = [1, 0, 2]; // 2e, 1er, 3e pour un vrai podium
-      const heights = { 0: 130, 1: 95, 2: 70 };
+      const order = [1, 0, 2]; const heights = { 0: 130, 1: 95, 2: 70 };
       const colors = { 0: 'linear-gradient(180deg,#ffd700,#bfa100)', 1: 'linear-gradient(180deg,#c0c0c0,#8a8a8a)', 2: 'linear-gradient(180deg,#cd7f32,#8a5524)' };
       const medals = ['🥇', '🥈', '🥉'];
-
       return `
         <div class="card" style="text-align:center;">
           <h2 style="font-size:34px; font-weight:900; margin-bottom:6px;">🎉 Partie terminée !</h2>
-          <p style="color:#a0aec0; margin-bottom:30px; font-weight:600;">${this.round} manche(s) jouée(s)</p>
-
+          <p style="color:#a0aec0; margin-bottom:30px; font-weight:600;">${this.meta().round} manche(s) jouée(s)</p>
           <div class="podium">
-            ${order.filter(i => top[i]).map(i => `
-              <div class="podium-col">
-                <div class="podium-name">${medals[i]} ${escapeHtml(top[i].name)}</div>
-                <div class="podium-bar" style="height:${heights[i]}px; background:${colors[i]}; color:#1a1a2e;">${top[i].score}</div>
-                <div class="podium-score">pts</div>
-              </div>`).join('')}
+            ${order.filter(i => top[i]).map(i => `<div class="podium-col">
+              <div class="podium-name">${medals[i]} ${escapeHtml(top[i].name)}</div>
+              <div class="podium-bar" style="height:${heights[i]}px; background:${colors[i]}; color:#1a1a2e;">${top[i].score || 0}</div>
+              <div class="podium-score">pts</div></div>`).join('')}
           </div>
-
-          ${sorted.length > 3 ? `
-            <div class="leaderboard" style="margin-top:20px;">
-              ${sorted.slice(3).map((p, i) => `
-                <div class="lb-row">
-                  <span class="lb-rank">${i + 4}</span>
-                  <span class="lb-name">${escapeHtml(p.name)}</span>
-                  <span class="lb-score">${p.score} pts</span>
-                </div>`).join('')}
-            </div>` : ''}
-
-          <button id="btnReplayKeep" style="margin-top:25px;">🔁 Rejouer (mêmes joueurs)</button>
-          <button id="btnReset" class="secondary">🆕 Nouvelle partie</button>
+          ${sorted.length > 3 ? `<div class="leaderboard">${sorted.slice(3).map((p, i) => `<div class="lb-row"><span class="lb-rank">${i + 4}</span><span class="lb-name">${escapeHtml(p.name)}</span><span class="lb-score">${p.score || 0} pts</span></div>`).join('')}</div>` : ''}
+          ${this.isHost() ? `<button id="btnLobby" style="margin-top:20px;">🔁 Retour au salon (rejouer)</button>` : `<div class="info-box">En attente de l'hôte 👑…</div>`}
+          <button id="btnQuit" class="ghost" style="margin-top:14px;">🚪 Quitter</button>
         </div>`;
     }
 
-    /* ==========================================
-       ÉCOUTEURS — délégation d'événements (aucune string JS inline => zéro bug d'apostrophe)
-    ========================================== */
-    attachEventListeners() {
+    /* ---------- Bindings ---------- */
+    bindHome() {
+      const pseudo = document.getElementById('pseudo');
+      if (pseudo) pseudo.oninput = (e) => { this.pseudo = e.target.value; };
+      const c = document.getElementById('btnCreate'); if (c) c.onclick = () => this.createRoom();
+      const j = document.getElementById('btnJoin'); if (j) j.onclick = () => this.joinRoom(document.getElementById('joinCode').value);
+    }
+
+    bindRoom() {
       const app = document.getElementById('app');
-
-      const btnAddPlayer = document.getElementById('btnAddPlayer');
-      const input = document.getElementById('newPlayerName');
-      if (btnAddPlayer && input) {
-        const add = () => { this.addPlayer(input.value); };
-        btnAddPlayer.onclick = add;
-        input.onkeypress = (e) => { if (e.key === 'Enter') add(); };
-      }
-
-      const btnAddScenario = document.getElementById('btnAddScenario');
-      const scInput = document.getElementById('newScenario');
-      if (btnAddScenario && scInput) {
-        const addSc = () => { this.addScenario(scInput.value); };
-        btnAddScenario.onclick = addSc;
-        scInput.onkeypress = (e) => { if (e.key === 'Enter') addSc(); };
-      }
-
-      // Focus sur le champ qui vient d'être utilisé (sinon, le prénom par défaut)
-      if (this.phase === 'setup') {
-        const target = this.focusTarget === 'scenario' ? scInput : input;
-        if (target) target.focus();
-        this.focusTarget = null;
-      }
+      const pillCode = document.getElementById('pillCode');
+      if (pillCode) pillCode.onclick = () => {
+        navigator.clipboard && navigator.clipboard.writeText(this.code);
+        pillCode.textContent = 'COPIÉ ✓';
+        setTimeout(() => { if (document.getElementById('pillCode')) document.getElementById('pillCode').textContent = `CODE ${this.code} 📋`; }, 1200);
+      };
 
       const bind = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
-      bind('btnStartGame', () => this.startGame());
-      bind('btnResetScores', () => this.resetScores());
-      bind('btnReady', () => this.readyForTurn());
+      bind('btnStart', () => this.startRound());
       bind('btnSubmitProposal', () => this.submitProposal(document.getElementById('txtProposal').value));
+      bind('btnForce', () => this.forceNext());
       bind('btnNextRound', () => this.nextRound());
       bind('btnFinish', () => this.finishGame());
-      bind('btnReplayKeep', () => { this.round = 0; this.usedScenarios = []; this.players.forEach(p => p.score = 0); this.phase = 'setup'; this.render(); });
-      bind('btnReset', () => { this.players = []; this.round = 0; this.usedScenarios = []; this.phase = 'setup'; this.render(); });
+      bind('btnLobby', () => this.backToLobby());
+      bind('btnQuit', () => this.quitRoom());
 
-      // Délégation pour les éléments dynamiques (remove / vote / reveal)
+      const addSc = document.getElementById('btnAddScenario');
+      const scIn = document.getElementById('newScenario');
+      if (addSc && scIn) {
+        addSc.onclick = () => this.addCustomScenario(scIn.value);
+        scIn.onkeypress = (e) => { if (e.key === 'Enter') this.addCustomScenario(scIn.value); };
+        if (this.focusScenario) { scIn.focus(); this.focusScenario = false; }
+      }
+
       app.onclick = (e) => {
         const el = e.target.closest('[data-action]');
         if (!el) return;
-        const action = el.getAttribute('data-action');
-        if (action === 'remove') this.removePlayer(el.getAttribute('data-id'));
-        else if (action === 'remove-scenario') this.removeScenario(el.getAttribute('data-id'));
-        else if (action === 'vote') this.submitVote(el.getAttribute('data-vote'));
-        else if (action === 'reveal') this.startRoulette(el.getAttribute('data-id'));
-        else if (action === 'spice') this.setSpice(parseInt(el.getAttribute('data-level'), 10));
+        const a = el.dataset.action;
+        if (a === 'spice') this.setSpice(parseInt(el.dataset.level, 10));
+        else if (a === 'rmscenario') this.removeCustomScenario(el.dataset.id);
+        else if (a === 'kick') this.kickPlayer(el.dataset.id);
+        else if (a === 'vote') this.submitVote(el.dataset.author, el.dataset.value);
       };
     }
   }
 
-  window.game = new Game();
+  window.app = new App();
 </script>
 </body>
 </html>
