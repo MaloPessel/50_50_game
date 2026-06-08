@@ -261,10 +261,20 @@
       let code, exists = true, tries = 0;
       do { code = randomCode(4); exists = (await get(this.rref('rooms/' + code))).exists(); tries++; } while (exists && tries < 10);
 
-      await set(this.rref('rooms/' + code), {
+      const roomObj = {
         meta: { phase: 'lobby', round: 0, spice: 2, hostId: this.uid, scored: -1, createdAt: serverTimestamp() },
         players: { [this.uid]: { name, score: 0, connected: true, isHost: true } }
-      });
+      };
+      // Écriture atomique : la room + le timestamp anti-spam, validés ensemble par les règles
+      try {
+        await update(ref(this.db), {
+          ['rooms/' + code]: roomObj,
+          ['throttle/' + this.uid]: serverTimestamp()
+        });
+      } catch (e) {
+        this.error = "Tu crées des parties trop vite — attends quelques secondes et réessaie.";
+        return this.render();
+      }
       this.joinSubscription(code);
     }
 
