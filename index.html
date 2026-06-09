@@ -554,11 +554,6 @@
       const i = this.meta().revealIndex || 0;
       if (i < n) update(this.rref(`rooms/${this.code}/meta`), { revealIndex: i + 1 });
     }
-    revealAuthorsNow() {
-      if (!this.isScreen()) return;
-      initInteraction(); vibrate([100,50,100]); playSound('tada');
-      update(this.rref(`rooms/${this.code}/meta`), { revealAuthors: true });
-    }
 
     forceNext() {
       if (!this.isHost()) return;
@@ -939,55 +934,40 @@
     }
 
     renderScreenResults() {
-      const order = this.meta().order || [];
       const i = this.meta().revealIndex || 0;
-      const revealAuthors = !!this.meta().revealAuthors;
-      const rows = this.resultRows(); // dans l'ordre (aléatoire) de meta.order
+      // Du moins clivant au plus clivant : le "Dilemme Parfait" (le plus proche de 50/50) arrive en dernier.
+      const rows = this.resultRows().sort((a, b) => b.deviation - a.deviation);
+      const total = rows.length;
 
-      // Étape 1 : propositions une par une (barre 50%, SANS le nom)
-      if (!revealAuthors && i < order.length) {
+      // Étape 1 : les propositions une par une, chacune AVEC l'auteur et les votes
+      if (i < total) {
         const r = rows[i];
+        const isBest = i === total - 1; // dernière = la plus proche de 50/50
+        const last = i + 1 >= total;
         return `
           <div class="card scenario-card" style="padding:25px;">
-            <div class="scenario-label">Proposition ${i + 1} / ${order.length}</div>
+            <div class="scenario-label">Proposition ${i + 1} / ${total}</div>
             <div class="screen-big">${escapeHtml(this.meta().scenario)}</div>
           </div>
-          <div class="card" style="text-align:center;">
-            <h3 class="big-prop" style="margin-bottom:10px;">"... ${escapeHtml(r.text)}"</h3>
+          <div class="card reveal-pop" style="text-align:center; ${isBest ? 'border:2px solid #ffd700; box-shadow:0 0 25px rgba(255,215,0,0.2);' : ''}">
+            ${isBest ? '<div class="points-tag" style="margin-bottom:14px;">🏆 Dilemme Parfait de la manche !</div>' : ''}
+            <h3 class="big-prop" style="margin-bottom:12px;">"... ${escapeHtml(r.text)}"</h3>
             <div class="vote-bar-container" style="height:54px;"><div class="vote-bar-fill" data-w="${r.yesPercent}%" style="font-size:20px;">${Math.round(r.yesPercent)}% OUI</div></div>
-            <div class="author-title" style="margin-top:14px;">${escapeHtml(r.title)}</div>
-            <button id="btnRevealNext" style="margin-top:24px;">${i + 1 < order.length ? '➡️ Proposition suivante' : '📊 Voir le classement'}</button>
+            <div class="points-tag">+${r.points} pts</div>
+            <div class="author-line"><div class="author-title">${escapeHtml(r.title)}</div><div class="author-name">👑 ${escapeHtml(r.authorName)}</div></div>
+            <div class="who-voted">
+              <div style="flex:1;"><span style="color:#00e676; font-weight:900; display:block; margin-bottom:5px;">✅ OUI</span><span style="color:#e2e8f0;">${r.yes.map(escapeHtml).join('<br>') || 'Aucun'}</span></div>
+              <div style="width:1px; background:rgba(255,255,255,0.1);"></div>
+              <div style="flex:1;"><span style="color:#ff1744; font-weight:900; display:block; margin-bottom:5px;">❌ NON</span><span style="color:#e2e8f0;">${r.no.map(escapeHtml).join('<br>') || 'Aucun'}</span></div>
+            </div>
+            <button id="btnRevealNext" style="margin-top:24px;">${last ? '📊 Voir le classement' : '➡️ Proposition suivante'}</button>
           </div>`;
       }
 
-      // Étape 2 : classement (auteurs encore cachés)
-      if (!revealAuthors) {
-        return `
-          <div class="card" style="text-align:center;">
-            <h2 style="font-size:30px; font-weight:900; margin-bottom:20px;">📊 Classement de la manche</h2>
-            ${this.renderLeaderboard()}
-            <button id="btnRevealAuthors" style="margin-top:10px;">🎰 Révéler les auteurs</button>
-          </div>`;
-      }
-
-      // Étape 3 : révélation des auteurs + qui a voté quoi
-      const sorted = rows.slice().sort((a, b) => a.deviation - b.deviation);
+      // Étape 2 : le classement clôt la manche
       return `
-        <div class="card">
-          <h2 style="text-align:center; margin-bottom:25px; font-size:32px; font-weight:900;">🏆 Les auteurs !</h2>
-          ${sorted.map((r, idx) => `
-            <div class="result-item ${idx === 0 ? 'winner' : ''} reveal-pop" style="animation-delay:${idx * 0.15}s;">
-              ${idx === 0 ? '<span class="winner-badge">Dilemme Parfait !</span>' : ''}
-              <h3 style="font-size:20px; margin-bottom:12px; color:#fff; font-weight:800;">"... ${escapeHtml(r.text)}"</h3>
-              <div class="vote-bar-container"><div class="vote-bar-fill" data-w="${r.yesPercent}%">${Math.round(r.yesPercent)}% OUI</div></div>
-              <div class="points-tag">+${r.points} pts</div>
-              <div class="author-line"><div class="author-title">${escapeHtml(r.title)}</div><div class="author-name">👑 ${escapeHtml(r.authorName)}</div></div>
-              <div class="who-voted">
-                <div style="flex:1;"><span style="color:#00e676; font-weight:900; display:block; margin-bottom:5px;">✅ OUI</span><span style="color:#e2e8f0;">${r.yes.map(escapeHtml).join('<br>') || 'Aucun'}</span></div>
-                <div style="width:1px; background:rgba(255,255,255,0.1);"></div>
-                <div style="flex:1;"><span style="color:#ff1744; font-weight:900; display:block; margin-bottom:5px;">❌ NON</span><span style="color:#e2e8f0;">${r.no.map(escapeHtml).join('<br>') || 'Aucun'}</span></div>
-              </div>
-            </div>`).join('')}
+        <div class="card" style="text-align:center;">
+          <h2 style="font-size:30px; font-weight:900; margin-bottom:20px;">📊 Classement de la manche</h2>
           ${this.renderLeaderboard()}
           <button id="btnNextRound" style="margin-top:10px;">▶️ Manche suivante</button>
           <button id="btnFinish" class="secondary">🏁 Terminer la partie</button>
@@ -1077,7 +1057,6 @@
       bind('btnLobby', () => this.backToLobby());
       bind('btnQuit', () => this.quitRoom());
       bind('btnRevealNext', () => this.revealNext());
-      bind('btnRevealAuthors', () => this.revealAuthorsNow());
 
       const addSc = document.getElementById('btnAddScenario');
       const scIn = document.getElementById('newScenario');
