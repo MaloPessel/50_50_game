@@ -128,6 +128,21 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .progress-text { font-size:22px; font-weight:900; color:#00f2fe; margin:10px 0; }
     .banner-error { background: rgba(255,23,68,0.15); border:1px solid #ff1744; color:#ffb3c1; border-radius:12px; padding:12px 16px; margin-bottom:20px; font-weight:700; font-size:14px; text-align:center; }
+
+    /* ===== MODE ÉCRAN / SALON (TV) ===== */
+    .mode-row { display:flex; gap:12px; margin-top:10px; }
+    .mode-btn { flex:1; padding:16px 10px; font-size:14px; background: rgba(0,0,0,0.25); border:2px solid rgba(255,255,255,0.12); border-radius:14px; box-shadow:none; text-transform:none; letter-spacing:0; color:#cbd5e1; line-height:1.3; }
+    .mode-btn:hover { transform:none; background: rgba(0,0,0,0.4); }
+    .mode-btn .mb-emoji { font-size:26px; display:block; margin-bottom:6px; }
+    .big-code { font-size:64px; font-weight:900; letter-spacing:12px; text-align:center; margin:6px 0; background:-webkit-linear-gradient(0deg,#ff00cc,#3333ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; filter:drop-shadow(0 4px 10px rgba(255,0,204,0.3)); }
+    .screen-tag { display:block; text-align:center; color:#a0aec0; font-weight:800; letter-spacing:3px; text-transform:uppercase; font-size:14px; }
+    .screen-scenario { font-size:40px; font-weight:900; line-height:1.2; }
+    .screen-big { font-size:30px; font-weight:900; }
+    .big-prop { font-size:34px; font-weight:800; line-height:1.3; }
+    .reveal-pop { animation: tada 0.9s cubic-bezier(0.175,0.885,0.32,1.275); }
+    @keyframes tada { 0%{transform:scale(1);} 15%{transform:scale(0.92) rotate(-3deg);} 40%{transform:scale(1.08) rotate(3deg);} 60%{transform:scale(1.08) rotate(-2deg);} 100%{transform:scale(1) rotate(0);} }
+    .watch-screen { text-align:center; padding:50px 20px; }
+    .watch-screen .big-emoji { font-size:70px; margin-bottom:20px; }
   </style>
 </head>
 <body>
@@ -238,9 +253,25 @@
         this.render();
       });
       onAuthStateChanged(this.auth, (user) => {
-        if (user) { this.uid = user.uid; this.render(); }
+        if (user) { this.uid = user.uid; this.tryResume(); this.render(); }
       });
       this.render();
+    }
+
+    // Reprise auto après un rechargement de page (l'uid anonyme est stable dans ce navigateur)
+    async tryResume() {
+      if (this._resumed || this.code) return;
+      this._resumed = true;
+      const code = localStorage.getItem('room5050');
+      if (!code) return;
+      try {
+        const snap = await get(this.rref('rooms/' + code));
+        if (snap.exists() && snap.val().players && snap.val().players[this.uid]) {
+          this.joinSubscription(code);
+        } else {
+          localStorage.removeItem('room5050');
+        }
+      } catch (e) { localStorage.removeItem('room5050'); }
     }
 
     rref(path) { return ref(this.db, path); }
@@ -253,19 +284,32 @@
     connectedIds() { const p = this.players(); return Object.keys(p).filter(id => p[id].connected); }
     roundPlayers() { return this.meta().roundPlayers || []; }
 
+    // Mode écran/salon : l'ordinateur est l'écran + hôte, il ne joue pas.
+    isTV() { return !!this.meta().tv; }
+    isScreen() { return this.isTV() && this.meta().screenId === this.uid; }
+    gamePlayers() { const p = this.players(); return Object.keys(p).filter(id => !p[id].isScreen); }            // vrais joueurs (hors écran)
+    connectedGameIds() { const p = this.players(); return Object.keys(p).filter(id => p[id].connected && !p[id].isScreen); }
+
     /* ---------- Création / connexion ---------- */
-    async createRoom() {
+    async createRoom(mode = 'phone') {
       initInteraction(); vibrate(50); playSound('click');
+      const tv = (mode === 'tv');
       const name = this.pseudo.trim();
-      if (!name) { this.error = "Choisis d'abord un pseudo."; return this.render(); }
+      if (!tv && !name) { this.error = "Choisis d'abord un pseudo."; return this.render(); }
       let code, exists = true, tries = 0;
       do { code = randomCode(4); exists = (await get(this.rref('rooms/' + code))).exists(); tries++; } while (exists && tries < 10);
 
-      const roomObj = {
-        meta: { phase: 'lobby', round: 0, spice: 2, hostId: this.uid, scored: -1, createdAt: serverTimestamp() },
-        players: { [this.uid]: { name, score: 0, connected: true, isHost: true } }
-      };
-      // Écriture atomique : la room + le timestamp anti-spam, validés ensemble par les règles
+      const meta = { phase: 'lobby', round: 0, spice: 2, hostId: this.uid, scored: -1, createdAt: serverTimestamp() };
+      let players;
+      if (tv) {
+        meta.tv = true; meta.screenId = this.uid;
+        // L'écran est enregistré comme un "joueur" marqué isScreen : il sert juste à la présence et au pilotage, il ne joue pas.
+        players = { [this.uid]: { name: '📺 Écran', score: 0, connected: true, isHost: true, isScreen: true } };
+      } else {
+        players = { [this.uid]: { name, score: 0, connected: true, isHost: true } };
+      }
+
+      const roomObj = { meta, players };
       try {
         await update(ref(this.db), {
           ['rooms/' + code]: roomObj,
@@ -300,6 +344,7 @@
     joinSubscription(code) {
       this.code = code; this.error = null; this._dcMode = null;
       localStorage.setItem('pseudo5050', this.pseudo.trim());
+      localStorage.setItem('room5050', code);
 
       // Présence : on se marque en ligne ; la gestion de déconnexion est (ré)armée à chaque snapshot
       set(this.rref(`rooms/${code}/players/${this.uid}/connected`), true);
@@ -337,6 +382,7 @@
     leaveLocal(msg) {
       if (this.unsub) { this.unsub(); this.unsub = null; }
       this._dcMode = null;
+      localStorage.removeItem('room5050');
       this.code = null; this.room = null; this.error = msg || null; this.render();
     }
 
@@ -390,7 +436,7 @@
     async startRound() {
       if (!this.isHost()) return;
       initInteraction(); vibrate([50,50,50]); playSound('tada');
-      const connected = this.connectedIds();
+      const connected = this.connectedGameIds();
       if (connected.length < MIN_PLAYERS) return;
 
       const used = this.meta().usedScenarios || [];
@@ -431,17 +477,20 @@
 
     /* ---------- Transitions pilotées par l'hôte ---------- */
     hostTick() {
-      // Migration d'hôte : si l'hôte est déconnecté, le 1er joueur connecté (ordre alphabétique d'uid) reprend la main
-      const players = this.players();
-      const hostId = this.meta().hostId;
-      const hostOk = hostId && players[hostId] && players[hostId].connected;
-      if (!hostOk) {
-        const candidate = this.connectedIds().sort()[0];
-        if (candidate && candidate === this.uid) {
-          update(this.rref(`rooms/${this.code}/meta`), { hostId: this.uid });
-          update(this.rref(`rooms/${this.code}/players/${this.uid}`), { isHost: true });
+      // En mode écran/salon, l'hôte EST l'écran : pas de migration (l'écran doit se reconnecter).
+      if (!this.isTV()) {
+        // Migration d'hôte : si l'hôte est déconnecté, le 1er joueur connecté (ordre alphabétique d'uid) reprend la main
+        const players = this.players();
+        const hostId = this.meta().hostId;
+        const hostOk = hostId && players[hostId] && players[hostId].connected;
+        if (!hostOk) {
+          const candidate = this.connectedIds().sort()[0];
+          if (candidate && candidate === this.uid) {
+            update(this.rref(`rooms/${this.code}/meta`), { hostId: this.uid });
+            update(this.rref(`rooms/${this.code}/players/${this.uid}`), { isHost: true });
+          }
+          return; // on attend la stabilisation
         }
-        return; // on attend la stabilisation
       }
       if (!this.isHost()) return;
 
@@ -492,7 +541,23 @@
       });
       scoreUpdates['meta/phase'] = 'results';
       scoreUpdates['meta/scored'] = this.meta().round;
+      scoreUpdates['meta/revealIndex'] = 0;       // révélation des propositions une par une (mode écran)
+      scoreUpdates['meta/revealAuthors'] = false;  // auteurs encore cachés
       await update(this.rref('rooms/' + this.code), scoreUpdates);
+    }
+
+    /* ---------- Révélation par étapes (mode écran/salon) ---------- */
+    revealNext() {
+      if (!this.isScreen()) return;
+      initInteraction(); playSound('click');
+      const n = (this.meta().order || []).length;
+      const i = this.meta().revealIndex || 0;
+      if (i < n) update(this.rref(`rooms/${this.code}/meta`), { revealIndex: i + 1 });
+    }
+    revealAuthorsNow() {
+      if (!this.isScreen()) return;
+      initInteraction(); vibrate([100,50,100]); playSound('tada');
+      update(this.rref(`rooms/${this.code}/meta`), { revealAuthors: true });
     }
 
     forceNext() {
@@ -524,11 +589,30 @@
       pills.innerHTML = `<span class="pill code" id="pillCode">CODE ${escapeHtml(this.code)} 📋</span>` +
         (this.meta().round > 0 && phase !== 'final' ? `<span class="pill round">Manche ${this.meta().round}</span>` : '');
 
-      if (phase === 'lobby') appDiv.innerHTML = this.renderLobby();
-      else if (phase === 'propose') appDiv.innerHTML = this.renderPropose();
-      else if (phase === 'vote') appDiv.innerHTML = this.renderVote();
-      else if (phase === 'results') { appDiv.innerHTML = this.renderResults(); setTimeout(() => document.querySelectorAll('.vote-bar-fill').forEach(b => b.style.width = b.dataset.w), 80); }
-      else if (phase === 'final') appDiv.innerHTML = this.renderFinal();
+      const animateBars = () => setTimeout(() => document.querySelectorAll('.vote-bar-fill').forEach(b => b.style.width = b.dataset.w), 80);
+
+      if (this.isScreen()) {
+        // ===== AFFICHAGE GRAND ÉCRAN (l'ordinateur / projecteur) =====
+        if (phase === 'lobby') appDiv.innerHTML = this.renderScreenLobby();
+        else if (phase === 'propose') appDiv.innerHTML = this.renderScreenPropose();
+        else if (phase === 'vote') appDiv.innerHTML = this.renderScreenVote();
+        else if (phase === 'results') { appDiv.innerHTML = this.renderScreenResults(); animateBars(); }
+        else if (phase === 'final') appDiv.innerHTML = this.renderFinal();
+      } else if (this.isTV()) {
+        // ===== MANETTE (téléphone, en mode salon) =====
+        if (phase === 'propose') appDiv.innerHTML = this.renderControllerPropose();
+        else if (phase === 'vote') appDiv.innerHTML = this.renderControllerVote();
+        else if (phase === 'lobby') appDiv.innerHTML = this.renderControllerWait("Tu es connecté ✅", "Regarde l'écran 📺, l'hôte va lancer la partie.");
+        else if (phase === 'results') appDiv.innerHTML = this.renderControllerWait("Résultats en cours 🏆", "Tout se passe sur l'écran 📺");
+        else if (phase === 'final') appDiv.innerHTML = this.renderControllerWait("Partie terminée 🎉", "Classement final sur l'écran 📺");
+      } else {
+        // ===== MODE NORMAL (chacun sur son téléphone) =====
+        if (phase === 'lobby') appDiv.innerHTML = this.renderLobby();
+        else if (phase === 'propose') appDiv.innerHTML = this.renderPropose();
+        else if (phase === 'vote') appDiv.innerHTML = this.renderVote();
+        else if (phase === 'results') { appDiv.innerHTML = this.renderResults(); animateBars(); }
+        else if (phase === 'final') appDiv.innerHTML = this.renderFinal();
+      }
 
       this.bindRoom();
     }
@@ -551,6 +635,9 @@
             <input type="text" id="pseudo" maxlength="16" placeholder="Ton prénom..." value="${escapeHtml(this.pseudo)}">
           </div>
           <button id="btnCreate">🚀 Créer une partie</button>
+          <div class="mode-row">
+            <button class="mode-btn" id="btnCreateTV"><span class="mb-emoji">📺</span>Créer un écran de salon<br><span style="color:#64748b;">(ordi / projecteur)</span></button>
+          </div>
           <div style="text-align:center; color:#64748b; margin:18px 0; font-weight:700;">— ou —</div>
           <div class="input-group">
             <label>Rejoindre avec un code</label>
@@ -563,7 +650,7 @@
     renderPlayerTags(opts = {}) {
       const players = this.players();
       const props = this.proposals();
-      return Object.keys(players).map(id => {
+      return this.gamePlayers().map(id => {
         const p = players[id];
         const host = this.meta().hostId === id;
         const submitted = opts.showSubmitted && props[id];
@@ -579,8 +666,9 @@
 
     renderLeaderboard() {
       const players = this.players();
-      if (Object.values(players).every(p => !p.score)) return '';
-      const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
+      const ids = this.gamePlayers();
+      if (ids.every(id => !players[id].score)) return '';
+      const sorted = ids.map(id => players[id]).sort((a, b) => (b.score || 0) - (a.score || 0));
       const medals = ['🥇', '🥈', '🥉'];
       return `<div class="leaderboard"><h3>🏅 Classement</h3>${sorted.map((p, i) =>
         `<div class="lb-row ${i === 0 ? 'lead' : ''}"><span class="lb-rank">${medals[i] || (i + 1)}</span><span class="lb-name">${escapeHtml(p.name)}</span><span class="lb-score">${p.score || 0} pts</span></div>`).join('')}</div>`;
@@ -588,7 +676,7 @@
 
     renderLobby() {
       const spice = this.meta().spice || 2;
-      const count = this.connectedIds().length;
+      const count = this.connectedGameIds().length;
       const custom = this.room.customScenarios || {};
       return `
         <div class="card">
@@ -735,7 +823,8 @@
     }
 
     renderFinal() {
-      const sorted = Object.values(this.players()).sort((a, b) => (b.score || 0) - (a.score || 0));
+      const players = this.players();
+      const sorted = this.gamePlayers().map(id => players[id]).sort((a, b) => (b.score || 0) - (a.score || 0));
       const top = sorted.slice(0, 3);
       const order = [1, 0, 2]; const heights = { 0: 130, 1: 95, 2: 70 };
       const colors = { 0: 'linear-gradient(180deg,#ffd700,#bfa100)', 1: 'linear-gradient(180deg,#c0c0c0,#8a8a8a)', 2: 'linear-gradient(180deg,#cd7f32,#8a5524)' };
@@ -756,11 +845,217 @@
         </div>`;
     }
 
+    /* ==========================================================
+       MODE ÉCRAN / SALON
+    ========================================================== */
+    renderScreenLobby() {
+      const spice = this.meta().spice || 2;
+      const count = this.connectedGameIds().length;
+      const custom = this.room.customScenarios || {};
+      return `
+        <div class="card" style="text-align:center;">
+          ${this.renderLeaderboard()}
+          <span class="screen-tag">Rejoignez sur vos téléphones</span>
+          <div class="big-code">${escapeHtml(this.code)}</div>
+          <h2 style="margin:18px 0 12px; font-weight:800;">👥 Joueurs connectés (${count})</h2>
+          <div style="margin-bottom: 20px; display:flex; flex-wrap:wrap; justify-content:center;">
+            ${this.renderPlayerTags()}
+            ${count === 0 ? '<em style="color:#64748b;">En attente des joueurs…</em>' : ''}
+          </div>
+          <div class="spice-select">
+            <label style="text-align:center;">🔥 Intensité</label>
+            <div class="spice-row">${[1,2,3].map(l => `<button class="spice-btn ${spice === l ? 'active' : ''}" data-action="spice" data-level="${l}">${SPICE_LABELS[l]}</button>`).join('')}</div>
+          </div>
+          <div class="custom-box">
+            <label style="text-align:center;">✍️ Scénarios maison <span style="color:#64748b;">(facultatif)</span></label>
+            <div style="margin:10px 0; display:flex; flex-wrap:wrap; justify-content:center;">
+              ${Object.keys(custom).map(id => `<span class="player-tag" style="max-width:100%;">${escapeHtml(custom[id].text)} <span class="remove-x" data-action="rmscenario" data-id="${id}">✖</span></span>`).join('')}
+            </div>
+            <div class="input-group" style="margin-bottom:12px;"><input type="text" id="newScenario" maxlength="90" placeholder="Vous pouvez parler aux fantômes..."></div>
+            <button id="btnAddScenario" class="ghost">+ Ajouter ce scénario</button>
+          </div>
+          <button id="btnStart" ${count >= MIN_PLAYERS ? '' : 'disabled'}>🎬 ${this.meta().round > 0 ? 'Manche suivante' : 'Lancer la partie'}</button>
+          ${count < MIN_PLAYERS ? `<p class="hint">Il faut au moins ${MIN_PLAYERS} joueurs connectés.</p>` : ''}
+          <button id="btnQuit" class="ghost" style="margin-top:14px;">🚪 Fermer l'écran</button>
+        </div>`;
+    }
+
+    renderScreenPropose() {
+      const m = this.meta();
+      const total = this.activeRoundPlayers().length;
+      const done = this.activeRoundPlayers().filter(id => this.proposals()[id]).length;
+      return `
+        <div class="card scenario-card">
+          <div class="scenario-label">Le Scénario</div>
+          <div class="screen-scenario">${escapeHtml(m.scenario)}</div>
+          ${m.secretRule ? `<div class="secret-rule-box"><div class="secret-rule-title">⚠️ Règle Secrète ⚠️</div><div style="font-size:18px;font-weight:600;">${escapeHtml(m.secretRule)}</div></div>` : ''}
+        </div>
+        <div class="card" style="text-align:center;">
+          <h2 style="font-weight:800; margin-bottom:10px;">✍️ Écrivez votre contrepartie sur vos téléphones</h2>
+          <div class="progress-text" style="font-size:34px;">${done}/${total}</div>
+          <p style="color:#cbd5e1; margin-bottom:20px;">ont validé leur proposition</p>
+          <div style="display:flex; flex-wrap:wrap; justify-content:center;">${this.renderPlayerTags({ showSubmitted: true })}</div>
+          ${done >= MIN_PLAYERS ? `<button id="btnForce" class="ghost" style="margin-top:20px;">⏭️ Forcer le vote</button>` : ''}
+        </div>`;
+    }
+
+    renderScreenVote() {
+      const voters = this.activeRoundPlayers();
+      const done = voters.filter(v => this.voterDone(v)).length;
+      return `
+        <div class="card scenario-card" style="padding:25px;">
+          <div class="scenario-label">Rappel</div>
+          <div class="screen-big">${escapeHtml(this.meta().scenario)}</div>
+        </div>
+        <div class="card watch-screen">
+          <div class="big-emoji">🗳️</div>
+          <h2 style="font-weight:800; margin-bottom:10px;">Votez sur vos téléphones !</h2>
+          <div class="progress-text" style="font-size:34px;">${done}/${voters.length}</div>
+          <p style="color:#cbd5e1;">ont fini de voter</p>
+          ${done >= 1 ? `<button id="btnForce" class="ghost" style="margin-top:20px;">⏭️ Forcer les résultats</button>` : ''}
+        </div>`;
+    }
+
+    // Calcule les lignes de résultats (texte, %, oui/non, auteur)
+    resultRows() {
+      const order = this.meta().order || [];
+      const votes = this.votes();
+      const props = this.proposals();
+      const players = this.players();
+      return order.map(authorId => {
+        const v = votes[authorId] || {};
+        const entries = Object.entries(v);
+        const yes = entries.filter(([, x]) => x === 'yes').map(([id]) => players[id] ? players[id].name : '?');
+        const no = entries.filter(([, x]) => x === 'no').map(([id]) => players[id] ? players[id].name : '?');
+        const total = yes.length + no.length;
+        const yesPercent = total > 0 ? (yes.length / total) * 100 : 0;
+        return {
+          authorId, text: props[authorId] ? props[authorId].text : '',
+          authorName: players[authorId] ? players[authorId].name : '???',
+          yesPercent, deviation: Math.abs(50 - yesPercent), points: pointsFromDeviation(Math.abs(50 - yesPercent)),
+          title: honoraryTitle(yesPercent), yes, no
+        };
+      });
+    }
+
+    renderScreenResults() {
+      const order = this.meta().order || [];
+      const i = this.meta().revealIndex || 0;
+      const revealAuthors = !!this.meta().revealAuthors;
+      const rows = this.resultRows(); // dans l'ordre (aléatoire) de meta.order
+
+      // Étape 1 : propositions une par une (barre 50%, SANS le nom)
+      if (!revealAuthors && i < order.length) {
+        const r = rows[i];
+        return `
+          <div class="card scenario-card" style="padding:25px;">
+            <div class="scenario-label">Proposition ${i + 1} / ${order.length}</div>
+            <div class="screen-big">${escapeHtml(this.meta().scenario)}</div>
+          </div>
+          <div class="card" style="text-align:center;">
+            <h3 class="big-prop" style="margin-bottom:10px;">"... ${escapeHtml(r.text)}"</h3>
+            <div class="vote-bar-container" style="height:54px;"><div class="vote-bar-fill" data-w="${r.yesPercent}%" style="font-size:20px;">${Math.round(r.yesPercent)}% OUI</div></div>
+            <div class="author-title" style="margin-top:14px;">${escapeHtml(r.title)}</div>
+            <button id="btnRevealNext" style="margin-top:24px;">${i + 1 < order.length ? '➡️ Proposition suivante' : '📊 Voir le classement'}</button>
+          </div>`;
+      }
+
+      // Étape 2 : classement (auteurs encore cachés)
+      if (!revealAuthors) {
+        return `
+          <div class="card" style="text-align:center;">
+            <h2 style="font-size:30px; font-weight:900; margin-bottom:20px;">📊 Classement de la manche</h2>
+            ${this.renderLeaderboard()}
+            <button id="btnRevealAuthors" style="margin-top:10px;">🎰 Révéler les auteurs</button>
+          </div>`;
+      }
+
+      // Étape 3 : révélation des auteurs + qui a voté quoi
+      const sorted = rows.slice().sort((a, b) => a.deviation - b.deviation);
+      return `
+        <div class="card">
+          <h2 style="text-align:center; margin-bottom:25px; font-size:32px; font-weight:900;">🏆 Les auteurs !</h2>
+          ${sorted.map((r, idx) => `
+            <div class="result-item ${idx === 0 ? 'winner' : ''} reveal-pop" style="animation-delay:${idx * 0.15}s;">
+              ${idx === 0 ? '<span class="winner-badge">Dilemme Parfait !</span>' : ''}
+              <h3 style="font-size:20px; margin-bottom:12px; color:#fff; font-weight:800;">"... ${escapeHtml(r.text)}"</h3>
+              <div class="vote-bar-container"><div class="vote-bar-fill" data-w="${r.yesPercent}%">${Math.round(r.yesPercent)}% OUI</div></div>
+              <div class="points-tag">+${r.points} pts</div>
+              <div class="author-line"><div class="author-title">${escapeHtml(r.title)}</div><div class="author-name">👑 ${escapeHtml(r.authorName)}</div></div>
+              <div class="who-voted">
+                <div style="flex:1;"><span style="color:#00e676; font-weight:900; display:block; margin-bottom:5px;">✅ OUI</span><span style="color:#e2e8f0;">${r.yes.map(escapeHtml).join('<br>') || 'Aucun'}</span></div>
+                <div style="width:1px; background:rgba(255,255,255,0.1);"></div>
+                <div style="flex:1;"><span style="color:#ff1744; font-weight:900; display:block; margin-bottom:5px;">❌ NON</span><span style="color:#e2e8f0;">${r.no.map(escapeHtml).join('<br>') || 'Aucun'}</span></div>
+              </div>
+            </div>`).join('')}
+          ${this.renderLeaderboard()}
+          <button id="btnNextRound" style="margin-top:10px;">▶️ Manche suivante</button>
+          <button id="btnFinish" class="secondary">🏁 Terminer la partie</button>
+        </div>`;
+    }
+
+    /* ==========================================================
+       MANETTE (téléphone en mode salon)
+    ========================================================== */
+    renderControllerWait(title, sub) {
+      return `
+        <div class="card watch-screen">
+          <div class="big-emoji">📺</div>
+          <h2 style="font-weight:800; margin-bottom:10px;">${escapeHtml(title)}</h2>
+          <p style="color:#cbd5e1; font-size:17px;">${escapeHtml(sub)}</p>
+          <button id="btnQuit" class="ghost" style="margin-top:30px;">🚪 Quitter</button>
+        </div>`;
+    }
+
+    renderControllerPropose() {
+      const m = this.meta();
+      if (this.proposals()[this.uid]) {
+        return this.renderControllerWait("Proposition envoyée ✅", "Regarde l'écran 📺 pour la suite.");
+      }
+      return `
+        <div class="card scenario-card">
+          <div class="scenario-label">Le Scénario</div>
+          <div class="scenario-text">${escapeHtml(m.scenario)}</div>
+          ${m.secretRule ? `<div class="secret-rule-box"><div class="secret-rule-title">⚠️ Règle Secrète ⚠️</div><div style="font-size:16px;font-weight:600;">${escapeHtml(m.secretRule)}</div></div>` : ''}
+        </div>
+        <div class="card">
+          <div class="input-group">
+            <label>Ta pire contrepartie (objectif : 50% de oui)</label>
+            <textarea id="txtProposal" placeholder="...mais tu dois manger un citron chaque matin."></textarea>
+          </div>
+          <button id="btnSubmitProposal">Valider en secret</button>
+        </div>`;
+    }
+
+    renderControllerVote() {
+      const order = this.meta().order || [];
+      const votes = this.votes();
+      const votable = order.filter(a => a !== this.uid);
+      const next = votable.find(a => !(votes[a] && votes[a][this.uid] !== undefined));
+      if (!next) return this.renderControllerWait("Vote terminé ✅", "Regarde l'écran 📺 pour les résultats.");
+
+      const proposal = this.proposals()[next];
+      const pos = votable.filter(a => votes[a] && votes[a][this.uid] !== undefined).length + 1;
+      return `
+        <div class="card">
+          <div class="info-box">À ton tour de voter. (${pos}/${votable.length})</div>
+          <div style="background: rgba(0,0,0,0.3); padding: 30px; border-radius: 16px; text-align: center; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.05);">
+            <p style="color:#94a3b8; font-size:14px; margin-bottom:15px; text-transform:uppercase; letter-spacing:1px; font-weight:800;">La contrepartie proposée :</p>
+            <h3 style="font-size:24px; color:#fff; font-weight:800;">"... ${escapeHtml(proposal.text)}"</h3>
+          </div>
+          <div class="vote-buttons">
+            <button class="vote-btn yes" data-action="vote" data-author="${next}" data-value="yes">J'ACCEPTE</button>
+            <button class="vote-btn no" data-action="vote" data-author="${next}" data-value="no">JE REFUSE</button>
+          </div>
+        </div>`;
+    }
+
     /* ---------- Bindings ---------- */
     bindHome() {
       const pseudo = document.getElementById('pseudo');
       if (pseudo) pseudo.oninput = (e) => { this.pseudo = e.target.value; };
-      const c = document.getElementById('btnCreate'); if (c) c.onclick = () => this.createRoom();
+      const c = document.getElementById('btnCreate'); if (c) c.onclick = () => this.createRoom('phone');
+      const tv = document.getElementById('btnCreateTV'); if (tv) tv.onclick = () => this.createRoom('tv');
       const j = document.getElementById('btnJoin'); if (j) j.onclick = () => this.joinRoom(document.getElementById('joinCode').value);
     }
 
@@ -781,6 +1076,8 @@
       bind('btnFinish', () => this.finishGame());
       bind('btnLobby', () => this.backToLobby());
       bind('btnQuit', () => this.quitRoom());
+      bind('btnRevealNext', () => this.revealNext());
+      bind('btnRevealAuthors', () => this.revealAuthorsNow());
 
       const addSc = document.getElementById('btnAddScenario');
       const scIn = document.getElementById('newScenario');
