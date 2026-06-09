@@ -25,6 +25,11 @@
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       filter: drop-shadow(0px 4px 10px rgba(255, 0, 204, 0.3));
     }
+    .logo-img {
+      width: 116px; height: 116px; display: block; margin: 0 auto 8px;
+      border-radius: 26px;
+      filter: drop-shadow(0 8px 22px rgba(255, 0, 204, 0.35));
+    }
     .header .subtitle { font-size: 18px; font-weight: 600; color: #a0aec0; letter-spacing: 2px; text-transform: uppercase; }
     .pill-row { display:flex; gap:8px; justify-content:center; margin-top:12px; flex-wrap:wrap; }
     .pill { display:inline-block; padding: 6px 16px; border-radius: 20px; font-weight: 800; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
@@ -148,7 +153,7 @@
 <body>
 <div class="container">
   <div class="header">
-    <h1>50/50</h1>
+    <img src="favicon_logo.png" alt="50/50" class="logo-img">
     <div class="subtitle">Online Party 🌐</div>
     <div class="pill-row" id="pills"></div>
   </div>
