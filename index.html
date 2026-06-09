@@ -26,8 +26,8 @@
       filter: drop-shadow(0px 4px 10px rgba(255, 0, 204, 0.3));
     }
     .logo-img {
-      width: 116px; height: 116px; display: block; margin: 0 auto 8px;
-      border-radius: 26px;
+      width: 142px; height: 142px; display: block; margin: 0 auto 8px;
+      border-radius: 30px;
       filter: drop-shadow(0 8px 22px rgba(255, 0, 204, 0.35));
     }
     .header .subtitle { font-size: 18px; font-weight: 600; color: #a0aec0; letter-spacing: 2px; text-transform: uppercase; }
@@ -65,6 +65,11 @@
     input::placeholder, textarea::placeholder { color: #64748b; }
     input:focus, textarea:focus { outline: none; border-color: #00f2fe; background: rgba(0, 0, 0, 0.4); box-shadow: 0 0 15px rgba(0, 242, 254, 0.2); }
     textarea { resize: vertical; min-height: 120px; }
+    /* Champ contrepartie avec préfixe "Mais" non effaçable */
+    .prop-field { display:flex; border:2px solid rgba(255,255,255,0.1); border-radius:16px; background:rgba(0,0,0,0.2); transition:all 0.3s; overflow:hidden; }
+    .prop-field:focus-within { border-color:#00f2fe; box-shadow:0 0 15px rgba(0,242,254,0.2); background:rgba(0,0,0,0.4); }
+    .prop-field .prefix { padding:18px 8px 0 18px; font-weight:900; font-size:18px; color:#ff66dd; white-space:nowrap; user-select:none; }
+    .prop-field textarea { border:none !important; background:transparent !important; box-shadow:none !important; padding-left:4px; }
     .code-input { text-align:center; font-size:32px; font-weight:900; letter-spacing:8px; text-transform:uppercase; }
 
     button { width: 100%; padding: 18px; background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%); color: white; border: none; border-radius: 16px; font-size: 18px; font-weight: 800; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 20px rgba(0, 114, 255, 0.3); }
@@ -470,7 +475,8 @@
     /* ---------- Soumettre une proposition ---------- */
     submitProposal(text) {
       initInteraction(); vibrate(50); playSound('click');
-      const clean = (text || '').trim(); if (!clean) return;
+      let clean = (text || '').trim().replace(/^mais\s+/i, ''); // "Mais" est déjà le préfixe fixe
+      if (!clean) return;
       set(this.rref(`rooms/${this.code}/proposals/${this.uid}`), { text: clean });
     }
 
@@ -501,7 +507,35 @@
 
       const phase = this.meta().phase;
       if (phase === 'propose' && this.allProposed()) this.openVote();
-      else if (phase === 'vote' && this.allVoted()) this.computeResults();
+      else if (phase === 'vote') {
+        if (this.isTV()) this.tvVoteTick();          // salon : une proposition à la fois, synchronisée
+        else if (this.allVoted()) this.computeResults(); // téléphone : chacun vote à son rythme
+      }
+    }
+
+    // Mode salon : avance automatiquement quand tout le monde a voté sur la proposition courante
+    tvVoteTick() {
+      const order = this.meta().order || [];
+      const vi = this.meta().voteIndex || 0;
+      if (vi >= order.length) { this.computeResults(); return; }
+      const author = order[vi];
+      const voters = this.activeRoundPlayers().filter(id => id !== author);
+      const votes = this.votes();
+      const done = voters.length > 0 && voters.every(v => votes[author] && votes[author][v] !== undefined);
+      if (done) {
+        if (vi + 1 >= order.length) this.computeResults();
+        else update(this.rref(`rooms/${this.code}/meta`), { voteIndex: vi + 1 });
+      }
+    }
+
+    // Bouton "proposition suivante" de l'écran (passe les retardataires)
+    tvNextVote() {
+      if (!this.isScreen()) return;
+      initInteraction(); playSound('click');
+      const order = this.meta().order || [];
+      const vi = this.meta().voteIndex || 0;
+      if (vi + 1 >= order.length) this.computeResults();
+      else update(this.rref(`rooms/${this.code}/meta`), { voteIndex: vi + 1 });
     }
 
     activeRoundPlayers() {
@@ -516,7 +550,7 @@
 
     async openVote() {
       const order = shuffle(this.activeRoundPlayers().filter(id => this.proposals()[id]));
-      await update(this.rref(`rooms/${this.code}/meta`), { phase: 'vote', order });
+      await update(this.rref(`rooms/${this.code}/meta`), { phase: 'vote', order, voteIndex: 0 });
     }
 
     voterDone(voterId) {
@@ -735,7 +769,7 @@
         <div class="card">
           <div class="input-group">
             <label>Ta pire contrepartie (objectif : 50% de oui)</label>
-            <textarea id="txtProposal" placeholder="...mais tu dois manger un citron chaque matin."></textarea>
+            <div class="prop-field"><span class="prefix">Mais…</span><textarea id="txtProposal" placeholder="tu dois manger un citron chaque matin."></textarea></div>
           </div>
           <button id="btnSubmitProposal">Valider en secret</button>
         </div>`;
@@ -767,7 +801,7 @@
           <div class="info-box">À ton tour de voter. (${pos}/${votable.length})</div>
           <div style="background: rgba(0,0,0,0.3); padding: 30px; border-radius: 16px; text-align: center; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.05);">
             <p style="color:#94a3b8; font-size:14px; margin-bottom:15px; text-transform:uppercase; letter-spacing:1px; font-weight:800;">La contrepartie proposée :</p>
-            <h3 style="font-size:24px; color:#fff; font-weight:800;">"... ${escapeHtml(proposal.text)}"</h3>
+            <h3 style="font-size:24px; color:#fff; font-weight:800;">« Mais ${escapeHtml(proposal.text)} »</h3>
           </div>
           <div class="vote-buttons">
             <button class="vote-btn yes" data-action="vote" data-author="${next}" data-value="yes">J'ACCEPTE</button>
@@ -792,7 +826,7 @@
           <div class="card" style="${isBest ? 'border:2px solid #ffd700; box-shadow:0 0 22px rgba(255,215,0,0.18);' : ''}">
             <div style="text-align:center; color:#94a3b8; font-size:13px; font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-bottom:14px;">Proposition ${i + 1} / ${total}</div>
             ${isBest ? '<div style="text-align:center;"><span class="points-tag" style="margin-bottom:14px;">🏆 Dilemme Parfait de la manche !</span></div>' : ''}
-            <h3 style="font-size:22px; margin-bottom:12px; color:#fff; font-weight:800; text-align:center;">"... ${escapeHtml(r.text)}"</h3>
+            <h3 style="font-size:22px; margin-bottom:12px; color:#fff; font-weight:800; text-align:center;">« Mais ${escapeHtml(r.text)} »</h3>
             <div class="vote-bar-container"><div class="vote-bar-fill" data-w="${r.yesPercent}%">${Math.round(r.yesPercent)}% OUI</div></div>
             <div class="points-tag" style="display:block; text-align:center; width:fit-content; margin:0 auto;">+${r.points} pts</div>
             <div class="author-line"><div class="author-title">${escapeHtml(r.title)}</div><div class="author-name">👑 ${escapeHtml(r.authorName)}</div></div>
@@ -896,19 +930,28 @@
     }
 
     renderScreenVote() {
-      const voters = this.activeRoundPlayers();
-      const done = voters.filter(v => this.voterDone(v)).length;
+      const order = this.meta().order || [];
+      const vi = this.meta().voteIndex || 0;
+      if (vi >= order.length) {
+        return `<div class="card watch-screen"><div class="spinner"></div><p style="color:#cbd5e1;">Comptage des votes…</p></div>`;
+      }
+      const author = order[vi];
+      const proposal = this.proposals()[author] || { text: '' };
+      const voters = this.activeRoundPlayers().filter(id => id !== author);
+      const votes = this.votes();
+      const done = voters.filter(v => votes[author] && votes[author][v] !== undefined).length;
+      const last = vi + 1 >= order.length;
       return `
         <div class="card scenario-card" style="padding:25px;">
-          <div class="scenario-label">Rappel</div>
+          <div class="scenario-label">Vote — proposition ${vi + 1} / ${order.length}</div>
           <div class="screen-big">${escapeHtml(this.meta().scenario)}</div>
         </div>
-        <div class="card watch-screen">
-          <div class="big-emoji">🗳️</div>
-          <h2 style="font-weight:800; margin-bottom:10px;">Votez sur vos téléphones !</h2>
+        <div class="card" style="text-align:center;">
+          <h3 class="big-prop" style="margin-bottom:18px;">« Mais ${escapeHtml(proposal.text)} »</h3>
+          <h2 style="font-weight:800; margin-bottom:10px;">🗳️ Votez sur vos téléphones !</h2>
           <div class="progress-text" style="font-size:34px;">${done}/${voters.length}</div>
-          <p style="color:#cbd5e1;">ont fini de voter</p>
-          ${done >= 1 ? `<button id="btnForce" class="ghost" style="margin-top:20px;">⏭️ Forcer les résultats</button>` : ''}
+          <p style="color:#cbd5e1;">ont voté</p>
+          <button id="btnVoteNext" class="ghost" style="margin-top:20px;">${last ? '⏭️ Terminer le vote' : '⏭️ Proposition suivante'}</button>
         </div>`;
     }
 
@@ -952,7 +995,7 @@
           </div>
           <div class="card reveal-pop" style="text-align:center; ${isBest ? 'border:2px solid #ffd700; box-shadow:0 0 25px rgba(255,215,0,0.2);' : ''}">
             ${isBest ? '<div class="points-tag" style="margin-bottom:14px;">🏆 Dilemme Parfait de la manche !</div>' : ''}
-            <h3 class="big-prop" style="margin-bottom:12px;">"... ${escapeHtml(r.text)}"</h3>
+            <h3 class="big-prop" style="margin-bottom:12px;">« Mais ${escapeHtml(r.text)} »</h3>
             <div class="vote-bar-container" style="height:54px;"><div class="vote-bar-fill" data-w="${r.yesPercent}%" style="font-size:20px;">${Math.round(r.yesPercent)}% OUI</div></div>
             <div class="points-tag">+${r.points} pts</div>
             <div class="author-line"><div class="author-title">${escapeHtml(r.title)}</div><div class="author-name">👑 ${escapeHtml(r.authorName)}</div></div>
@@ -1002,7 +1045,7 @@
         <div class="card">
           <div class="input-group">
             <label>Ta pire contrepartie (objectif : 50% de oui)</label>
-            <textarea id="txtProposal" placeholder="...mais tu dois manger un citron chaque matin."></textarea>
+            <div class="prop-field"><span class="prefix">Mais…</span><textarea id="txtProposal" placeholder="tu dois manger un citron chaque matin."></textarea></div>
           </div>
           <button id="btnSubmitProposal">Valider en secret</button>
         </div>`;
@@ -1010,23 +1053,21 @@
 
     renderControllerVote() {
       const order = this.meta().order || [];
-      const votes = this.votes();
-      const votable = order.filter(a => a !== this.uid);
-      const next = votable.find(a => !(votes[a] && votes[a][this.uid] !== undefined));
-      if (!next) return this.renderControllerWait("Vote terminé ✅", "Regarde l'écran 📺 pour les résultats.");
+      const vi = this.meta().voteIndex || 0;
+      if (vi >= order.length) return this.renderControllerWait("Vote terminé ✅", "Regarde l'écran 📺 pour les résultats.");
 
-      const proposal = this.proposals()[next];
-      const pos = votable.filter(a => votes[a] && votes[a][this.uid] !== undefined).length + 1;
+      const author = order[vi];
+      if (author === this.uid) return this.renderControllerWait("🙈 C'est ta proposition !", "Tu ne votes pas celle-ci. Regarde l'écran 📺");
+      const votes = this.votes();
+      if (votes[author] && votes[author][this.uid] !== undefined) {
+        return this.renderControllerWait("Voté ✅", "Regarde l'écran 📺, on passe à la suite.");
+      }
       return `
-        <div class="card">
-          <div class="info-box">À ton tour de voter. (${pos}/${votable.length})</div>
-          <div style="background: rgba(0,0,0,0.3); padding: 30px; border-radius: 16px; text-align: center; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.05);">
-            <p style="color:#94a3b8; font-size:14px; margin-bottom:15px; text-transform:uppercase; letter-spacing:1px; font-weight:800;">La contrepartie proposée :</p>
-            <h3 style="font-size:24px; color:#fff; font-weight:800;">"... ${escapeHtml(proposal.text)}"</h3>
-          </div>
+        <div class="card" style="text-align:center;">
+          <div class="info-box" style="margin-bottom:30px;">📺 La contrepartie est sur l'écran — proposition ${vi + 1}/${order.length}.<br>Tu l'acceptes ?</div>
           <div class="vote-buttons">
-            <button class="vote-btn yes" data-action="vote" data-author="${next}" data-value="yes">J'ACCEPTE</button>
-            <button class="vote-btn no" data-action="vote" data-author="${next}" data-value="no">JE REFUSE</button>
+            <button class="vote-btn yes" data-action="vote" data-author="${author}" data-value="yes">J'ACCEPTE</button>
+            <button class="vote-btn no" data-action="vote" data-author="${author}" data-value="no">JE REFUSE</button>
           </div>
         </div>`;
     }
@@ -1058,6 +1099,7 @@
       bind('btnLobby', () => this.backToLobby());
       bind('btnQuit', () => this.quitRoom());
       bind('btnRevealNext', () => this.revealNext());
+      bind('btnVoteNext', () => this.tvNextVote());
 
       const addSc = document.getElementById('btnAddScenario');
       const scIn = document.getElementById('newScenario');
