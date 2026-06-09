@@ -234,7 +234,8 @@
     if (p < 25) return "🏴‍☠️ Le Bourreau Sans Pitié";
     return "🤷 Le Créateur de Chaos";
   }
-  function pointsFromDeviation(d) { return Math.round(Math.max(0, (50 - d) / 50 * 100)); }
+  // Score = distance au 50/50 (écart). Plus c'est petit, mieux c'est. Un 50/50 parfait = 0.
+  function pointsFromDeviation(d) { return Math.round(d); }
 
   // ============================================================
   // COUCHE RÉSEAU + LOGIQUE
@@ -701,10 +702,10 @@
     renderLeaderboard() {
       const players = this.players();
       const ids = this.gamePlayers();
-      if (ids.every(id => !players[id].score)) return '';
-      const sorted = ids.map(id => players[id]).sort((a, b) => (b.score || 0) - (a.score || 0));
+      if ((this.meta().round || 0) === 0) return ''; // pas encore de manche jouée
+      const sorted = ids.map(id => players[id]).sort((a, b) => (a.score || 0) - (b.score || 0));
       const medals = ['🥇', '🥈', '🥉'];
-      return `<div class="leaderboard"><h3>🏅 Classement</h3>${sorted.map((p, i) =>
+      return `<div class="leaderboard"><h3>🏅 Classement <span style="font-size:12px; color:#94a3b8; font-weight:700; text-transform:none; letter-spacing:0;">· le + petit score gagne</span></h3>${sorted.map((p, i) =>
         `<div class="lb-row ${i === 0 ? 'lead' : ''}"><span class="lb-rank">${medals[i] || (i + 1)}</span><span class="lb-name">${escapeHtml(p.name)}</span><span class="lb-score">${p.score || 0} pts</span></div>`).join('')}</div>`;
     }
 
@@ -854,7 +855,7 @@
 
     renderFinal() {
       const players = this.players();
-      const sorted = this.gamePlayers().map(id => players[id]).sort((a, b) => (b.score || 0) - (a.score || 0));
+      const sorted = this.gamePlayers().map(id => players[id]).sort((a, b) => (a.score || 0) - (b.score || 0));
       const top = sorted.slice(0, 3);
       const order = [1, 0, 2]; const heights = { 0: 130, 1: 95, 2: 70 };
       const colors = { 0: 'linear-gradient(180deg,#ffd700,#bfa100)', 1: 'linear-gradient(180deg,#c0c0c0,#8a8a8a)', 2: 'linear-gradient(180deg,#cd7f32,#8a5524)' };
