@@ -2,189 +2,281 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>50/50 - Online Party</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#141021">
+  <title>50/50 — Coupez la salle en deux</title>
   <link rel="icon" type="image/png" href="favicon_256.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@700&display=swap');
-
     :root{
-      --ink:#141021; --ink2:#1b1531; --surface:#221b3c; --surface2:#2b2350;
-      --line:#392f5e; --line2:#4b3f78;
-      --paper:#f2eeff; --muted:#9b93c4; --faint:#6e6699;
-      --magenta:#ff2e9a; --blue:#4f6bff; --yes:#19e08a; --no:#ff3b5c; --gold:#ffce3a;
+      /* Encres */
+      --ink:#141021; --ink-2:#1b1531; --surface:#221b3c; --surface-2:#2b2350;
+      --line:#392f5e; --line-2:#4b3f78;
+      /* Texte */
+      --paper:#f2eeff; --muted:#9b93c4; --faint:#847cab;
+      /* Le split = la marque. OUI à gauche, NON à droite, comme le logo. */
+      --oui:#ff2e9a; --oui-ink:#ff6cb8;
+      --non:#4f6bff; --non-ink:#8d9eff;
+      --gold:#ffce3a; --ok:#19e08a; --danger:#ff3b5c; --danger-ink:#ffd2da;
+      /* Type */
       --display:'Anton',sans-serif; --ui:'Space Grotesk',sans-serif; --mono:'Space Mono',monospace;
-      --r:12px;
+      /* Géométrie */
+      --r-s:8px; --r-m:12px; --r-l:16px;
+      --seam:101deg; /* l'angle de coupe du logo */
+      --z-sticky:10;
+      --ease-out:cubic-bezier(.22,1,.36,1);
     }
     *{ margin:0; padding:0; box-sizing:border-box; }
+    html{ -webkit-text-size-adjust:100%; }
     body{
-      font-family:var(--ui); color:var(--paper); background:var(--ink);
+      font-family:var(--ui); font-size:16px; color:var(--paper); background:var(--ink);
       background-image:
-        radial-gradient(120% 75% at 50% -12%, rgba(79,107,255,.20), transparent 58%),
-        radial-gradient(95% 55% at 50% 112%, rgba(255,46,154,.14), transparent 55%);
+        radial-gradient(120% 70% at 50% -14%, rgba(79,107,255,.16), transparent 55%),
+        radial-gradient(95% 55% at 50% 114%, rgba(255,46,154,.11), transparent 52%);
       background-attachment:fixed;
-      min-height:100vh; padding:26px 16px 48px; line-height:1.5;
-      display:flex; justify-content:center; align-items:flex-start;
-      -webkit-font-smoothing:antialiased;
+      min-height:100vh; line-height:1.5; -webkit-font-smoothing:antialiased;
     }
-    .container{ width:100%; max-width:600px; margin:auto; }
+    .container{ width:100%; max-width:600px; margin:0 auto; padding:0 16px 56px; }
+    body.tv .container{ max-width:960px; }
+    body.home main{ padding-top:18px; }
 
-    h1,h2,h3{ font-family:var(--display); font-weight:400; line-height:1.02; text-transform:uppercase; letter-spacing:.01em; }
-    .eyebrow,.scenario-label,.author-title,.secret-rule-title,.subtitle{ font-family:var(--mono); text-transform:uppercase; letter-spacing:.22em; }
+    h1,h2{ font-family:var(--display); font-weight:400; line-height:1.08; text-transform:uppercase; letter-spacing:.015em; text-wrap:balance; }
+    h2{ font-size:24px; }
+    h3{ font-size:16px; font-weight:700; }
+    button{ font:inherit; color:inherit; }
 
-    /* HEADER */
-    .header{ text-align:center; margin-bottom:26px; }
-    .logo-img{ width:142px; height:142px; display:block; margin:0 auto 10px; border-radius:30px; box-shadow:0 14px 36px rgba(0,0,0,.5); }
-    .header .subtitle{ font-size:12px; color:var(--muted); }
-    .pill-row{ display:flex; gap:8px; justify-content:center; margin-top:14px; flex-wrap:wrap; }
-    .pill{ display:inline-block; padding:6px 14px; border-radius:6px; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; }
-    .pill.round{ background:rgba(79,107,255,.14); border:1px solid var(--blue); color:#aeb9ff; }
-    .pill.code{ background:transparent; border:1px dashed var(--magenta); color:#ff8fcb; cursor:pointer; }
+    /* ---- TOPBAR ---- */
+    .topbar{
+      position:sticky; top:0; z-index:var(--z-sticky);
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      margin:0 -16px 18px; padding:12px 16px;
+      background:rgba(20,16,33,.92); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+      border-bottom:1px solid rgba(57,47,94,.55);
+    }
+    body.home .topbar{ display:none; }
+    .brand{ display:flex; align-items:center; gap:10px; }
+    .brand-logo{ width:34px; height:34px; border-radius:9px; }
+    .brand-name{ font-family:var(--display); font-size:19px; letter-spacing:.04em; }
+    .chips{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .chip{ display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:999px; font-family:var(--mono); font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+    .chip--code{ background:var(--surface); border:1px solid var(--line-2); color:var(--paper); cursor:pointer; }
+    .chip--code:hover{ border-color:var(--oui); }
+    .chip--round{ background:rgba(79,107,255,.14); border:1px solid rgba(79,107,255,.45); color:var(--non-ink); }
 
-    /* CARDS */
-    .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:28px; margin-bottom:18px; box-shadow:0 10px 30px rgba(0,0,0,.28); }
+    /* ---- ACCUEIL ---- */
+    .hero{ text-align:center; padding:20px 0 24px; }
+    .hero-logo{ width:92px; height:92px; display:block; margin:0 auto 14px; border-radius:24px; }
+    .hero h1{ font-size:46px; }
+    .hero p{ color:var(--muted); margin-top:6px; }
+    .principle{ margin-top:26px; padding:0 6px; }
+    .steps{ list-style:none; margin-top:10px; }
+    .steps li{ display:flex; gap:14px; align-items:baseline; padding:10px 0; color:var(--muted); font-size:15px; border-top:1px solid var(--line); }
+    .steps li:first-child{ border-top:none; }
+    .steps .n{ font-family:var(--mono); font-weight:700; font-size:13px; color:var(--oui-ink); flex:none; }
+    .steps strong{ color:var(--paper); font-weight:600; }
 
-    /* SCENARIO — signature : carte coupée 50/50 (magenta | bleu) comme le logo */
+    /* ---- CARTES ---- */
+    .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-l); padding:24px; margin-bottom:16px; }
+    @media (min-width:480px){ .card{ padding:28px; } }
+    body.tv .card{ padding:32px 36px; }
+    .section-title{ font-size:16px; font-weight:700; margin-bottom:12px; }
+
+    /* ---- CARTE SCÉNARIO — signature : la coupe du logo ---- */
     .scenario-card{
-      position:relative; text-align:center; padding:36px 26px; border:none; border-radius:var(--r); color:#fff;
-      background:linear-gradient(101deg, var(--magenta) 0 49.6%, var(--blue) 50.4% 100%);
-      box-shadow:0 16px 40px rgba(0,0,0,.45);
+      position:relative; text-align:center; padding:28px 22px 26px; margin-bottom:16px;
+      border-radius:var(--r-l); color:#fff;
+      background:linear-gradient(var(--seam), var(--oui) 0 49.6%, rgba(255,255,255,.85) 49.6% 50.4%, var(--non) 50.4% 100%);
     }
-    .scenario-card::after{ content:''; position:absolute; left:50%; top:14px; bottom:14px; width:2px; background:rgba(255,255,255,.55); transform:translateX(-1px); }
-    .scenario-label{ font-size:11px; opacity:.92; margin-bottom:14px; position:relative; }
-    .scenario-text{ font-family:var(--display); font-size:32px; line-height:1.04; text-transform:uppercase; text-shadow:0 2px 14px rgba(0,0,0,.5),0 0 2px rgba(0,0,0,.4); word-wrap:break-word; position:relative; }
-    .secret-rule-box{ position:relative; margin-top:20px; padding:14px 16px; background:rgba(15,11,28,.58); border:1.5px dashed rgba(255,255,255,.65); border-radius:10px; color:#fff; }
-    .secret-rule-title{ font-size:10px; margin-bottom:6px; }
+    .scenario-kicker{
+      display:inline-block; padding:6px 14px; margin-bottom:14px; border-radius:999px;
+      background:rgba(20,16,33,.55);
+      font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+    }
+    .scenario-text{ font-family:var(--display); font-size:30px; line-height:1.07; text-transform:uppercase; text-wrap:balance; overflow-wrap:break-word; text-shadow:0 2px 12px rgba(0,0,0,.45); }
+    .scenario-card--small{ padding:16px 18px 15px; }
+    .scenario-card--small .scenario-kicker{ margin-bottom:8px; padding:4px 12px; }
+    .scenario-card--small .scenario-text{ font-size:19px; }
+    body.tv .scenario-text{ font-size:48px; }
+    body.tv .scenario-card--small .scenario-text{ font-size:26px; }
+    .secret-rule{ margin-top:18px; padding:13px 16px; background:rgba(15,11,28,.62); border:1.5px dashed rgba(255,206,58,.7); border-radius:var(--r-m); }
+    .secret-rule .tag{ font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); }
+    .secret-rule .txt{ margin-top:5px; font-size:16px; font-weight:600; }
+    body.tv .secret-rule .txt{ font-size:20px; }
 
-    /* HOW TO PLAY */
-    .rules-box{ background:var(--ink2); border:1px solid var(--line); border-left:4px solid var(--magenta); border-radius:10px; padding:20px; margin-bottom:26px; }
-    .rules-box h3{ color:var(--paper); font-size:20px; margin-bottom:4px; }
-    .rules-list{ list-style:none; counter-reset:step; margin-top:14px; }
-    .rules-list li{ position:relative; margin-bottom:8px; font-size:14px; line-height:1.5; color:var(--muted); padding:11px 14px 11px 44px; background:rgba(255,255,255,.03); border-radius:8px; counter-increment:step; }
-    .rules-list li::before{ content:counter(step,decimal-leading-zero); position:absolute; left:14px; top:11px; font-family:var(--mono); font-size:12px; color:var(--magenta); }
+    /* ---- BOUTONS ---- */
+    .btn{
+      display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+      min-height:52px; padding:14px 18px; border:none; border-radius:var(--r-m); cursor:pointer;
+      font-family:var(--ui); font-weight:700; font-size:15px; letter-spacing:.05em; text-transform:uppercase;
+      background:var(--surface-2); color:var(--paper);
+      transition:filter .15s var(--ease-out), transform .15s var(--ease-out), background .15s var(--ease-out);
+    }
+    .btn:hover{ filter:brightness(1.12); }
+    .btn:active{ transform:translateY(1px); }
+    .btn:disabled{ opacity:.4; cursor:not-allowed; filter:none; }
+    .btn--primary{ background:var(--paper); color:var(--ink); }
+    .btn--primary:hover{ filter:brightness(.93); }
+    .btn--secondary{ background:var(--surface-2); border:1px solid var(--line-2); }
+    .btn--ghost{ background:transparent; border:1px solid var(--line-2); color:var(--muted); font-weight:600; font-size:14px; letter-spacing:0; text-transform:none; min-height:46px; }
+    .btn--ghost:hover{ filter:none; background:rgba(255,255,255,.04); color:var(--paper); }
+    .btn + .btn{ margin-top:10px; }
+    .btn--mode{ flex-direction:column; gap:2px; min-height:64px; }
+    .btn--mode .sub{ font-weight:400; font-size:13px; letter-spacing:0; text-transform:none; color:var(--muted); }
+    .wait .btn{ margin-top:22px; }
 
-    /* repère "50/50" — petit disque coupé, réutilisé là où il y avait des icônes */
-    .mark{ width:60px; height:60px; border-radius:50%; margin:0 auto 18px; background:linear-gradient(101deg,var(--magenta) 0 49%, var(--blue) 51% 100%); box-shadow:0 8px 24px rgba(0,0,0,.4); }
-    .tag-badge{ margin-left:9px; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:2px 7px; border-radius:5px; }
-    .tag-badge.host{ color:var(--gold); border:1px solid rgba(255,206,58,.5); }
-    .tag-badge.ready{ color:var(--yes); border:1px solid rgba(25,224,138,.5); }
-    .podium-rank{ font-family:var(--mono); font-size:12px; color:var(--muted); margin-bottom:4px; }
-    .or-divider{ display:flex; align-items:center; gap:14px; margin:20px 2px; color:var(--faint); font-family:var(--mono); font-size:12px; letter-spacing:.2em; text-transform:uppercase; }
+    /* ---- PAIRE DE VOTE — les deux moitiés du logo ---- */
+    .vote-pair{ display:flex; gap:10px; margin-top:22px; }
+    .vote-btn{
+      flex:1; min-height:86px; border:none; cursor:pointer; color:#fff; border-radius:var(--r-m);
+      font-family:var(--display); font-size:22px; letter-spacing:.02em; text-transform:uppercase;
+      transition:filter .15s var(--ease-out), transform .15s var(--ease-out);
+    }
+    .vote-btn:hover{ filter:brightness(1.08); }
+    .vote-btn:active{ transform:scale(.97); }
+    .vote-btn--oui{ background:var(--oui); clip-path:polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%); padding-right:14px; }
+    .vote-btn--non{ background:var(--non); clip-path:polygon(14px 0, 100% 0, 100% 100%, 0 100%); padding-left:14px; }
+
+    /* ---- FORMULAIRES ---- */
+    .input-group{ margin-bottom:20px; }
+    label{ display:block; margin-bottom:8px; font-size:14px; font-weight:600; color:var(--muted); }
+    .opt{ font-weight:400; color:var(--faint); }
+    input,textarea{
+      width:100%; padding:14px 16px; background:var(--ink-2); color:var(--paper);
+      border:1px solid var(--line); border-radius:var(--r-m); font-size:16px; font-family:var(--ui);
+      transition:border-color .15s, box-shadow .15s;
+    }
+    input::placeholder,textarea::placeholder{ color:var(--muted); opacity:.8; }
+    input:focus,textarea:focus{ outline:none; border-color:var(--oui); box-shadow:0 0 0 3px rgba(255,46,154,.16); }
+    textarea{ resize:vertical; min-height:104px; }
+    .code-input{ text-align:center; font-family:var(--mono); font-weight:700; font-size:28px; letter-spacing:.35em; text-indent:.35em; text-transform:uppercase; }
+    .prop-field{ display:flex; border:1px solid var(--line); border-radius:var(--r-m); background:var(--ink-2); overflow:hidden; transition:border-color .15s, box-shadow .15s; }
+    .prop-field:focus-within{ border-color:var(--oui); box-shadow:0 0 0 3px rgba(255,46,154,.16); }
+    .prop-field .prefix{ padding:15px 4px 0 16px; font-family:var(--display); font-size:19px; color:var(--oui-ink); white-space:nowrap; user-select:none; }
+    .prop-field textarea{ border:none; background:transparent; padding-left:8px; }
+    .prop-field textarea:focus{ border:none; box-shadow:none; }
+    .or-divider{ display:flex; align-items:center; gap:14px; margin:20px 0; color:var(--faint); font-size:13px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; }
     .or-divider::before,.or-divider::after{ content:''; flex:1; height:1px; background:var(--line); }
-    .mode-btn{ width:100%; display:flex; flex-direction:column; gap:4px; align-items:flex-start; text-align:left; }
-    .mode-btn .sub{ font-family:var(--mono); font-size:11px; font-weight:400; letter-spacing:.02em; text-transform:none; color:var(--faint); }
 
-    /* FORMS */
-    .input-group{ margin-bottom:22px; }
-    label{ display:block; margin-bottom:9px; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
-    input,textarea{ width:100%; padding:15px 16px; background:var(--ink2); color:var(--paper); border:1px solid var(--line); border-radius:10px; font-size:16px; font-family:var(--ui); transition:border-color .2s,box-shadow .2s; }
-    input::placeholder,textarea::placeholder{ color:var(--faint); }
-    input:focus,textarea:focus{ outline:none; border-color:var(--magenta); box-shadow:0 0 0 3px rgba(255,46,154,.18); }
-    textarea{ resize:vertical; min-height:110px; }
-    .code-input{ text-align:center; font-family:var(--mono); font-size:30px; letter-spacing:.4em; text-transform:uppercase; }
-    .prop-field{ display:flex; border:1px solid var(--line); border-radius:10px; background:var(--ink2); overflow:hidden; transition:border-color .2s,box-shadow .2s; }
-    .prop-field:focus-within{ border-color:var(--magenta); box-shadow:0 0 0 3px rgba(255,46,154,.18); }
-    .prop-field .prefix{ padding:16px 6px 0 16px; font-family:var(--display); font-size:20px; color:var(--magenta); white-space:nowrap; user-select:none; }
-    .prop-field textarea{ border:none!important; background:transparent!important; box-shadow:none!important; padding-left:6px; }
+    /* ---- SEGMENTED (intensité) ---- */
+    .seg{ display:flex; gap:4px; padding:4px; background:var(--ink-2); border:1px solid var(--line); border-radius:var(--r-m); }
+    .seg-btn{ flex:1; min-height:44px; border:none; border-radius:var(--r-s); background:transparent; color:var(--muted); font-weight:600; font-size:14px; cursor:pointer; transition:background .15s, color .15s; }
+    .seg-btn:hover{ color:var(--paper); }
+    .seg-btn.active{ background:var(--surface-2); color:var(--paper); box-shadow:inset 0 0 0 1px var(--line-2); }
+    .hint{ text-align:center; margin-top:10px; font-size:14px; color:var(--muted); min-height:20px; }
 
-    /* BUTTONS */
-    button{ width:100%; padding:15px 16px; font-family:var(--ui); font-weight:700; font-size:15px; letter-spacing:.06em; text-transform:uppercase; color:#fff; background:var(--blue); border:none; border-radius:10px; cursor:pointer; transition:transform .1s ease,filter .15s ease; }
-    button:hover{ filter:brightness(1.1); }
-    button:active{ transform:translateY(1px); }
-    button:disabled{ opacity:.4; cursor:not-allowed; filter:none; }
-    button.secondary{ background:var(--surface2); border:1px solid var(--line2); margin-top:10px; }
-    button.ghost{ background:transparent; border:1px solid var(--line2); color:var(--muted); font-weight:600; font-size:13px; padding:13px; margin-top:10px; }
-    button.ghost:hover{ filter:none; background:rgba(255,255,255,.04); color:var(--paper); }
+    /* ---- NOTES / ERREURS ---- */
+    .note{ padding:12px 16px; margin-bottom:18px; border-radius:var(--r-m); font-size:15px; background:rgba(79,107,255,.12); border:1px solid rgba(79,107,255,.4); color:#dfe2ff; }
+    .card > .note:last-child{ margin-bottom:0; margin-top:18px; }
+    .banner-error{ padding:12px 16px; margin-bottom:18px; border-radius:var(--r-m); font-size:14px; font-weight:600; text-align:center; background:rgba(255,59,92,.13); border:1px solid var(--danger); color:var(--danger-ink); }
 
-    /* VOTE */
-    .vote-buttons{ display:flex; gap:14px; margin-top:24px; }
-    .vote-btn{ flex:1; padding:22px 10px; background:var(--ink2); border:2px solid; border-radius:10px; font-family:var(--display); font-size:20px; letter-spacing:.02em; }
-    .vote-btn.yes{ border-color:var(--yes); color:var(--yes); }
-    .vote-btn.yes:active{ background:var(--yes); color:#04130c; }
-    .vote-btn.no{ border-color:var(--no); color:var(--no); }
-    .vote-btn.no:active{ background:var(--no); color:#1a0307; }
+    /* ---- JOUEURS ---- */
+    .players{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-bottom:22px; }
+    .wait .players{ margin-top:20px; margin-bottom:0; }
+    .chip-player{ display:inline-flex; align-items:center; gap:8px; max-width:100%; padding:8px 14px; border-radius:999px; background:var(--ink-2); border:1px solid var(--line); font-weight:600; font-size:14px; }
+    .chip-player .dot{ width:8px; height:8px; border-radius:50%; background:var(--ok); flex:none; }
+    .chip-player .dot.off{ background:var(--faint); }
+    .badge{ font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:2px 7px; border-radius:999px; }
+    .badge--host{ color:var(--gold); border:1px solid rgba(255,206,58,.5); }
+    .badge--ready{ color:var(--ok); border:1px solid rgba(25,224,138,.5); }
+    .chip-x{ border:none; background:none; cursor:pointer; color:var(--danger); font-size:16px; font-weight:700; line-height:1; padding:2px 4px; }
 
-    /* RESULTS */
-    .result-item{ background:var(--ink2); border:1px solid var(--line); border-radius:10px; padding:22px; margin-bottom:18px; position:relative; }
-    .result-item.winner{ border-color:var(--gold); box-shadow:0 0 0 1px var(--gold) inset; }
-    .winner-badge{ position:absolute; top:-11px; right:16px; background:var(--gold); color:#1a1305; padding:5px 12px; border-radius:6px; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; }
-    .vote-bar-container{ position:relative; height:44px; background:var(--no); border-radius:8px; overflow:hidden; margin:18px 0; }
-    .vote-bar-fill{ position:absolute; left:0; top:0; height:100%; width:0; background:var(--yes); transition:width 1.2s cubic-bezier(.2,.8,.2,1); display:flex; align-items:center; padding-left:14px; color:#04130c; font-family:var(--display); font-size:18px; letter-spacing:.02em; }
-    .vote-bar-container::after{ content:''; position:absolute; left:50%; top:0; bottom:0; width:2px; background:rgba(242,238,255,.9); transform:translateX(-1px); z-index:2; }
-    .points-tag{ display:inline-block; margin-top:14px; padding:5px 12px; border-radius:6px; background:rgba(255,206,58,.12); border:1px solid rgba(255,206,58,.4); color:var(--gold); font-family:var(--mono); font-size:12px; }
+    /* ---- CODE DE PARTIE ---- */
+    .share-code{ text-align:center; margin-bottom:22px; }
+    .share-code .lbl{ font-size:14px; color:var(--muted); }
+    .big-code{ font-family:var(--mono); font-weight:700; font-size:44px; letter-spacing:.26em; text-indent:.26em; color:var(--paper); text-shadow:0 0 24px rgba(255,46,154,.35); cursor:pointer; }
+    body.tv .big-code{ font-size:76px; }
+
+    /* ---- SPLITBAR — chaque résultat redessine le logo ---- */
+    .splitbar{ position:relative; height:48px; margin:18px 0 14px; border-radius:10px; overflow:hidden; background:var(--non); }
+    .splitbar-fill{ position:absolute; top:0; bottom:0; left:0; width:var(--pct,0%); background:var(--oui); clip-path:polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%); animation:bar-grow .9s var(--ease-out) both; }
+    @keyframes bar-grow{ from{ width:0; } }
+    .splitbar-mid{ position:absolute; left:50%; top:0; bottom:0; width:2px; margin-left:-1px; background:var(--gold); }
+    .splitbar-label{ position:absolute; inset:0; display:flex; align-items:center; padding-left:14px; font-family:var(--mono); font-weight:700; font-size:15px; color:#fff; text-shadow:0 1px 6px rgba(0,0,0,.65); pointer-events:none; }
+    body.tv .splitbar{ height:58px; }
+    body.tv .splitbar-label{ font-size:19px; }
+
+    /* ---- RÉSULTATS ---- */
+    .counter{ text-align:center; font-family:var(--mono); font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+    .quote{ background:var(--ink-2); border:1px solid var(--line); border-radius:var(--r-m); padding:18px 20px; text-align:center; font-size:20px; font-weight:600; line-height:1.35; overflow-wrap:break-word; }
+    body.tv .quote{ font-size:30px; padding:24px 28px; }
+    .card--best{ border-color:var(--gold); box-shadow:0 0 0 1px var(--gold) inset; }
+    .reveal-best{ text-align:center; margin-bottom:12px; }
+    .pts{ display:inline-block; padding:5px 12px; border-radius:999px; background:rgba(255,206,58,.1); border:1px solid rgba(255,206,58,.4); color:var(--gold); font-family:var(--mono); font-size:13px; font-weight:700; }
+    .pts-line{ text-align:center; margin-bottom:2px; }
     .author-line{ margin-top:16px; text-align:center; }
-    .author-title{ font-size:11px; color:var(--muted); }
-    .author-name{ font-family:var(--display); font-size:24px; color:var(--gold); margin-top:6px; text-transform:uppercase; }
-    .who-voted{ display:flex; justify-content:center; gap:18px; font-size:14px; background:rgba(0,0,0,.25); padding:14px; border-radius:8px; margin-top:14px; }
+    .author-title{ font-size:14px; font-style:italic; color:var(--muted); }
+    .author-name{ font-family:var(--display); font-size:24px; color:var(--gold); margin-top:4px; text-transform:uppercase; }
+    .who-voted{ display:flex; gap:16px; margin-top:16px; padding:14px; background:rgba(0,0,0,.25); border-radius:var(--r-m); font-size:14px; text-align:center; }
+    .who-voted .col{ flex:1; min-width:0; overflow-wrap:break-word; }
+    .who-voted .col + .col{ border-left:1px solid rgba(255,255,255,.1); padding-left:16px; }
+    .who-voted .h{ display:block; margin-bottom:6px; font-family:var(--mono); font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+    .who-voted .h--oui{ color:var(--oui-ink); }
+    .who-voted .h--non{ color:var(--non-ink); }
+    .reveal-pop{ animation:pop .4s var(--ease-out); }
+    @keyframes pop{ from{ transform:scale(.96); opacity:0; } }
 
-    /* LEADERBOARD */
-    .leaderboard{ margin-bottom:22px; }
-    .leaderboard h3{ color:var(--gold); text-align:center; font-size:20px; margin-bottom:14px; }
-    .lb-row{ display:flex; align-items:center; gap:12px; background:var(--ink2); border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin-bottom:8px; }
+    /* ---- LEADERBOARD ---- */
+    .leaderboard{ margin-bottom:20px; }
+    .leaderboard h3{ text-align:center; margin-bottom:2px; }
+    .lb-note{ text-align:center; font-size:13px; color:var(--muted); margin-bottom:12px; }
+    .lb-row{ display:flex; align-items:center; gap:12px; background:var(--ink-2); border:1px solid var(--line); border-radius:var(--r-m); padding:11px 14px; margin-bottom:8px; text-align:left; }
     .lb-row.lead{ border-color:var(--gold); background:rgba(255,206,58,.06); }
-    .lb-rank{ font-family:var(--display); font-size:18px; width:34px; text-align:center; }
-    .lb-name{ flex:1; font-weight:600; font-size:16px; }
-    .lb-score{ font-family:var(--mono); font-size:16px; color:#aeb9ff; }
+    .lb-rank{ font-family:var(--mono); font-weight:700; font-size:14px; width:28px; text-align:center; color:var(--muted); flex:none; }
+    .lb-row.lead .lb-rank{ color:var(--gold); }
+    .lb-name{ flex:1; font-weight:600; font-size:15px; min-width:0; overflow-wrap:break-word; }
+    .lb-score{ font-family:var(--mono); font-weight:700; font-size:14px; color:var(--non-ink); }
+    .lb-row.lead .lb-score{ color:var(--gold); }
 
-    /* PODIUM */
-    .podium{ display:flex; justify-content:center; align-items:flex-end; gap:12px; margin:10px 0 28px; }
-    .podium-col{ flex:1; max-width:140px; text-align:center; }
-    .podium-bar{ border-radius:8px 8px 0 0; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; padding:12px 6px; font-family:var(--display); font-size:24px; }
-    .podium-name{ font-weight:700; font-size:15px; margin-bottom:8px; word-wrap:break-word; }
-    .podium-score{ font-family:var(--mono); font-size:12px; color:var(--muted); }
+    /* ---- PODIUM ---- */
+    .podium{ display:flex; justify-content:center; align-items:flex-end; gap:10px; margin:18px 0 26px; }
+    .podium-col{ flex:1; max-width:150px; text-align:center; min-width:0; }
+    .podium-rank{ font-family:var(--mono); font-weight:700; font-size:12px; color:var(--muted); margin-bottom:4px; }
+    .podium-name{ font-weight:700; font-size:15px; margin-bottom:8px; overflow-wrap:break-word; }
+    .podium-bar{ display:flex; align-items:flex-end; justify-content:center; padding:10px 6px; border-radius:var(--r-s) var(--r-s) 0 0; font-family:var(--display); font-size:24px; color:#141021; }
+    .podium-bar--1{ height:128px; background:var(--gold); }
+    .podium-bar--2{ height:94px; background:#c9c9d6; }
+    .podium-bar--3{ height:70px; background:#cd8d52; }
+    .podium-pts{ font-family:var(--mono); font-size:12px; color:var(--muted); margin-top:6px; }
 
-    /* INTENSITY + CUSTOM */
-    .spice-select{ margin-bottom:22px; }
-    .spice-row{ display:flex; gap:10px; margin-top:10px; }
-    .spice-btn{ flex:1; padding:13px 6px; font-size:14px; font-weight:600; letter-spacing:0; text-transform:none; background:var(--ink2); border:1px solid var(--line); border-radius:9px; color:var(--muted); }
-    .spice-btn:hover{ filter:none; background:var(--surface2); }
-    .spice-btn.active{ border-color:var(--magenta); color:var(--paper); background:rgba(255,46,154,.12); }
-    .hint{ text-align:center; margin-top:12px; font-size:13px; color:var(--faint); min-height:18px; }
-    .custom-box{ background:var(--ink2); border:1px dashed var(--line2); border-radius:10px; padding:18px; margin-bottom:22px; }
-
-    /* MISC */
-    .info-box{ background:rgba(79,107,255,.1); border-left:3px solid var(--blue); padding:14px 16px; border-radius:0 8px 8px 0; margin-bottom:22px; font-size:15px; color:#dfe2ff; }
-    .info-box.alert{ background:rgba(255,59,92,.14); border-left-color:var(--no); color:#ffd2da; }
-    .info-box.ok{ background:rgba(25,224,138,.1); border-left-color:var(--yes); color:#cfeede; }
-    .player-tag{ display:inline-flex; align-items:center; background:var(--ink2); border:1px solid var(--line); color:var(--paper); padding:8px 14px; border-radius:7px; margin:5px; font-weight:600; font-size:14px; }
-    .player-tag .dot{ width:8px; height:8px; border-radius:50%; margin-right:8px; background:var(--yes); }
-    .player-tag .dot.off{ background:var(--faint); }
-    .player-tag .crown{ margin-left:8px; }
-    .player-tag .check{ margin-left:8px; color:var(--yes); font-weight:900; }
-    .player-tag .remove-x{ cursor:pointer; color:var(--no); margin-left:10px; font-weight:900; }
-
-    .transition-screen,.watch-screen{ text-align:center; padding:46px 20px; }
-    .watch-screen .big-emoji{ font-size:64px; margin-bottom:18px; }
-    .spinner{ width:46px; height:46px; border:4px solid rgba(255,255,255,.14); border-top-color:var(--magenta); border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 18px; }
+    /* ---- ATTENTE ---- */
+    .wait{ text-align:center; padding:36px 18px; }
+    .wait h2{ margin-bottom:8px; }
+    .mark{ width:64px; height:64px; margin:0 auto 20px; border-radius:50%; background:linear-gradient(var(--seam), var(--oui) 0 48.5%, rgba(255,255,255,.85) 48.5% 51.5%, var(--non) 51.5% 100%); box-shadow:0 0 34px rgba(255,46,154,.3); animation:breathe 2.2s ease-in-out infinite; }
+    @keyframes breathe{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.06); } }
+    .progress-big{ font-family:var(--display); font-size:38px; margin:8px 0; }
+    body.tv .progress-big{ font-size:54px; }
+    .spinner{ width:44px; height:44px; margin:0 auto 18px; border:4px solid rgba(255,255,255,.14); border-top-color:var(--oui); border-radius:50%; animation:spin 1s linear infinite; }
     @keyframes spin{ to{ transform:rotate(360deg); } }
-    .progress-text{ font-family:var(--display); font-size:34px; color:var(--paper); margin:8px 0; }
-    .banner-error{ background:rgba(255,59,92,.14); border:1px solid var(--no); color:#ffd2da; border-radius:9px; padding:12px 14px; margin-bottom:20px; font-weight:600; font-size:14px; text-align:center; }
 
-    /* SCREEN / SALON */
-    .mode-row{ display:flex; gap:12px; margin-top:10px; }
-    .mode-btn{ flex:1; padding:16px 10px; font-size:14px; font-weight:600; letter-spacing:0; text-transform:none; line-height:1.3; background:var(--ink2); border:1px solid var(--line); border-radius:10px; color:var(--muted); }
-    .mode-btn:hover{ filter:none; background:var(--surface2); color:var(--paper); }
-    .mode-btn .mb-emoji{ font-size:24px; display:block; margin-bottom:6px; }
-    .big-code{ font-family:var(--mono); font-size:58px; letter-spacing:.22em; text-align:center; margin:6px 0; color:var(--paper); text-shadow:0 0 26px rgba(255,46,154,.4); }
-    .screen-tag{ display:block; text-align:center; color:var(--muted); font-family:var(--mono); letter-spacing:.22em; text-transform:uppercase; font-size:12px; }
-    .screen-scenario{ font-family:var(--display); font-size:44px; line-height:1.02; text-transform:uppercase; }
-    .screen-big{ font-family:var(--display); font-size:30px; text-transform:uppercase; }
-    .big-prop{ font-family:var(--display); font-size:34px; line-height:1.08; text-transform:uppercase; }
-    .reveal-pop{ animation:pop .55s cubic-bezier(.2,.9,.3,1.2); }
-    @keyframes pop{ from{ transform:scale(.96); opacity:0; } to{ transform:scale(1); opacity:1; } }
+    /* ---- SCÉNARIOS MAISON ---- */
+    .custom-sc{ margin:20px 0; border-top:1px solid var(--line); padding-top:16px; text-align:left; }
+    .custom-sc summary{ cursor:pointer; font-weight:600; font-size:14px; color:var(--muted); list-style:none; display:flex; align-items:center; gap:8px; }
+    .custom-sc summary:hover{ color:var(--paper); }
+    .custom-sc summary::before{ content:'+'; font-family:var(--mono); font-weight:700; color:var(--oui-ink); }
+    .custom-sc[open] summary::before{ content:'–'; }
+    .custom-sc summary::-webkit-details-marker{ display:none; }
+    .custom-sc .body{ margin-top:14px; }
+    .sc-list{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+    .sc-list:empty{ display:none; }
 
-    button:focus-visible,input:focus-visible,textarea:focus-visible,[data-action]:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
-    @media (prefers-reduced-motion: reduce){ *{ animation:none!important; transition:none!important; } }
+    /* ---- DIVERS ---- */
+    .muted{ color:var(--muted); }
+    .center{ text-align:center; }
+    button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible,[role="button"]:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+    @media (prefers-reduced-motion: reduce){
+      *,*::before,*::after{ animation:none!important; transition:none!important; }
+    }
   </style>
 </head>
-<body>
+<body class="home">
 <div class="container">
-  <div class="header">
-    <img src="favicon_logo.png" alt="50/50" class="logo-img">
-    <div class="subtitle">Coupez la salle en deux</div>
-    <div class="pill-row" id="pills"></div>
-  </div>
-  <div id="app"></div>
+  <header class="topbar">
+    <span class="brand"><img src="favicon_logo.png" alt="" class="brand-logo"><span class="brand-name">50/50</span></span>
+    <div class="chips" id="pills"></div>
+  </header>
+  <main id="app"></main>
 </div>
 
 <script type="module">
@@ -218,12 +310,39 @@
   }
   function playSound(type) {
     if (!audioCtx) return;
-    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-    osc.connect(gain); gain.connect(audioCtx.destination); const now = audioCtx.currentTime;
-    if (type === 'click') { osc.type='sine'; osc.frequency.setValueAtTime(600,now); osc.frequency.exponentialRampToValueAtTime(300,now+0.1); gain.gain.setValueAtTime(0.1,now); gain.gain.exponentialRampToValueAtTime(0.01,now+0.1); osc.start(now); osc.stop(now+0.1); }
-    else if (type === 'tada') { osc.type='square'; osc.frequency.setValueAtTime(400,now); osc.frequency.setValueAtTime(600,now+0.1); gain.gain.setValueAtTime(0.1,now); gain.gain.linearRampToValueAtTime(0,now+0.5); osc.start(now); osc.stop(now+0.5); }
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    if (type === 'click') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+      osc.start(now); osc.stop(now + 0.1);
+    } else if (type === 'tada') {
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(400, now);
+      osc.frequency.setValueAtTime(600, now + 0.1);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.linearRampToValueAtTime(0, now + 0.5);
+      osc.start(now); osc.stop(now + 0.5);
+    }
   }
   function vibrate(p) { if (navigator.vibrate) navigator.vibrate(p); }
+
+  // Retour d'interaction unifié (initialise l'audio au premier geste, requis par les navigateurs).
+  //  'click' : tap utilisateur — son + vibration courte
+  //  'soft'  : réglage / navigation — son seul
+  //  'tada'  : moment fort (lancement, fin de partie) — fanfare + triple vibration
+  function feedback(type = 'click') {
+    initInteraction();
+    if (type === 'click') { vibrate(50); playSound('click'); }
+    else if (type === 'soft') { playSound('click'); }
+    else if (type === 'tada') { vibrate([50, 50, 50]); playSound('tada'); }
+  }
 
   // ============================================================
   // UTILITAIRES
@@ -233,7 +352,12 @@
   function randomCode(n = 4) { let s = ''; for (let i = 0; i < n; i++) s += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]; return s; }
   function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-  const MIN_PLAYERS = 3;
+  // ---- Règles du jeu ----
+  const MIN_PLAYERS = 3;            // joueurs connectés minimum pour lancer une manche
+  const CODE_LENGTH = 4;            // longueur du code de partie
+  const SECRET_RULE_CHANCE = 0.35;  // probabilité qu'une manche ait une règle secrète
+  const USED_SCENARIOS_MAX = 40;    // mémoire anti-répétition des scénarios
+  const COPY_FEEDBACK_MS = 1200;    // durée de l'état « COPIÉ » après un tap sur le code
 
   const SCENARIOS_BY_TIER = {
     1: ["Vous gagnez 10 millions d'euros","Vous pouvez voler comme un oiseau","Vous pouvez vous téléporter n'importe où","Vous parlez et comprenez tous les animaux","Vous avez une santé parfaite jusqu'à 100 ans","Vous parlez couramment toutes les langues du monde","Vous devenez le meilleur du monde dans le sport de votre choix","Vous pouvez manger tout ce que vous voulez sans grossir","Vous avez une mémoire parfaite et infaillible","Vous possédez une maison de rêve dans chaque pays","Vous ne dormez plus jamais mais restez en pleine forme","Vous pouvez guérir les gens d'un simple toucher"],
@@ -308,6 +432,8 @@
     }
 
     rref(path) { return ref(this.db, path); }
+    // Référence dans la room courante : roomRef('meta'), roomRef(`players/${id}`)… roomRef() = la room entière.
+    roomRef(sub = '') { return this.rref('rooms/' + this.code + (sub ? '/' + sub : '')); }
     meta() { return (this.room && this.room.meta) || {}; }
     players() { return (this.room && this.room.players) || {}; }
     proposals() { return (this.room && this.room.proposals) || {}; }
@@ -325,12 +451,12 @@
 
     /* ---------- Création / connexion ---------- */
     async createRoom(mode = 'phone') {
-      initInteraction(); vibrate(50); playSound('click');
+      feedback();
       const tv = (mode === 'tv');
       const name = this.pseudo.trim();
       if (!tv && !name) { this.error = "Choisis d'abord un pseudo."; return this.render(); }
       let code, exists = true, tries = 0;
-      do { code = randomCode(4); exists = (await get(this.rref('rooms/' + code))).exists(); tries++; } while (exists && tries < 10);
+      do { code = randomCode(CODE_LENGTH); exists = (await get(this.rref('rooms/' + code))).exists(); tries++; } while (exists && tries < 10);
 
       const meta = { phase: 'lobby', round: 0, spice: 2, hostId: this.uid, scored: -1, createdAt: serverTimestamp() };
       let players;
@@ -356,11 +482,11 @@
     }
 
     async joinRoom(codeRaw) {
-      initInteraction(); vibrate(50); playSound('click');
+      feedback();
       const name = this.pseudo.trim();
       const code = (codeRaw || '').trim().toUpperCase();
       if (!name) { this.error = "Choisis d'abord un pseudo."; return this.render(); }
-      if (code.length !== 4) { this.error = "Le code fait 4 caractères."; return this.render(); }
+      if (code.length !== CODE_LENGTH) { this.error = `Le code fait ${CODE_LENGTH} caractères.`; return this.render(); }
       const snap = await get(this.rref('rooms/' + code));
       if (!snap.exists()) { this.error = "Aucune partie avec ce code."; return this.render(); }
       const data = snap.val();
@@ -380,10 +506,10 @@
       localStorage.setItem('room5050', code);
 
       // Présence : on se marque en ligne ; la gestion de déconnexion est (ré)armée à chaque snapshot
-      set(this.rref(`rooms/${code}/players/${this.uid}/connected`), true);
+      set(this.roomRef(`players/${this.uid}/connected`), true);
 
       if (this.unsub) this.unsub();
-      this.unsub = onValue(this.rref('rooms/' + code), (snap) => {
+      this.unsub = onValue(this.roomRef(), (snap) => {
         if (!snap.exists()) { this.leaveLocal("La partie a été fermée."); return; }
         this.room = snap.val();
         this.hostTick();                 // l'hôte fait avancer le jeu si besoin
@@ -404,8 +530,8 @@
       if (mode === this._dcMode) return;             // déjà dans le bon mode, on évite le spam réseau
       this._dcMode = mode;
 
-      const connRef = this.rref(`rooms/${this.code}/players/${this.uid}/connected`);
-      const roomRef = this.rref('rooms/' + this.code);
+      const connRef = this.roomRef(`players/${this.uid}/connected`);
+      const roomRef = this.roomRef();
       onDisconnect(connRef).cancel();
       onDisconnect(roomRef).cancel();
       if (solo) onDisconnect(roomRef).remove();      // ménage complet quand le dernier s'en va
@@ -420,21 +546,21 @@
     }
 
     async quitRoom() {
-      initInteraction(); vibrate(50); playSound('click');
+      feedback();
       if (this.code && this.uid) {
         const others = this.connectedIds().filter(id => id !== this.uid);
-        const connRef = this.rref(`rooms/${this.code}/players/${this.uid}/connected`);
-        const roomRef = this.rref('rooms/' + this.code);
+        const connRef = this.roomRef(`players/${this.uid}/connected`);
+        const roomRef = this.roomRef();
         // On annule les actions de déconnexion : on fait le ménage nous-mêmes, maintenant.
         try { await onDisconnect(connRef).cancel(); } catch (e) {}
         try { await onDisconnect(roomRef).cancel(); } catch (e) {}
         try {
           if (others.length === 0) {
             // Dernier joueur : on supprime toute la room (on devient hôte si besoin, pour passer les règles)
-            if (!this.isHost()) { try { await update(this.rref(`rooms/${this.code}/meta`), { hostId: this.uid }); } catch (e) {} }
+            if (!this.isHost()) { try { await update(this.roomRef('meta'), { hostId: this.uid }); } catch (e) {} }
             await remove(roomRef);
           } else {
-            await remove(this.rref(`rooms/${this.code}/players/${this.uid}`));
+            await remove(this.roomRef(`players/${this.uid}`));
           }
         } catch (e) {}
       }
@@ -443,17 +569,17 @@
     }
 
     /* ---------- Réglages lobby (hôte) ---------- */
-    setSpice(level) { if (!this.isHost()) return; initInteraction(); playSound('click'); update(this.rref(`rooms/${this.code}/meta`), { spice: level }); }
+    setSpice(level) { if (!this.isHost()) return; feedback('soft'); update(this.roomRef('meta'), { spice: level }); }
     addCustomScenario(text) {
       if (!this.isHost()) return;
       const clean = (text || '').trim(); if (!clean) return;
-      initInteraction(); playSound('click');
-      const id = randomCode(6);
-      set(this.rref(`rooms/${this.code}/customScenarios/${id}`), { text: clean });
+      feedback('soft');
+      const id = randomCode(6); // identifiant interne, sans rapport avec le code de partie
+      set(this.roomRef(`customScenarios/${id}`), { text: clean });
       this.focusScenario = true;
     }
-    removeCustomScenario(id) { if (!this.isHost()) return; playSound('click'); remove(this.rref(`rooms/${this.code}/customScenarios/${id}`)); }
-    kickPlayer(id) { if (!this.isHost() || id === this.uid) return; playSound('click'); remove(this.rref(`rooms/${this.code}/players/${id}`)); }
+    removeCustomScenario(id) { if (!this.isHost()) return; feedback('soft'); remove(this.roomRef(`customScenarios/${id}`)); }
+    kickPlayer(id) { if (!this.isHost() || id === this.uid) return; feedback('soft'); remove(this.roomRef(`players/${id}`)); }
 
     /* ---------- Pioche ---------- */
     scenarioPool() {
@@ -468,7 +594,7 @@
     /* ---------- Démarrer une manche (hôte) ---------- */
     async startRound() {
       if (!this.isHost()) return;
-      initInteraction(); vibrate([50,50,50]); playSound('tada');
+      feedback('tada');
       const connected = this.connectedGameIds();
       if (connected.length < MIN_PLAYERS) return;
 
@@ -478,9 +604,9 @@
       if (avail.length === 0) avail = pool;
       const scenario = avail[Math.floor(Math.random() * avail.length)];
       const rules = this.rulePool();
-      const secretRule = Math.random() < 0.35 ? rules[Math.floor(Math.random() * rules.length)] : null;
+      const secretRule = Math.random() < SECRET_RULE_CHANCE ? rules[Math.floor(Math.random() * rules.length)] : null;
 
-      await update(this.rref(`rooms/${this.code}`), {
+      await update(this.roomRef(), {
         proposals: null, votes: null,
         meta: {
           ...this.meta(),
@@ -489,7 +615,7 @@
           scenario, secretRule: secretRule || null,
           roundPlayers: connected,
           order: null,
-          usedScenarios: [...used, scenario].slice(-40),
+          usedScenarios: [...used, scenario].slice(-USED_SCENARIOS_MAX),
           scored: this.meta().scored
         }
       });
@@ -497,16 +623,16 @@
 
     /* ---------- Soumettre une proposition ---------- */
     submitProposal(text) {
-      initInteraction(); vibrate(50); playSound('click');
-      let clean = (text || '').trim().replace(/^mais\s+/i, ''); // "Mais" est déjà le préfixe fixe
+      feedback();
+      const clean = (text || '').trim().replace(/^mais\s+/i, ''); // "Mais" est déjà le préfixe fixe
       if (!clean) return;
-      set(this.rref(`rooms/${this.code}/proposals/${this.uid}`), { text: clean });
+      set(this.roomRef(`proposals/${this.uid}`), { text: clean });
     }
 
     /* ---------- Voter ---------- */
     submitVote(authorId, value) {
-      initInteraction(); vibrate(50); playSound('click');
-      set(this.rref(`rooms/${this.code}/votes/${authorId}/${this.uid}`), value);
+      feedback();
+      set(this.roomRef(`votes/${authorId}/${this.uid}`), value);
     }
 
     /* ---------- Transitions pilotées par l'hôte ---------- */
@@ -520,8 +646,8 @@
         if (!hostOk) {
           const candidate = this.connectedIds().sort()[0];
           if (candidate && candidate === this.uid) {
-            update(this.rref(`rooms/${this.code}/meta`), { hostId: this.uid });
-            update(this.rref(`rooms/${this.code}/players/${this.uid}`), { isHost: true });
+            update(this.roomRef('meta'), { hostId: this.uid });
+            update(this.roomRef(`players/${this.uid}`), { isHost: true });
           }
           return; // on attend la stabilisation
         }
@@ -547,7 +673,7 @@
       const done = voters.length > 0 && voters.every(v => votes[author] && votes[author][v] !== undefined);
       if (done) {
         if (vi + 1 >= order.length) this.computeResults();
-        else update(this.rref(`rooms/${this.code}/meta`), { voteIndex: vi + 1 });
+        else update(this.roomRef('meta'), { voteIndex: vi + 1 });
       }
     }
 
@@ -560,11 +686,11 @@
     // Bouton "proposition suivante" de l'écran (force, pour un joueur AFK)
     tvNextVote() {
       if (!this.isScreen()) return;
-      initInteraction(); playSound('click');
+      feedback('soft');
       const order = this.meta().order || [];
       const vi = this.meta().voteIndex || 0;
       if (vi + 1 >= order.length) this.computeResults();
-      else update(this.rref(`rooms/${this.code}/meta`), { voteIndex: vi + 1 });
+      else update(this.roomRef('meta'), { voteIndex: vi + 1 });
     }
 
     activeRoundPlayers() {
@@ -579,7 +705,7 @@
 
     async openVote() {
       const order = shuffle(this.activeRoundPlayers().filter(id => this.proposals()[id]));
-      await update(this.rref(`rooms/${this.code}/meta`), { phase: 'vote', order, voteIndex: 0 });
+      await update(this.roomRef('meta'), { phase: 'vote', order, voteIndex: 0 });
     }
 
     voterDone(voterId) {
@@ -592,47 +718,54 @@
       return voters.length > 0 && voters.every(v => this.voterDone(v));
     }
 
+    // Dépouillement d'une proposition : qui a dit oui/non, % de oui, écart au 50/50, points.
+    // Source unique de vérité pour le calcul des scores ET l'affichage des résultats.
+    tallyFor(authorId) {
+      const players = this.players();
+      const name = (id) => players[id] ? players[id].name : '?';
+      const entries = Object.entries(this.votes()[authorId] || {});
+      const yes = entries.filter(([, v]) => v === 'yes').map(([id]) => name(id));
+      const no = entries.filter(([, v]) => v === 'no').map(([id]) => name(id));
+      const total = yes.length + no.length;
+      const yesPercent = total > 0 ? (yes.length / total) * 100 : 0;
+      const deviation = Math.abs(50 - yesPercent);
+      return { yes, no, total, yesPercent, deviation, points: pointsFromDeviation(deviation) };
+    }
+
     async computeResults() {
       if (this.meta().scored === this.meta().round) return; // déjà compté
-      const order = this.meta().order || [];
-      const votes = this.votes();
       const players = this.players();
       const scoreUpdates = {};
-      order.forEach(authorId => {
-        const v = votes[authorId] || {};
-        const vals = Object.values(v);
-        const yes = vals.filter(x => x === 'yes').length;
-        const total = vals.length;
-        const yesPercent = total > 0 ? (yes / total) * 100 : 0;
-        const pts = pointsFromDeviation(Math.abs(50 - yesPercent));
-        if (players[authorId]) scoreUpdates[`players/${authorId}/score`] = (players[authorId].score || 0) + pts;
+      (this.meta().order || []).forEach(authorId => {
+        if (!players[authorId]) return; // l'auteur a quitté la partie
+        const { points } = this.tallyFor(authorId);
+        scoreUpdates[`players/${authorId}/score`] = (players[authorId].score || 0) + points;
       });
       scoreUpdates['meta/phase'] = 'results';
       scoreUpdates['meta/scored'] = this.meta().round;
-      scoreUpdates['meta/revealIndex'] = 0;       // révélation des propositions une par une (mode écran)
-      scoreUpdates['meta/revealAuthors'] = false;  // auteurs encore cachés
-      await update(this.rref('rooms/' + this.code), scoreUpdates);
+      scoreUpdates['meta/revealIndex'] = 0; // révélation des propositions une par une
+      await update(this.roomRef(), scoreUpdates);
     }
 
     /* ---------- Révélation par étapes (mode écran/salon) ---------- */
     revealNext() {
       if (!this.isHost()) return;
-      initInteraction(); playSound('click');
+      feedback('soft');
       const n = (this.meta().order || []).length;
       const i = this.meta().revealIndex || 0;
-      if (i < n) update(this.rref(`rooms/${this.code}/meta`), { revealIndex: i + 1 });
+      if (i < n) update(this.roomRef('meta'), { revealIndex: i + 1 });
     }
 
     forceNext() {
       if (!this.isHost()) return;
-      initInteraction(); playSound('click');
+      feedback('soft');
       if (this.meta().phase === 'propose') this.openVote();
       else if (this.meta().phase === 'vote') this.computeResults();
     }
 
     nextRound() { this.startRound(); }
-    async finishGame() { if (!this.isHost()) return; playSound('tada'); await update(this.rref(`rooms/${this.code}/meta`), { phase: 'final' }); }
-    async backToLobby() { if (!this.isHost()) return; playSound('click'); await update(this.rref(`rooms/${this.code}/meta`), { phase: 'lobby' }); }
+    async finishGame() { if (!this.isHost()) return; feedback('tada'); await update(this.roomRef('meta'), { phase: 'final' }); }
+    async backToLobby() { if (!this.isHost()) return; feedback('soft'); await update(this.roomRef('meta'), { phase: 'lobby' }); }
 
     /* ==========================================================
        RENDU
@@ -640,72 +773,94 @@
     render() {
       const appDiv = document.getElementById('app');
       const pills = document.getElementById('pills');
+      if (!this.drafts) this.drafts = {};
+
+      const inRoom = !!(this.code && this.room);
+      const phase = inRoom ? this.meta().phase : null;
+      if (phase !== this._lastPhase) { this.drafts = {}; this._lastPhase = phase; }
+      document.body.classList.toggle('home', !inRoom);
+      document.body.classList.toggle('tv', inRoom && this.isScreen());
+
+      // L'innerHTML remplace tout le DOM : on note le champ actif pour lui rendre le focus après.
+      const active = document.activeElement;
+      const restore = (active && active.id && appDiv.contains(active)) ? { id: active.id, s: active.selectionStart, e: active.selectionEnd } : null;
+
       pills.innerHTML = '';
-
       if (this.fatal) { appDiv.innerHTML = `<div class="card"><div class="banner-error">${escapeHtml(this.fatal)}</div></div>`; return; }
-      if (!this.uid) { appDiv.innerHTML = `<div class="card transition-screen"><div class="spinner"></div><p style="color:var(--muted);">Connexion…</p></div>`; return; }
+      if (!this.uid) { appDiv.innerHTML = `<div class="card wait"><div class="spinner"></div><p class="muted">Connexion…</p></div>`; return; }
 
-      if (!this.code || !this.room) { appDiv.innerHTML = this.renderHome(); this.bindHome(); return; }
+      if (!inRoom) { appDiv.innerHTML = this.renderHome(); this.bindHome(); this.restoreFocus(restore); return; }
 
-      // Pills (code room + manche)
-      const phase = this.meta().phase;
-      pills.innerHTML = `<span class="pill code" id="pillCode">CODE ${escapeHtml(this.code)}</span>` +
-        (this.meta().round > 0 && phase !== 'final' ? `<span class="pill round">Manche ${this.meta().round}</span>` : '');
+      pills.innerHTML = `<button class="chip chip--code" id="pillCode" title="Copier le code">Code ${escapeHtml(this.code)}</button>` +
+        (this.meta().round > 0 && phase !== 'final' ? `<span class="chip chip--round">Manche ${this.meta().round}</span>` : '');
 
-      const animateBars = () => setTimeout(() => document.querySelectorAll('.vote-bar-fill').forEach(b => b.style.width = b.dataset.w), 80);
-
-      if (this.isScreen()) {
-        // ===== AFFICHAGE GRAND ÉCRAN (l'ordinateur / projecteur) =====
-        if (phase === 'lobby') appDiv.innerHTML = this.renderScreenLobby();
-        else if (phase === 'propose') appDiv.innerHTML = this.renderScreenPropose();
-        else if (phase === 'vote') appDiv.innerHTML = this.renderScreenVote();
-        else if (phase === 'results') { appDiv.innerHTML = this.renderScreenResults(); animateBars(); }
-        else if (phase === 'final') appDiv.innerHTML = this.renderFinal();
-      } else if (this.isTV()) {
-        // ===== MANETTE (téléphone, en mode salon) =====
-        if (phase === 'propose') appDiv.innerHTML = this.renderControllerPropose();
-        else if (phase === 'vote') appDiv.innerHTML = this.renderControllerVote();
-        else if (phase === 'lobby') appDiv.innerHTML = this.renderControllerWait("Tu es connecté", "Regarde l'écran, l'hôte va lancer la partie.");
-        else if (phase === 'results') appDiv.innerHTML = this.renderControllerWait("Résultats en cours", "Tout se passe sur l'écran");
-        else if (phase === 'final') appDiv.innerHTML = this.renderControllerWait("Partie terminée", "Classement final sur l'écran");
-      } else {
-        // ===== MODE NORMAL (chacun sur son téléphone) =====
-        if (phase === 'lobby') appDiv.innerHTML = this.renderLobby();
-        else if (phase === 'propose') appDiv.innerHTML = this.renderPropose();
-        else if (phase === 'vote') appDiv.innerHTML = this.renderVote();
-        else if (phase === 'results') { appDiv.innerHTML = this.renderResults(); animateBars(); }
-        else if (phase === 'final') appDiv.innerHTML = this.renderFinal();
-      }
+      // Une table de vues par rôle : grand écran, manette (téléphone en mode salon), ou mode normal.
+      const views = this.isScreen() ? {
+        lobby:   () => this.renderScreenLobby(),
+        propose: () => this.renderScreenPropose(),
+        vote:    () => this.renderScreenVote(),
+        results: () => this.renderScreenResults(),
+        final:   () => this.renderFinal(),
+      } : this.isTV() ? {
+        lobby:   () => this.renderControllerWait("Tu es connecté", "Regarde l'écran, l'hôte va lancer la partie."),
+        propose: () => this.renderControllerPropose(),
+        vote:    () => this.renderControllerVote(),
+        results: () => this.renderControllerWait("Résultats en cours", "Tout se passe sur l'écran."),
+        final:   () => this.renderControllerWait("Partie terminée", "Classement final sur l'écran."),
+      } : {
+        lobby:   () => this.renderLobby(),
+        propose: () => this.renderPropose(),
+        vote:    () => this.renderVote(),
+        results: () => this.renderResults(),
+        final:   () => this.renderFinal(),
+      };
+      appDiv.innerHTML = views[phase] ? views[phase]() : '';
 
       this.bindRoom();
+      this.restoreFocus(restore);
+    }
+
+    restoreFocus(restore) {
+      if (!restore) return;
+      const el = document.getElementById(restore.id);
+      if (!el) return;
+      el.focus({ preventScroll: true });
+      if (restore.s != null && typeof el.setSelectionRange === 'function') {
+        try { el.setSelectionRange(restore.s, restore.e); } catch (e) {}
+      }
     }
 
     renderHome() {
       return `
+        <div class="hero">
+          <img src="favicon_logo.png" alt="" class="hero-logo">
+          <h1>50/50</h1>
+          <p>Coupez la salle en deux.</p>
+        </div>
         <div class="card">
           ${this.error ? `<div class="banner-error">${escapeHtml(this.error)}</div>` : ''}
-          <div class="rules-box">
-            <h3>Le principe</h3>
-            <ol class="rules-list">
-              <li>Tout le monde reçoit le même super-pouvoir.</li>
-              <li>Chacun invente en secret sa contrepartie : « Mais… ».</li>
-              <li>On vote la contrepartie de chacun (sauf la sienne).</li>
-              <li>Vise le 50/50 pile : le plus petit écart gagne.</li>
-            </ol>
+          <div class="input-group">
+            <label for="pseudo">Ton pseudo</label>
+            <input type="text" id="pseudo" maxlength="16" autocomplete="nickname" placeholder="Ton prénom" value="${escapeHtml(this.pseudo)}">
           </div>
           <div class="input-group">
-            <label>Ton pseudo</label>
-            <input type="text" id="pseudo" maxlength="16" placeholder="Ton prénom" value="${escapeHtml(this.pseudo)}">
+            <label for="joinCode">Le code de la partie</label>
+            <input type="text" id="joinCode" maxlength="4" class="code-input" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="ABCD" value="${escapeHtml(this.drafts.joinCode || '')}">
           </div>
-          <button id="btnCreate">Créer une partie</button>
-          <button class="mode-btn" id="btnCreateTV">Créer un écran de salon<span class="sub">ordi ou projecteur — les joueurs rejoignent au téléphone</span></button>
+          <button class="btn btn--primary" id="btnJoin">Rejoindre la partie</button>
           <div class="or-divider"><span>ou</span></div>
-          <div class="input-group">
-            <label>Rejoindre avec un code</label>
-            <input type="text" id="joinCode" maxlength="4" class="code-input" placeholder="ABCD">
-          </div>
-          <button id="btnJoin" class="secondary">Rejoindre la partie</button>
-        </div>`;
+          <button class="btn btn--secondary" id="btnCreate">Créer une partie</button>
+          <button class="btn btn--ghost btn--mode" id="btnCreateTV">Créer un écran de salon<span class="sub">Sur l'ordi ou le projecteur — tout le monde joue au téléphone</span></button>
+        </div>
+        <section class="principle">
+          <h3 class="section-title center">Le principe</h3>
+          <ol class="steps">
+            <li><span class="n">1</span><span>Tout le monde reçoit le même <strong>super-pouvoir</strong>.</span></li>
+            <li><span class="n">2</span><span>Chacun invente en secret sa pire contrepartie : <strong>« Mais… »</strong></span></li>
+            <li><span class="n">3</span><span>On vote la contrepartie de chacun : <strong>j'accepte ou je refuse</strong>.</span></li>
+            <li><span class="n">4</span><span>Vise le <strong>50/50 pile</strong> — le plus petit écart gagne.</span></li>
+          </ol>
+        </section>`;
     }
 
     renderPlayerTags(opts = {}) {
@@ -716,89 +871,150 @@
         const host = this.meta().hostId === id;
         const submitted = opts.showSubmitted && props[id];
         const canKick = this.isHost() && id !== this.uid && this.meta().phase === 'lobby';
-        return `<span class="player-tag">
+        return `<span class="chip-player">
           <span class="dot ${p.connected ? '' : 'off'}"></span>${escapeHtml(p.name)}
-          ${host ? '<span class="tag-badge host">hôte</span>' : ''}
-          ${submitted ? '<span class="tag-badge ready">prêt</span>' : ''}
-          ${canKick ? `<span class="remove-x" data-action="kick" data-id="${id}">×</span>` : ''}
+          ${host ? '<span class="badge badge--host">hôte</span>' : ''}
+          ${submitted ? '<span class="badge badge--ready">prêt</span>' : ''}
+          ${canKick ? `<button class="chip-x" data-action="kick" data-id="${id}" aria-label="Retirer ${escapeHtml(p.name)}">×</button>` : ''}
         </span>`;
       }).join('');
     }
 
-    renderLeaderboard() {
+    renderLeaderboard(showTitle = true) {
       const players = this.players();
       const ids = this.gamePlayers();
       if ((this.meta().round || 0) === 0) return ''; // pas encore de manche jouée
       const sorted = ids.map(id => players[id]).sort((a, b) => (a.score || 0) - (b.score || 0));
-      return `<div class="leaderboard"><h3>Classement <span style="font-size:11px; color:var(--muted); letter-spacing:.05em;">— le plus petit score gagne</span></h3>${sorted.map((p, i) =>
-        `<div class="lb-row ${i === 0 ? 'lead' : ''}"><span class="lb-rank">${i + 1}</span><span class="lb-name">${escapeHtml(p.name)}</span><span class="lb-score">${p.score || 0} pts</span></div>`).join('')}</div>`;
+      return `<div class="leaderboard">
+        ${showTitle ? '<h3>Classement</h3>' : ''}
+        <p class="lb-note">Le plus petit écart total gagne</p>
+        ${sorted.map((p, i) =>
+        `<div class="lb-row ${i === 0 ? 'lead' : ''}"><span class="lb-rank">${i + 1}</span><span class="lb-name">${escapeHtml(p.name)}</span><span class="lb-score">${p.score || 0}</span></div>`).join('')}</div>`;
+    }
+
+    renderCustomScenarios() {
+      const custom = this.room.customScenarios || {};
+      return `
+        <details class="custom-sc" id="customSc" ${this.customOpen ? 'open' : ''}>
+          <summary>Scénarios maison <span class="opt">(facultatif)</span></summary>
+          <div class="body">
+            <div class="sc-list">
+              ${Object.keys(custom).map(id => `<span class="chip-player">${escapeHtml(custom[id].text)} <button class="chip-x" data-action="rmscenario" data-id="${id}" aria-label="Supprimer ce scénario">×</button></span>`).join('')}
+            </div>
+            <div class="input-group" style="margin-bottom:10px;"><input type="text" id="newScenario" maxlength="90" placeholder="Vous pouvez parler aux fantômes…" aria-label="Nouveau scénario" value="${escapeHtml(this.drafts.newScenario || '')}"></div>
+            <button class="btn btn--ghost" id="btnAddScenario">Ajouter ce scénario</button>
+          </div>
+        </details>`;
+    }
+
+    renderSpiceControl() {
+      const spice = this.meta().spice || 2;
+      return `
+        <div class="input-group">
+          <label>Intensité</label>
+          <div class="seg" role="group" aria-label="Intensité des scénarios">${[1,2,3].map(l => `<button class="seg-btn ${spice === l ? 'active' : ''}" data-action="spice" data-level="${l}" aria-pressed="${spice === l}">${SPICE_LABELS[l]}</button>`).join('')}</div>
+          <p class="hint">${spice === 3 ? 'Humour noir, contenu border assumé.' : spice === 1 ? 'Tranquille, sortable en famille.' : 'Le bon équilibre pour chauffer la salle.'}</p>
+        </div>`;
     }
 
     renderLobby() {
-      const spice = this.meta().spice || 2;
       const count = this.connectedGameIds().length;
-      const custom = this.room.customScenarios || {};
       return `
         <div class="card">
           ${this.renderLeaderboard()}
-          <div class="info-box ok">Partagez le code <strong>${escapeHtml(this.code)}</strong> aux autres joueurs pour qu'ils rejoignent !</div>
-          <h2 style="text-align:center; margin-bottom:18px; font-weight:800;">Salon (${count})</h2>
-          <div style="margin-bottom: 25px; display:flex; flex-wrap:wrap; justify-content:center;">${this.renderPlayerTags()}</div>
-
-          ${this.isHost() ? `
-            <div class="spice-select">
-              <label style="text-align:center;">Intensité</label>
-              <div class="spice-row">${[1,2,3].map(l => `<button class="spice-btn ${spice === l ? 'active' : ''}" data-action="spice" data-level="${l}">${SPICE_LABELS[l]}</button>`).join('')}</div>
-              <p class="hint">${spice === 3 ? 'Humour noir / contenu border assumé' : spice === 1 ? 'Tranquille, sortable en famille.' : 'Le bon équilibre pour chauffer la salle.'}</p>
-            </div>
-            <div class="custom-box">
-              <label style="text-align:center;">Scénarios maison <span style="color:var(--faint);">(facultatif)</span></label>
-              <div style="margin:10px 0; display:flex; flex-wrap:wrap; justify-content:center;">
-                ${Object.keys(custom).map(id => `<span class="player-tag" style="max-width:100%;">${escapeHtml(custom[id].text)} <span class="remove-x" data-action="rmscenario" data-id="${id}"></span></span>`).join('')}
-              </div>
-              <div class="input-group" style="margin-bottom:12px;"><input type="text" id="newScenario" maxlength="90" placeholder="Vous pouvez parler aux fantômes..."></div>
-              <button id="btnAddScenario" class="ghost">+ Ajouter ce scénario</button>
-            </div>
-            <button id="btnStart" ${count >= MIN_PLAYERS ? '' : 'disabled'}>${this.meta().round > 0 ? 'Manche suivante' : 'Lancer la partie'}</button>
-            ${count < MIN_PLAYERS ? `<p class="hint">Il faut au moins ${MIN_PLAYERS} joueurs connectés.</p>` : ''}
-          ` : `<div class="info-box">En attente de l'hôte pour lancer la manche…</div>`}
-          <button id="btnQuit" class="ghost" style="margin-top:14px;">Quitter</button>
+          ${this.renderShareCode('Partage ce code aux autres joueurs')}
+          <h3 class="section-title center">Joueurs (${count})</h3>
+          <div class="players">${this.renderPlayerTags()}</div>
+          ${this.isHost()
+            ? this.renderSpiceControl() + this.renderCustomScenarios() + this.renderStartButton(count)
+            : `<div class="note">L'hôte lance la manche dès que tout le monde est là…</div>`}
+          <button class="btn btn--ghost" id="btnQuit" style="margin-top:12px;">Quitter la partie</button>
         </div>`;
     }
 
     renderScenarioCard(small) {
       const m = this.meta();
-      return `<div class="card scenario-card" ${small ? 'style="padding:25px;"' : ''}>
-        <div class="scenario-label">${small ? 'Rappel' : 'Le Scénario'}</div>
-        <div class="${small ? '' : 'scenario-text'}" style="${small ? 'font-size:20px;font-weight:800;' : ''}">${escapeHtml(m.scenario)}</div>
-        ${(!small && m.secretRule) ? `<div class="secret-rule-box"><div class="secret-rule-title">Règle secrète</div><div style="font-size:16px;font-weight:600;">${escapeHtml(m.secretRule)}</div></div>` : ''}
+      return `<div class="scenario-card ${small ? 'scenario-card--small' : ''}">
+        <div class="scenario-kicker">Le pouvoir</div>
+        <div class="scenario-text">${escapeHtml(m.scenario)}</div>
+        ${(!small && m.secretRule) ? `<div class="secret-rule"><div class="tag">Règle secrète</div><div class="txt">${escapeHtml(m.secretRule)}</div></div>` : ''}
       </div>`;
     }
 
+    /* ---------- Briques d'interface partagées ---------- */
+
+    // Écran d'attente : disque 50/50 (optionnel), titre, compteur géant, sous-titre, contenu libre.
+    renderWait({ title, counter = '', sub = '', extra = '', mark = true }) {
+      return `
+        <div class="card wait">
+          ${mark ? '<div class="mark"></div>' : ''}
+          <h2>${escapeHtml(title)}</h2>
+          ${counter ? `<div class="progress-big">${counter}</div>` : ''}
+          ${sub ? `<p class="muted">${escapeHtml(sub)}</p>` : ''}
+          ${extra}
+        </div>`;
+    }
+
+    // Formulaire de contrepartie (téléphone et manette) ; `intro` = note optionnelle au-dessus.
+    renderProposalForm(intro = '') {
+      return `
+        <div class="card">
+          ${intro}
+          <div class="input-group">
+            <label for="txtProposal">Ta pire contrepartie <span class="opt">— objectif : 50 % de oui</span></label>
+            <div class="prop-field"><span class="prefix">Mais…</span><textarea id="txtProposal" placeholder="tu dois manger un citron chaque matin.">${escapeHtml(this.drafts.txtProposal || '')}</textarea></div>
+          </div>
+          <button class="btn btn--primary" id="btnSubmitProposal">Valider en secret</button>
+        </div>`;
+    }
+
+    // Les deux moitiés du logo : J'accepte (magenta) / Je refuse (bleu).
+    renderVotePair(author) {
+      return `
+        <div class="vote-pair">
+          <button class="vote-btn vote-btn--oui" data-action="vote" data-author="${author}" data-value="yes">J'accepte</button>
+          <button class="vote-btn vote-btn--non" data-action="vote" data-author="${author}" data-value="no">Je refuse</button>
+        </div>`;
+    }
+
+    // Code de partie géant, copiable au tap (lobby téléphone et écran de salon).
+    renderShareCode(label) {
+      return `
+        <div class="share-code">
+          <p class="lbl">${label}</p>
+          <div class="big-code" id="bigCode" role="button" tabindex="0" title="Copier le code">${escapeHtml(this.code)}</div>
+        </div>`;
+    }
+
+    // Bouton « Lancer / Manche suivante », désactivé tant qu'on n'est pas assez nombreux.
+    renderStartButton(count) {
+      return `
+        <button class="btn btn--primary" id="btnStart" ${count >= MIN_PLAYERS ? '' : 'disabled'}>${this.meta().round > 0 ? 'Manche suivante' : 'Lancer la partie'}</button>
+        ${count < MIN_PLAYERS ? `<p class="hint">Il faut au moins ${MIN_PLAYERS} joueurs connectés pour lancer.</p>` : ''}`;
+    }
+
+    // Les contrôles pour l'hôte, une note d'attente pour tous les autres.
+    hostControls(actionHtml, waitText) {
+      return this.isHost() ? actionHtml : `<div class="note">${escapeHtml(waitText)}</div>`;
+    }
+
+    /* ---------- Écrans du mode normal ---------- */
+
     renderPropose() {
       const props = this.proposals();
-      const mine = props[this.uid];
       const total = this.activeRoundPlayers().length;
       const done = this.activeRoundPlayers().filter(id => props[id]).length;
-      if (mine) {
-        return this.renderScenarioCard(true) + `
-          <div class="card transition-screen">
-            <div class="transition-icon"></div>
-            <h2 style="margin-bottom:10px;">Proposition envoyée !</h2>
-            <div class="progress-text">${done}/${total}</div>
-            <p style="color:var(--muted);">On attend les autres joueurs…</p>
-            <div style="margin-top:20px; display:flex; flex-wrap:wrap; justify-content:center;">${this.renderPlayerTags({ showSubmitted: true })}</div>
-            ${this.isHost() && done >= MIN_PLAYERS ? `<button id="btnForce" class="ghost" style="margin-top:20px;">Forcer le vote (sans les retardataires)</button>` : ''}
-          </div>`;
+      if (props[this.uid]) {
+        return this.renderScenarioCard(true) + this.renderWait({
+          title: 'Proposition envoyée',
+          counter: `${done}/${total}`,
+          sub: 'On attend les autres joueurs…',
+          extra: `
+            <div class="players">${this.renderPlayerTags({ showSubmitted: true })}</div>
+            ${this.isHost() && done >= MIN_PLAYERS ? '<button class="btn btn--ghost" id="btnForce">Forcer le vote (sans les retardataires)</button>' : ''}`
+        });
       }
-      return this.renderScenarioCard(false) + `
-        <div class="card">
-          <div class="input-group">
-            <label>Ta pire contrepartie (objectif : 50% de oui)</label>
-            <div class="prop-field"><span class="prefix">Mais…</span><textarea id="txtProposal" placeholder="tu dois manger un citron chaque matin."></textarea></div>
-          </div>
-          <button id="btnSubmitProposal">Valider en secret</button>
-        </div>`;
+      return this.renderScenarioCard(false) + this.renderProposalForm();
     }
 
     renderVote() {
@@ -810,29 +1026,44 @@
       if (!next) {
         const voters = this.activeRoundPlayers();
         const done = voters.filter(v => this.voterDone(v)).length;
-        return this.renderScenarioCard(true) + `
-          <div class="card transition-screen">
-            <div class="transition-icon"></div>
-            <h2 style="margin-bottom:10px;">Vote terminé !</h2>
-            <div class="progress-text">${done}/${voters.length}</div>
-            <p style="color:var(--muted);">On attend les derniers votes…</p>
-            ${this.isHost() ? `<button id="btnForce" class="ghost" style="margin-top:20px;">Forcer les résultats</button>` : ''}
-          </div>`;
+        return this.renderScenarioCard(true) + this.renderWait({
+          title: 'Vote terminé',
+          counter: `${done}/${voters.length}`,
+          sub: 'On attend les derniers votes…',
+          extra: this.isHost() ? '<button class="btn btn--ghost" id="btnForce">Forcer les résultats</button>' : ''
+        });
       }
 
       const proposal = this.proposals()[next];
       const pos = votable.filter(a => votes[a] && votes[a][this.uid] !== undefined).length + 1;
       return this.renderScenarioCard(true) + `
         <div class="card">
-          <div class="info-box">À ton tour de voter. (${pos}/${votable.length})</div>
-          <div style="background: rgba(0,0,0,0.3); padding: 30px; border-radius: 16px; text-align: center; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.05);">
-            <p style="color:var(--muted); font-size:14px; margin-bottom:15px; text-transform:uppercase; letter-spacing:1px; font-weight:800;">La contrepartie proposée :</p>
-            <h3 style="font-size:24px; color:var(--paper); font-weight:800;">« Mais ${escapeHtml(proposal.text)} »</h3>
+          <div class="counter">Vote ${pos} / ${votable.length}</div>
+          <div class="quote">« Mais ${escapeHtml(proposal.text)} »</div>
+          ${this.renderVotePair(next)}
+        </div>`;
+    }
+
+    // Carte de révélation d'une proposition (partagée entre le téléphone et le grand écran).
+    renderRevealCard(r, i, total, controls) {
+      const isBest = i === total - 1; // dernière révélée = la plus proche du 50/50
+      return `
+        <div class="card reveal-pop ${isBest ? 'card--best' : ''}">
+          <div class="counter">Proposition ${i + 1} / ${total}</div>
+          ${isBest ? '<p class="reveal-best"><span class="pts">Dilemme parfait de la manche</span></p>' : ''}
+          <div class="quote">« Mais ${escapeHtml(r.text)} »</div>
+          <div class="splitbar" role="img" aria-label="${Math.round(r.yesPercent)} % de oui">
+            <div class="splitbar-fill" style="--pct:${r.yesPercent}%"></div>
+            <div class="splitbar-mid"></div>
+            <div class="splitbar-label">${Math.round(r.yesPercent)} % OUI</div>
           </div>
-          <div class="vote-buttons">
-            <button class="vote-btn yes" data-action="vote" data-author="${next}" data-value="yes">J'ACCEPTE</button>
-            <button class="vote-btn no" data-action="vote" data-author="${next}" data-value="no">JE REFUSE</button>
+          <p class="pts-line"><span class="pts">${r.points === 0 ? 'Écart zéro — 50/50 parfait !' : `+${r.points} d’écart`}</span></p>
+          <div class="author-line"><div class="author-title">${escapeHtml(r.title)}</div><div class="author-name">${escapeHtml(r.authorName)}</div></div>
+          <div class="who-voted">
+            <div class="col"><span class="h h--oui">Oui</span>${r.yes.map(escapeHtml).join('<br>') || '<span class="muted">Personne</span>'}</div>
+            <div class="col"><span class="h h--non">Non</span>${r.no.map(escapeHtml).join('<br>') || '<span class="muted">Personne</span>'}</div>
           </div>
+          ${controls}
         </div>`;
     }
 
@@ -841,40 +1072,24 @@
       // Même ordre que l'écran de salon : du moins clivant au plus clivant (le Dilemme Parfait en dernier).
       const rows = this.resultRows().sort((a, b) => b.deviation - a.deviation);
       const total = rows.length;
-      const host = this.isHost();
 
       // Étape 1 : propositions une par une (auteur + votes affichés direct), l'hôte fait avancer
       if (i < total) {
-        const r = rows[i];
-        const isBest = i === total - 1;
         const last = i + 1 >= total;
-        return this.renderScenarioCard(true) + `
-          <div class="card" style="${isBest ? 'border:2px solid var(--gold); box-shadow:0 0 22px rgba(255,215,0,0.18);' : ''}">
-            <div style="text-align:center; color:var(--muted); font-size:13px; font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-bottom:14px;">Proposition ${i + 1} / ${total}</div>
-            ${isBest ? '<div style="text-align:center;"><span class="points-tag" style="margin-bottom:14px;">Dilemme Parfait de la manche !</span></div>' : ''}
-            <h3 style="font-size:22px; margin-bottom:12px; color:var(--paper); font-weight:800; text-align:center;">« Mais ${escapeHtml(r.text)} »</h3>
-            <div class="vote-bar-container"><div class="vote-bar-fill" data-w="${r.yesPercent}%">${Math.round(r.yesPercent)}% OUI</div></div>
-            <div class="points-tag" style="display:block; text-align:center; width:fit-content; margin:0 auto;">+${r.points} pts</div>
-            <div class="author-line"><div class="author-title">${escapeHtml(r.title)}</div><div class="author-name">${escapeHtml(r.authorName)}</div></div>
-            <div class="who-voted">
-              <div style="flex:1;"><span style="color:var(--yes); font-weight:900; display:block; margin-bottom:5px;">OUI</span><span style="color:var(--paper);">${r.yes.map(escapeHtml).join('<br>') || 'Aucun'}</span></div>
-              <div style="width:1px; background:rgba(255,255,255,0.1);"></div>
-              <div style="flex:1;"><span style="color:var(--no); font-weight:900; display:block; margin-bottom:5px;">NON</span><span style="color:var(--paper);">${r.no.map(escapeHtml).join('<br>') || 'Aucun'}</span></div>
-            </div>
-            ${host
-              ? `<button id="btnRevealNext" style="margin-top:22px;">${last ? 'Voir le classement' : 'Proposition suivante'}</button>`
-              : `<div class="info-box" style="margin-top:22px; margin-bottom:0;">En attente de l'hôte…</div>`}
-          </div>`;
+        const controls = this.hostControls(
+          `<button class="btn btn--primary" id="btnRevealNext" style="margin-top:20px;">${last ? 'Voir le classement' : 'Proposition suivante'}</button>`,
+          "L'hôte fait défiler les résultats…");
+        return this.renderScenarioCard(true) + this.renderRevealCard(rows[i], i, total, controls);
       }
 
       // Étape 2 : classement de la manche
       return `
         <div class="card">
-          <h2 style="text-align:center; margin-bottom:25px; font-size:30px; font-weight:900;">Classement de la manche</h2>
-          ${this.renderLeaderboard()}
-          ${host
-            ? `<button id="btnNextRound" style="margin-top:10px;">▶ Manche suivante</button><button id="btnFinish" class="secondary">Terminer la partie</button>`
-            : `<div class="info-box">En attente de l'hôte…</div>`}
+          <h2 class="center" style="margin-bottom:18px;">Classement de la manche</h2>
+          ${this.renderLeaderboard(false)}
+          ${this.hostControls(
+            '<button class="btn btn--primary" id="btnNextRound">Manche suivante</button><button class="btn btn--secondary" id="btnFinish">Terminer la partie</button>',
+            "L'hôte décide de la suite…")}
         </div>`;
     }
 
@@ -882,22 +1097,21 @@
       const players = this.players();
       const sorted = this.gamePlayers().map(id => players[id]).sort((a, b) => (a.score || 0) - (b.score || 0));
       const top = sorted.slice(0, 3);
-      const order = [1, 0, 2]; const heights = { 0: 130, 1: 95, 2: 70 };
-      const colors = { 0: 'linear-gradient(180deg,var(--gold),#bfa100)', 1: 'linear-gradient(180deg,#c0c0c0,#8a8a8a)', 2: 'linear-gradient(180deg,#cd7f32,#8a5524)' };
+      const order = [1, 0, 2]; // 2e à gauche, 1er au centre, 3e à droite
       return `
-        <div class="card" style="text-align:center;">
-          <h2 style="font-size:34px; margin-bottom:6px;">Partie terminée</h2>
-          <p style="color:var(--muted); margin-bottom:30px;">${this.meta().round} manche(s) jouée(s)</p>
+        <div class="card center">
+          <h2 style="font-size:32px;">Partie terminée</h2>
+          <p class="muted" style="margin:6px 0 20px;">${this.meta().round} manche${(this.meta().round || 0) > 1 ? 's' : ''} — le plus petit écart gagne</p>
           <div class="podium">
             ${order.filter(i => top[i]).map(i => `<div class="podium-col">
               <div class="podium-rank">${i + 1}</div>
               <div class="podium-name">${escapeHtml(top[i].name)}</div>
-              <div class="podium-bar" style="height:${heights[i]}px; background:${colors[i]}; color:#1a1a2e;">${top[i].score || 0}</div>
-              <div class="podium-score">pts</div></div>`).join('')}
+              <div class="podium-bar podium-bar--${i + 1}">${top[i].score || 0}</div>
+              <div class="podium-pts">d’écart</div></div>`).join('')}
           </div>
-          ${sorted.length > 3 ? `<div class="leaderboard">${sorted.slice(3).map((p, i) => `<div class="lb-row"><span class="lb-rank">${i + 4}</span><span class="lb-name">${escapeHtml(p.name)}</span><span class="lb-score">${p.score || 0} pts</span></div>`).join('')}</div>` : ''}
-          ${this.isHost() ? `<button id="btnLobby" style="margin-top:20px;">Rejouer (retour au salon)</button>` : `<div class="info-box">En attente de l'hôte…</div>`}
-          <button id="btnQuit" class="ghost" style="margin-top:14px;">Quitter</button>
+          ${sorted.length > 3 ? `<div class="leaderboard">${sorted.slice(3).map((p, i) => `<div class="lb-row"><span class="lb-rank">${i + 4}</span><span class="lb-name">${escapeHtml(p.name)}</span><span class="lb-score">${p.score || 0}</span></div>`).join('')}</div>` : ''}
+          ${this.hostControls('<button class="btn btn--primary" id="btnLobby">Rejouer — retour au salon</button>', "L'hôte peut relancer une partie…")}
+          <button class="btn btn--ghost" id="btnQuit">Quitter</button>
         </div>`;
     }
 
@@ -905,61 +1119,42 @@
        MODE ÉCRAN / SALON
     ========================================================== */
     renderScreenLobby() {
-      const spice = this.meta().spice || 2;
       const count = this.connectedGameIds().length;
-      const custom = this.room.customScenarios || {};
       return `
-        <div class="card" style="text-align:center;">
+        <div class="card center">
           ${this.renderLeaderboard()}
-          <span class="screen-tag">Rejoignez sur vos téléphones</span>
-          <div class="big-code">${escapeHtml(this.code)}</div>
-          <h2 style="margin:18px 0 12px; font-weight:800;">Joueurs connectés (${count})</h2>
-          <div style="margin-bottom: 20px; display:flex; flex-wrap:wrap; justify-content:center;">
+          ${this.renderShareCode('Rejoignez sur vos téléphones avec le code')}
+          <h3 class="section-title center">Joueurs connectés (${count})</h3>
+          <div class="players">
             ${this.renderPlayerTags()}
-            ${count === 0 ? '<em style="color:var(--faint);">En attente des joueurs…</em>' : ''}
+            ${count === 0 ? '<em class="muted">En attente des joueurs…</em>' : ''}
           </div>
-          <div class="spice-select">
-            <label style="text-align:center;">Intensité</label>
-            <div class="spice-row">${[1,2,3].map(l => `<button class="spice-btn ${spice === l ? 'active' : ''}" data-action="spice" data-level="${l}">${SPICE_LABELS[l]}</button>`).join('')}</div>
-          </div>
-          <div class="custom-box">
-            <label style="text-align:center;">Scénarios maison <span style="color:var(--faint);">(facultatif)</span></label>
-            <div style="margin:10px 0; display:flex; flex-wrap:wrap; justify-content:center;">
-              ${Object.keys(custom).map(id => `<span class="player-tag" style="max-width:100%;">${escapeHtml(custom[id].text)} <span class="remove-x" data-action="rmscenario" data-id="${id}"></span></span>`).join('')}
-            </div>
-            <div class="input-group" style="margin-bottom:12px;"><input type="text" id="newScenario" maxlength="90" placeholder="Vous pouvez parler aux fantômes..."></div>
-            <button id="btnAddScenario" class="ghost">+ Ajouter ce scénario</button>
-          </div>
-          <button id="btnStart" ${count >= MIN_PLAYERS ? '' : 'disabled'}>${this.meta().round > 0 ? 'Manche suivante' : 'Lancer la partie'}</button>
-          ${count < MIN_PLAYERS ? `<p class="hint">Il faut au moins ${MIN_PLAYERS} joueurs connectés.</p>` : ''}
-          <button id="btnQuit" class="ghost" style="margin-top:14px;">Fermer l'écran</button>
+          ${this.renderSpiceControl()}
+          ${this.renderCustomScenarios()}
+          ${this.renderStartButton(count)}
+          <button class="btn btn--ghost" id="btnQuit" style="margin-top:12px;">Fermer l'écran</button>
         </div>`;
     }
 
     renderScreenPropose() {
-      const m = this.meta();
       const total = this.activeRoundPlayers().length;
       const done = this.activeRoundPlayers().filter(id => this.proposals()[id]).length;
-      return `
-        <div class="card scenario-card">
-          <div class="scenario-label">Le pouvoir</div>
-          <div class="screen-scenario">${escapeHtml(m.scenario)}</div>
-          ${m.secretRule ? `<div class="secret-rule-box"><div class="secret-rule-title">Règle secrète</div><div style="font-size:18px;font-weight:600;">${escapeHtml(m.secretRule)}</div></div>` : ''}
-        </div>
-        <div class="card" style="text-align:center;">
-          <h2 style="font-weight:800; margin-bottom:10px;">Écrivez votre contrepartie sur vos téléphones</h2>
-          <div class="progress-text" style="font-size:34px;">${done}/${total}</div>
-          <p style="color:var(--muted); margin-bottom:20px;">ont validé leur proposition</p>
-          <div style="display:flex; flex-wrap:wrap; justify-content:center;">${this.renderPlayerTags({ showSubmitted: true })}</div>
-          ${done >= MIN_PLAYERS ? `<button id="btnForce" class="ghost" style="margin-top:20px;">Forcer le vote</button>` : ''}
-        </div>`;
+      return this.renderScenarioCard(false) + this.renderWait({
+        mark: false,
+        title: 'Écrivez votre contrepartie sur vos téléphones',
+        counter: `${done}/${total}`,
+        sub: 'ont validé leur proposition',
+        extra: `
+          <div class="players">${this.renderPlayerTags({ showSubmitted: true })}</div>
+          ${done >= MIN_PLAYERS ? '<button class="btn btn--ghost" id="btnForce">Forcer le vote</button>' : ''}`
+      });
     }
 
     renderScreenVote() {
       const order = this.meta().order || [];
       const vi = this.meta().voteIndex || 0;
       if (vi >= order.length) {
-        return `<div class="card watch-screen"><div class="spinner"></div><p style="color:var(--muted);">Comptage des votes…</p></div>`;
+        return `<div class="card wait"><div class="spinner"></div><p class="muted">Comptage des votes…</p></div>`;
       }
       const author = order[vi];
       const proposal = this.proposals()[author] || { text: '' };
@@ -968,37 +1163,29 @@
       const done = voters.filter(v => votes[author] && votes[author][v] !== undefined).length;
       const last = vi + 1 >= order.length;
       return `
-        <div class="card scenario-card" style="padding:25px;">
-          <div class="scenario-label">Vote — proposition ${vi + 1} / ${order.length}</div>
-          <div class="screen-big">${escapeHtml(this.meta().scenario)}</div>
-        </div>
-        <div class="card" style="text-align:center;">
-          <h3 class="big-prop" style="margin-bottom:18px;">« Mais ${escapeHtml(proposal.text)} »</h3>
-          <h2 style="font-weight:800; margin-bottom:10px;">Votez sur vos téléphones !</h2>
-          <div class="progress-text" style="font-size:34px;">${done}/${voters.length}</div>
-          <p style="color:var(--muted);">ont voté</p>
-          <button id="btnVoteNext" class="ghost" style="margin-top:20px;">${last ? 'Terminer le vote' : 'Proposition suivante'}</button>
+        ${this.renderScenarioCard(true)}
+        <div class="card wait">
+          <div class="counter">Proposition ${vi + 1} / ${order.length}</div>
+          <div class="quote">« Mais ${escapeHtml(proposal.text)} »</div>
+          <h2 style="margin-top:20px;">Votez sur vos téléphones</h2>
+          <div class="progress-big">${done}/${voters.length}</div>
+          <p class="muted">ont voté</p>
+          <button class="btn btn--ghost" id="btnVoteNext">${last ? 'Terminer le vote' : 'Passer à la suivante'}</button>
         </div>`;
     }
 
-    // Calcule les lignes de résultats (texte, %, oui/non, auteur)
+    // Lignes de résultats prêtes pour l'affichage : dépouillement + texte + auteur + titre honorifique.
     resultRows() {
-      const order = this.meta().order || [];
-      const votes = this.votes();
       const props = this.proposals();
       const players = this.players();
-      return order.map(authorId => {
-        const v = votes[authorId] || {};
-        const entries = Object.entries(v);
-        const yes = entries.filter(([, x]) => x === 'yes').map(([id]) => players[id] ? players[id].name : '?');
-        const no = entries.filter(([, x]) => x === 'no').map(([id]) => players[id] ? players[id].name : '?');
-        const total = yes.length + no.length;
-        const yesPercent = total > 0 ? (yes.length / total) * 100 : 0;
+      return (this.meta().order || []).map(authorId => {
+        const tally = this.tallyFor(authorId);
         return {
-          authorId, text: props[authorId] ? props[authorId].text : '',
+          ...tally,
+          authorId,
+          text: props[authorId] ? props[authorId].text : '',
           authorName: players[authorId] ? players[authorId].name : '???',
-          yesPercent, deviation: Math.abs(50 - yesPercent), points: pointsFromDeviation(Math.abs(50 - yesPercent)),
-          title: honoraryTitle(yesPercent), yes, no
+          title: honoraryTitle(tally.yesPercent)
         };
       });
     }
@@ -1011,36 +1198,18 @@
 
       // Étape 1 : les propositions une par une, chacune AVEC l'auteur et les votes
       if (i < total) {
-        const r = rows[i];
-        const isBest = i === total - 1; // dernière = la plus proche de 50/50
         const last = i + 1 >= total;
-        return `
-          <div class="card scenario-card" style="padding:25px;">
-            <div class="scenario-label">Proposition ${i + 1} / ${total}</div>
-            <div class="screen-big">${escapeHtml(this.meta().scenario)}</div>
-          </div>
-          <div class="card reveal-pop" style="text-align:center; ${isBest ? 'border:2px solid var(--gold); box-shadow:0 0 25px rgba(255,215,0,0.2);' : ''}">
-            ${isBest ? '<div class="points-tag" style="margin-bottom:14px;">Dilemme Parfait de la manche !</div>' : ''}
-            <h3 class="big-prop" style="margin-bottom:12px;">« Mais ${escapeHtml(r.text)} »</h3>
-            <div class="vote-bar-container" style="height:54px;"><div class="vote-bar-fill" data-w="${r.yesPercent}%" style="font-size:20px;">${Math.round(r.yesPercent)}% OUI</div></div>
-            <div class="points-tag">+${r.points} pts</div>
-            <div class="author-line"><div class="author-title">${escapeHtml(r.title)}</div><div class="author-name">${escapeHtml(r.authorName)}</div></div>
-            <div class="who-voted">
-              <div style="flex:1;"><span style="color:var(--yes); font-weight:900; display:block; margin-bottom:5px;">OUI</span><span style="color:var(--paper);">${r.yes.map(escapeHtml).join('<br>') || 'Aucun'}</span></div>
-              <div style="width:1px; background:rgba(255,255,255,0.1);"></div>
-              <div style="flex:1;"><span style="color:var(--no); font-weight:900; display:block; margin-bottom:5px;">NON</span><span style="color:var(--paper);">${r.no.map(escapeHtml).join('<br>') || 'Aucun'}</span></div>
-            </div>
-            <button id="btnRevealNext" style="margin-top:24px;">${last ? 'Voir le classement' : 'Proposition suivante'}</button>
-          </div>`;
+        const controls = `<button class="btn btn--primary" id="btnRevealNext" style="margin-top:22px;">${last ? 'Voir le classement' : 'Proposition suivante'}</button>`;
+        return this.renderScenarioCard(true) + this.renderRevealCard(rows[i], i, total, controls);
       }
 
       // Étape 2 : le classement clôt la manche
       return `
-        <div class="card" style="text-align:center;">
-          <h2 style="font-size:30px; font-weight:900; margin-bottom:20px;">Classement de la manche</h2>
-          ${this.renderLeaderboard()}
-          <button id="btnNextRound" style="margin-top:10px;">▶ Manche suivante</button>
-          <button id="btnFinish" class="secondary">Terminer la partie</button>
+        <div class="card center">
+          <h2 style="margin-bottom:18px;">Classement de la manche</h2>
+          ${this.renderLeaderboard(false)}
+          <button class="btn btn--primary" id="btnNextRound">Manche suivante</button>
+          <button class="btn btn--secondary" id="btnFinish">Terminer la partie</button>
         </div>`;
     }
 
@@ -1048,28 +1217,15 @@
        MANETTE (téléphone en mode salon)
     ========================================================== */
     renderControllerWait(title, sub) {
-      return `
-        <div class="card watch-screen">
-          <div class="mark"></div>
-          <h2 style="font-weight:800; margin-bottom:10px;">${escapeHtml(title)}</h2>
-          <p style="color:var(--muted); font-size:17px;">${escapeHtml(sub)}</p>
-          <button id="btnQuit" class="ghost" style="margin-top:30px;">Quitter</button>
-        </div>`;
+      return this.renderWait({ title, sub, extra: '<button class="btn btn--ghost" id="btnQuit">Quitter</button>' });
     }
 
     renderControllerPropose() {
       if (this.proposals()[this.uid]) {
         return this.renderControllerWait("Proposition envoyée", "Regarde l'écran pour la suite.");
       }
-      return `
-        <div class="card">
-          <div class="info-box">Le pouvoir est affiché sur l'écran — invente la pire contrepartie pour couper la salle en deux.</div>
-          <div class="input-group">
-            <label>Ta contrepartie (objectif : 50% de oui)</label>
-            <div class="prop-field"><span class="prefix">Mais…</span><textarea id="txtProposal" placeholder="tu dois manger un citron chaque matin."></textarea></div>
-          </div>
-          <button id="btnSubmitProposal">Valider en secret</button>
-        </div>`;
+      return this.renderProposalForm(
+        '<div class="note">Le pouvoir est sur l\'écran — invente la pire contrepartie pour couper la salle en deux.</div>');
     }
 
     renderControllerVote() {
@@ -1078,18 +1234,16 @@
       if (vi >= order.length) return this.renderControllerWait("Vote terminé", "Regarde l'écran pour les résultats.");
 
       const author = order[vi];
-      if (author === this.uid) return this.renderControllerWait("C'est ta proposition !", "Tu ne votes pas celle-ci. Regarde l'écran");
+      if (author === this.uid) return this.renderControllerWait("C'est ta proposition !", "Tu ne votes pas pour celle-ci — regarde l'écran.");
       const votes = this.votes();
       if (votes[author] && votes[author][this.uid] !== undefined) {
         return this.renderControllerWait("Voté", "Regarde l'écran, on passe à la suite.");
       }
       return `
-        <div class="card" style="text-align:center;">
-          <div class="info-box" style="margin-bottom:30px;">La contrepartie est sur l'écran — proposition ${vi + 1}/${order.length}.<br>Tu l'acceptes ?</div>
-          <div class="vote-buttons">
-            <button class="vote-btn yes" data-action="vote" data-author="${author}" data-value="yes">J'ACCEPTE</button>
-            <button class="vote-btn no" data-action="vote" data-author="${author}" data-value="no">JE REFUSE</button>
-          </div>
+        <div class="card center">
+          <div class="counter">Proposition ${vi + 1} / ${order.length}</div>
+          <p style="font-size:17px;">La contrepartie est sur l'écran.<br><strong>Tu l'acceptes ?</strong></p>
+          ${this.renderVotePair(author)}
         </div>`;
     }
 
@@ -1097,6 +1251,11 @@
     bindHome() {
       const pseudo = document.getElementById('pseudo');
       if (pseudo) pseudo.oninput = (e) => { this.pseudo = e.target.value; };
+      const code = document.getElementById('joinCode');
+      if (code) {
+        code.oninput = (e) => { this.drafts.joinCode = e.target.value; };
+        code.onkeydown = (e) => { if (e.key === 'Enter') this.joinRoom(code.value); };
+      }
       const c = document.getElementById('btnCreate'); if (c) c.onclick = () => this.createRoom('phone');
       const tv = document.getElementById('btnCreateTV'); if (tv) tv.onclick = () => this.createRoom('tv');
       const j = document.getElementById('btnJoin'); if (j) j.onclick = () => this.joinRoom(document.getElementById('joinCode').value);
@@ -1104,29 +1263,49 @@
 
     bindRoom() {
       const app = document.getElementById('app');
-      const pillCode = document.getElementById('pillCode');
-      if (pillCode) pillCode.onclick = () => {
+      const copyCode = (id, resetText) => {
         navigator.clipboard && navigator.clipboard.writeText(this.code);
-        pillCode.textContent = 'COPIÉ';
-        setTimeout(() => { if (document.getElementById('pillCode')) document.getElementById('pillCode').textContent = `CODE ${this.code}`; }, 1200);
+        const el = document.getElementById(id);
+        if (el) el.textContent = 'COPIÉ';
+        setTimeout(() => { const n = document.getElementById(id); if (n) n.textContent = resetText; }, COPY_FEEDBACK_MS);
       };
+      const pillCode = document.getElementById('pillCode');
+      if (pillCode) pillCode.onclick = () => copyCode('pillCode', `Code ${this.code}`);
+      const bigCode = document.getElementById('bigCode');
+      if (bigCode) {
+        bigCode.onclick = () => copyCode('bigCode', this.code);
+        bigCode.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); copyCode('bigCode', this.code); } };
+      }
 
-      const bind = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
-      bind('btnStart', () => this.startRound());
-      bind('btnSubmitProposal', () => this.submitProposal(document.getElementById('txtProposal').value));
-      bind('btnForce', () => this.forceNext());
-      bind('btnNextRound', () => this.nextRound());
-      bind('btnFinish', () => this.finishGame());
-      bind('btnLobby', () => this.backToLobby());
-      bind('btnQuit', () => this.quitRoom());
-      bind('btnRevealNext', () => this.revealNext());
-      bind('btnVoteNext', () => this.tvNextVote());
+      // Boutons d'action : chaque écran ne rend que ceux qui le concernent.
+      const actions = {
+        btnStart: () => this.startRound(),
+        btnSubmitProposal: () => this.submitProposal(document.getElementById('txtProposal').value),
+        btnForce: () => this.forceNext(),
+        btnNextRound: () => this.nextRound(),
+        btnFinish: () => this.finishGame(),
+        btnLobby: () => this.backToLobby(),
+        btnQuit: () => this.quitRoom(),
+        btnRevealNext: () => this.revealNext(),
+        btnVoteNext: () => this.tvNextVote(),
+      };
+      for (const [id, fn] of Object.entries(actions)) {
+        const el = document.getElementById(id);
+        if (el) el.onclick = fn;
+      }
+
+      // Brouillons : l'app re-rend à chaque évènement réseau, on préserve ce qui est en cours de saisie.
+      const txtProposal = document.getElementById('txtProposal');
+      if (txtProposal) txtProposal.oninput = (e) => { this.drafts.txtProposal = e.target.value; };
+      const customSc = document.getElementById('customSc');
+      if (customSc) customSc.ontoggle = () => { this.customOpen = customSc.open; };
 
       const addSc = document.getElementById('btnAddScenario');
       const scIn = document.getElementById('newScenario');
       if (addSc && scIn) {
-        addSc.onclick = () => this.addCustomScenario(scIn.value);
-        scIn.onkeypress = (e) => { if (e.key === 'Enter') this.addCustomScenario(scIn.value); };
+        scIn.oninput = (e) => { this.drafts.newScenario = e.target.value; };
+        addSc.onclick = () => { this.drafts.newScenario = ''; this.addCustomScenario(scIn.value); };
+        scIn.onkeypress = (e) => { if (e.key === 'Enter') { this.drafts.newScenario = ''; this.addCustomScenario(scIn.value); } };
         if (this.focusScenario) { scIn.focus(); this.focusScenario = false; }
       }
 
