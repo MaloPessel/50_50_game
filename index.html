@@ -378,7 +378,7 @@
   const MIN_PLAYERS = 3;            // joueurs connectés minimum pour lancer une manche
   const CODE_LENGTH = 4;            // longueur du code de partie
   const SECRET_RULE_CHANCE = 0.05;  // règle secrète = événement rare (~1 manche sur 20)
-  const BLIND_ROUND_CHANCE = 1;  // manche à l'aveugle = ~1 manche sur 7 (jamais à la 1re manche)
+  const BLIND_ROUND_CHANCE = 0.15;  // manche à l'aveugle = ~1 manche sur 7 (jamais à la 1re manche)
   const USED_SCENARIOS_MAX = 40;    // mémoire anti-répétition des scénarios
   const COPY_FEEDBACK_MS = 1200;    // durée de l'état « COPIÉ » après un tap sur le code
 
@@ -1101,7 +1101,7 @@
     }
 
     // Carte de révélation d'une proposition (partagée entre le téléphone et le grand écran).
-    renderRevealCard(r, i, total, controls) {
+    renderRevealCard(r, i, total, controls, anyPerfect) {
       const noVotes = r.total === 0;              // aucun votant (tous partis) : pas de résultat exploitable
       const pct = Math.max(0, Math.min(100, r.yesPercent || 0)); // borné : évite tout débordement de la jauge
       const fillMod = pct >= 100 ? ' splitbar-fill--full' : pct <= 0 ? ' splitbar-fill--empty' : '';
@@ -1112,10 +1112,11 @@
         ? '<span class="splitbar-tag splitbar-tag--none">—</span>'
         : (oui > 0 ? `<span class="splitbar-tag splitbar-tag--oui">${oui} % OUI</span>` : '')
         + (non > 0 ? `<span class="splitbar-tag splitbar-tag--non">${non} % NON</span>` : '');
-      // Un 50/50 pile est mathématiquement IMPOSSIBLE avec un nombre impair de votants.
-      // On n'annonce « parfait » que si les votants sont en nombre pair ET exactement 50 % de oui.
-      const isPerfect = r.total > 0 && r.total % 2 === 0 && r.yesPercent === 50;
-      const isBest = i === total - 1 && !noVotes; // dernière révélée = la plus proche du 50/50
+      // 50/50 pile (strict, déjà calculé par ligne dans resultRows) : votants pairs ET 50 % pile.
+      const isPerfect = !!r.perfect;
+      // Décoration dorée + mention : sur CHAQUE dilemme parfait de la manche. S'il n'y en a AUCUN,
+      // on décore à défaut la seule proposition la plus proche du 50/50 (la dernière révélée).
+      const isBest = isPerfect || (!anyPerfect && i === total - 1 && !noVotes);
       const bestLabel = isPerfect ? 'Dilemme parfait de la manche' : 'Le plus proche du 50/50';
       const ptsLabel = noVotes ? 'Aucun vote'
                      : this.isBlind() ? 'Score masqué'   // à l'aveugle : les points sont attribués mais cachés
@@ -1147,13 +1148,15 @@
       const rows = this.resultRows().sort((a, b) => b.deviation - a.deviation);
       const total = rows.length;
 
+      const anyPerfect = rows.some(row => row.perfect); // au moins un 50/50 parfait dans la manche ?
+
       // Étape 1 : propositions une par une (auteur + votes affichés direct), l'hôte fait avancer
       if (i < total) {
         const last = i + 1 >= total;
         const controls = this.hostControls(
           `<button class="btn btn--primary" id="btnRevealNext" style="margin-top:20px;">${last ? 'Voir le classement' : 'Proposition suivante'}</button>`,
           "L'hôte fait défiler les résultats…");
-        return this.renderScenarioCard(true) + this.renderRevealCard(rows[i], i, total, controls);
+        return this.renderScenarioCard(true) + this.renderRevealCard(rows[i], i, total, controls, anyPerfect);
       }
 
       // Étape 2 : classement de la manche
@@ -1257,6 +1260,9 @@
         const tally = this.tallyFor(authorId);
         return {
           ...tally,
+          // 50/50 pile STRICT : votants en nombre pair ET exactement 50 % de oui (impossible en impair).
+          // Calculé par ligne ici, pour que TOUTES les cartes parfaites soient décorables (pas juste la dernière).
+          perfect: tally.total > 0 && tally.total % 2 === 0 && tally.yesPercent === 50,
           // À l'aveugle : aucun nom n'est envoyé au DOM (ni l'auteur, ni les votants). Les COMPTES restent
           // ceux de tallyFor — donc le score (basé sur le nombre de oui/non) est strictement inchangé.
           yes: blind ? tally.yes.map(() => 'Anonyme') : tally.yes,
@@ -1275,11 +1281,13 @@
       const rows = this.resultRows().sort((a, b) => b.deviation - a.deviation);
       const total = rows.length;
 
+      const anyPerfect = rows.some(row => row.perfect); // au moins un 50/50 parfait dans la manche ?
+
       // Étape 1 : les propositions une par une, chacune AVEC l'auteur et les votes
       if (i < total) {
         const last = i + 1 >= total;
         const controls = `<button class="btn btn--primary" id="btnRevealNext" style="margin-top:22px;">${last ? 'Voir le classement' : 'Proposition suivante'}</button>`;
-        return this.renderScenarioCard(true) + this.renderRevealCard(rows[i], i, total, controls);
+        return this.renderScenarioCard(true) + this.renderRevealCard(rows[i], i, total, controls, anyPerfect);
       }
 
       // Étape 2 : le classement clôt la manche

@@ -1,0 +1,80 @@
+{
+  "rules": {
+    "rooms": {
+      ".read": false,
+      ".write": false,
+      "$code": {
+        ".read": "auth != null",
+        ".validate": "$code.matches(/^[A-Z0-9]{4}$/)",
+        ".write": "auth != null && ( (!data.exists() && newData.child('meta/hostId').val() === auth.uid && now > (root.child('throttle').child(auth.uid).exists() ? root.child('throttle').child(auth.uid).val() : 0) + 8000) || data.child('meta/hostId').val() === auth.uid )",
+
+        "meta": {
+          ".write": "auth != null && ( data.child('hostId').val() === auth.uid || ( newData.child('hostId').val() === auth.uid && root.child('rooms').child($code).child('players').child(data.child('hostId').val()).child('connected').val() !== true ) )",
+          "phase":      { ".validate": "newData.isString() && newData.val().matches(/^(lobby|propose|vote|results|final)$/)" },
+          "round":      { ".validate": "newData.isNumber()" },
+          "spice":      { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 3" },
+          "hostId":     { ".validate": "newData.isString()" },
+          "scored":     { ".validate": "newData.isNumber()" },
+          "scenario":   { ".validate": "newData.isString() && newData.val().length <= 200" },
+          "secretRule": { ".validate": "newData.isString() ? newData.val().length <= 200 : newData.val() === null" },
+          "tv":            { ".validate": "newData.isBoolean()" },
+          "screenId":      { ".validate": "newData.isString()" },
+          "revealIndex":   { ".validate": "newData.isNumber()" },
+          "revealAuthors": { ".validate": "newData.isBoolean()" },
+          "blind":         { ".validate": "newData.isBoolean()" },
+          "voteIndex":     { ".validate": "newData.isNumber()" },
+          "createdAt":  { ".validate": true },
+          "roundPlayers": { ".validate": true },
+          "order":      { ".validate": true },
+          "usedScenarios": { ".validate": true },
+          "$other":     { ".validate": false }
+        },
+
+        "players": {
+          "$uid": {
+            ".write": "auth != null && $uid === auth.uid",
+            "name":      { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 16" },
+            "connected": { ".validate": "newData.isBoolean()" },
+            "isHost":    { ".validate": "newData.isBoolean()" },
+            "isScreen":  { ".validate": "newData.isBoolean()" },
+            "score":     { ".validate": "newData.isNumber() && newData.val() >= 0 && ( root.child('rooms').child($code).child('meta/hostId').val() === auth.uid || newData.val() === (data.exists() ? data.val() : 0) )" },
+            "$other":    { ".validate": false }
+          }
+        },
+
+        "proposals": {
+          "$uid": {
+            ".write": "auth != null && $uid === auth.uid && root.child('rooms').child($code).child('meta/phase').val() === 'propose'",
+            "text":   { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 280" },
+            "$other": { ".validate": false }
+          }
+        },
+
+        "votes": {
+          "$author": {
+            "$voter": {
+              ".write": "auth != null && $voter === auth.uid && $author !== auth.uid && root.child('rooms').child($code).child('meta/phase').val() === 'vote'",
+              ".validate": "newData.val() === 'yes' || newData.val() === 'no'"
+            }
+          }
+        },
+
+        "customScenarios": {
+          ".write": "auth != null && data.parent().child('meta/hostId').val() === auth.uid",
+          "$id": {
+            "text":   { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 120" },
+            "$other": { ".validate": false }
+          }
+        }
+      }
+    },
+
+    "throttle": {
+      "$uid": {
+        ".read": "auth != null && $uid === auth.uid",
+        ".write": "auth != null && $uid === auth.uid",
+        ".validate": "newData.isNumber() && newData.val() <= now && newData.val() >= (data.exists() ? data.val() + 8000 : 0)"
+      }
+    }
+  }
+}
