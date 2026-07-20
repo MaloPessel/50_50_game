@@ -105,6 +105,16 @@
     .secret-rule .txt{ margin-top:5px; font-size:16px; font-weight:600; }
     body.tv .secret-rule .txt{ font-size:20px; }
 
+    /* ---- MANCHE À L'AVEUGLE ---- */
+    .blind-banner{ display:flex; align-items:center; gap:12px; margin-bottom:16px; padding:12px 16px; border-radius:var(--r-m); background:var(--surface-2); border:1.5px dashed var(--line-2); text-align:left; }
+    .blind-banner .eye{ font-size:24px; line-height:1; flex:none; }
+    .blind-banner .bb-txt{ display:block; min-width:0; }
+    .blind-banner .bb-kicker{ display:block; font-family:var(--mono); font-size:12px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--paper); }
+    .blind-banner .bb-sub{ display:block; font-size:13px; color:var(--muted); margin-top:2px; }
+    body.tv .blind-banner{ padding:16px 20px; }
+    body.tv .blind-banner .bb-kicker{ font-size:15px; }
+    body.tv .blind-banner .bb-sub{ font-size:15px; }
+
     /* ---- BOUTONS ---- */
     .btn{
       display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
@@ -191,11 +201,23 @@
     /* ---- SPLITBAR — chaque résultat redessine le logo ---- */
     .splitbar{ position:relative; height:48px; margin:18px 0 14px; border-radius:10px; overflow:hidden; background:var(--non); }
     .splitbar-fill{ position:absolute; top:0; bottom:0; left:0; width:var(--pct,0%); background:var(--oui); clip-path:polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%); animation:bar-grow .9s var(--ease-out) both; }
+    /* Vote unanime : on supprime la couture penchée (100 % = magenta plein) ou le remplissage (0 % = bleu plein),
+       sinon le biseau de 10px laisse dépasser un triangle de la couleur opposée sur le bord. */
+    .splitbar-fill--full{ clip-path:none; }
+    .splitbar-fill--empty{ display:none; }
     @keyframes bar-grow{ from{ width:0; } }
-    .splitbar-mid{ position:absolute; left:50%; top:0; bottom:0; width:2px; margin-left:-1px; background:var(--gold); }
-    .splitbar-label{ position:absolute; inset:0; display:flex; align-items:center; padding-left:14px; font-family:var(--mono); font-weight:700; font-size:15px; color:#fff; text-shadow:0 1px 6px rgba(0,0,0,.65); pointer-events:none; }
+    /* Repère du 50/50 : même inclinaison que la couture des couleurs (10px sur toute la hauteur),
+       ancré en haut pour coïncider pile avec la couture lors d'un vrai 50/50. */
+    .splitbar-mid{ position:absolute; left:50%; top:0; bottom:0; width:2px; margin-left:-1px; background:var(--gold); transform:skewX(-11.8deg); transform-origin:top; }
+    /* Pourcentages OUI (gauche) / NON (droite) : pastilles encre translucides, lisibles quel que soit
+       le fond (magenta ou bleu) et quelle que soit la largeur du remplissage. */
+    .splitbar-tag{ position:absolute; top:50%; transform:translateY(-50%); padding:3px 9px; border-radius:999px; background:rgba(20,16,33,.55); font-family:var(--mono); font-weight:700; font-size:13px; color:#fff; white-space:nowrap; pointer-events:none; }
+    .splitbar-tag--oui{ left:10px; }
+    .splitbar-tag--non{ right:10px; }
+    .splitbar-tag--none{ left:50%; transform:translate(-50%,-50%); color:var(--muted); } /* état « aucun vote » */
     body.tv .splitbar{ height:58px; }
-    body.tv .splitbar-label{ font-size:19px; }
+    body.tv .splitbar-mid{ transform:skewX(-9.8deg); } /* 10px sur 58px de haut */
+    body.tv .splitbar-tag{ font-size:16px; padding:4px 12px; }
 
     /* ---- RÉSULTATS ---- */
     .counter{ text-align:center; font-family:var(--mono); font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
@@ -355,7 +377,8 @@
   // ---- Règles du jeu ----
   const MIN_PLAYERS = 3;            // joueurs connectés minimum pour lancer une manche
   const CODE_LENGTH = 4;            // longueur du code de partie
-  const SECRET_RULE_CHANCE = 0.35;  // probabilité qu'une manche ait une règle secrète
+  const SECRET_RULE_CHANCE = 0.05;  // règle secrète = événement rare (~1 manche sur 20)
+  const BLIND_ROUND_CHANCE = 0.15;  // manche à l'aveugle = ~1 manche sur 7 (jamais à la 1re manche)
   const USED_SCENARIOS_MAX = 40;    // mémoire anti-répétition des scénarios
   const COPY_FEEDBACK_MS = 1200;    // durée de l'état « COPIÉ » après un tap sur le code
 
@@ -446,6 +469,7 @@
     // Mode écran/salon : l'ordinateur est l'écran + hôte, il ne joue pas.
     isTV() { return !!this.meta().tv; }
     isScreen() { return this.isTV() && this.meta().screenId === this.uid; }
+    isBlind() { return !!this.meta().blind; } // manche à l'aveugle : on masque tous les noms (auteurs + votants)
     gamePlayers() { const p = this.players(); return Object.keys(p).filter(id => !p[id].isScreen); }            // vrais joueurs (hors écran)
     connectedGameIds() { const p = this.players(); return Object.keys(p).filter(id => p[id].connected && !p[id].isScreen); }
 
@@ -605,6 +629,10 @@
       const scenario = avail[Math.floor(Math.random() * avail.length)];
       const rules = this.rulePool();
       const secretRule = Math.random() < SECRET_RULE_CHANCE ? rules[Math.floor(Math.random() * rules.length)] : null;
+      // Manche à l'aveugle (auteurs + votants anonymes) : jamais à la 1re manche — les joueurs
+      // doivent d'abord assimiler la mécanique de base. `round` est encore l'ancien compteur ici,
+      // donc `>= 1` signifie « à partir de la 2e manche ».
+      const blind = (this.meta().round || 0) >= 1 && Math.random() < BLIND_ROUND_CHANCE;
 
       await update(this.roomRef(), {
         proposals: null, votes: null,
@@ -613,8 +641,10 @@
           phase: 'propose',
           round: (this.meta().round || 0) + 1,
           scenario, secretRule: secretRule || null,
+          blind: blind || null,
           roundPlayers: connected,
           order: null,
+          voteIndex: 0, revealIndex: 0,
           usedScenarios: [...used, scenario].slice(-USED_SCENARIOS_MAX),
           scored: this.meta().scored
         }
@@ -695,15 +725,23 @@
 
     activeRoundPlayers() {
       const players = this.players();
-      return this.roundPlayers().filter(id => players[id]); // encore présents
+      return this.roundPlayers().filter(id => players[id]); // encore présents (connectés ou non)
+    }
+    // Joueurs de la manche encore présents ET connectés : ceux qu'on attend réellement (propositions, votes).
+    // Un déconnecté ne peut plus agir — l'attendre figerait la manche.
+    liveRoundPlayers() {
+      const players = this.players();
+      return this.roundPlayers().filter(id => players[id] && players[id].connected);
     }
 
     allProposed() {
       const props = this.proposals();
-      return this.activeRoundPlayers().every(id => props[id]);
+      const live = this.liveRoundPlayers();
+      return live.length > 0 && live.every(id => props[id]);
     }
 
     async openVote() {
+      if (this.meta().phase !== 'propose') return; // évite un re-mélange si l'ouverture est déclenchée deux fois
       const order = shuffle(this.activeRoundPlayers().filter(id => this.proposals()[id]));
       await update(this.roomRef('meta'), { phase: 'vote', order, voteIndex: 0 });
     }
@@ -714,7 +752,7 @@
       return order.filter(a => a !== voterId).every(a => votes[a] && votes[a][voterId] !== undefined);
     }
     allVoted() {
-      const voters = this.activeRoundPlayers();
+      const voters = this.liveRoundPlayers();
       return voters.length > 0 && voters.every(v => this.voterDone(v));
     }
 
@@ -729,7 +767,9 @@
       const total = yes.length + no.length;
       const yesPercent = total > 0 ? (yes.length / total) * 100 : 0;
       const deviation = Math.abs(50 - yesPercent);
-      return { yes, no, total, yesPercent, deviation, points: pointsFromDeviation(deviation) };
+      // Aucun vote reçu (auteur dont tous les votants ont quitté) : neutre, pas de pénalité (≠ « 0 % de oui »).
+      const points = total > 0 ? pointsFromDeviation(deviation) : 0;
+      return { yes, no, total, yesPercent, deviation, points };
     }
 
     async computeResults() {
@@ -880,16 +920,19 @@
       }).join('');
     }
 
-    renderLeaderboard(showTitle = true) {
+    renderLeaderboard(showTitle = true, mask = false) {
       const players = this.players();
       const ids = this.gamePlayers();
       if ((this.meta().round || 0) === 0) return ''; // pas encore de manche jouée
-      const sorted = ids.map(id => players[id]).sort((a, b) => (a.score || 0) - (b.score || 0));
+      // À l'aveugle : on ne trie PAS par score et on masque tout chiffre (delta + total + rang).
+      // Sinon le simple rang trahirait qui a gagné/perdu des points sur la manche → fin de l'anonymat.
+      const rows = mask ? ids.map(id => players[id])
+                        : ids.map(id => players[id]).sort((a, b) => (a.score || 0) - (b.score || 0));
       return `<div class="leaderboard">
         ${showTitle ? '<h3>Classement</h3>' : ''}
-        <p class="lb-note">Le plus petit écart total gagne</p>
-        ${sorted.map((p, i) =>
-        `<div class="lb-row ${i === 0 ? 'lead' : ''}"><span class="lb-rank">${i + 1}</span><span class="lb-name">${escapeHtml(p.name)}</span><span class="lb-score">${p.score || 0}</span></div>`).join('')}</div>`;
+        <p class="lb-note">${mask ? 'Points attribués en secret — révélés à la prochaine manche' : 'Le plus petit écart total gagne'}</p>
+        ${rows.map((p, i) =>
+        `<div class="lb-row ${(!mask && i === 0) ? 'lead' : ''}"><span class="lb-rank">${mask ? '•' : (i + 1)}</span><span class="lb-name">${escapeHtml(p.name)}</span><span class="lb-score">${mask ? '???' : (p.score || 0)}</span></div>`).join('')}</div>`;
     }
 
     renderCustomScenarios() {
@@ -932,9 +975,21 @@
         </div>`;
     }
 
+    // Bannière « Manche à l'aveugle » — rappel visuel constant que tout est anonyme.
+    renderBlindBanner() {
+      if (!this.isBlind()) return '';
+      return `<div class="blind-banner">
+        <span class="eye" aria-hidden="true">🙈</span>
+        <span class="bb-txt">
+          <span class="bb-kicker">Manche à l'aveugle</span>
+          <span class="bb-sub">Personne ne saura qui a proposé ni qui a voté quoi — lâchez-vous.</span>
+        </span>
+      </div>`;
+    }
+
     renderScenarioCard(small) {
       const m = this.meta();
-      return `<div class="scenario-card ${small ? 'scenario-card--small' : ''}">
+      return `${this.renderBlindBanner()}<div class="scenario-card ${small ? 'scenario-card--small' : ''}">
         <div class="scenario-kicker">Le pouvoir</div>
         <div class="scenario-text">${escapeHtml(m.scenario)}</div>
         ${(!small && m.secretRule) ? `<div class="secret-rule"><div class="tag">Règle secrète</div><div class="txt">${escapeHtml(m.secretRule)}</div></div>` : ''}
@@ -1002,8 +1057,9 @@
 
     renderPropose() {
       const props = this.proposals();
-      const total = this.activeRoundPlayers().length;
-      const done = this.activeRoundPlayers().filter(id => props[id]).length;
+      const roundIds = this.liveRoundPlayers();
+      const total = roundIds.length;
+      const done = roundIds.filter(id => props[id]).length;
       if (props[this.uid]) {
         return this.renderScenarioCard(true) + this.renderWait({
           title: 'Proposition envoyée',
@@ -1024,7 +1080,7 @@
       const next = votable.find(a => !(votes[a] && votes[a][this.uid] !== undefined));
 
       if (!next) {
-        const voters = this.activeRoundPlayers();
+        const voters = this.liveRoundPlayers();
         const done = voters.filter(v => this.voterDone(v)).length;
         return this.renderScenarioCard(true) + this.renderWait({
           title: 'Vote terminé',
@@ -1046,20 +1102,36 @@
 
     // Carte de révélation d'une proposition (partagée entre le téléphone et le grand écran).
     renderRevealCard(r, i, total, controls) {
-      const isBest = i === total - 1;      // dernière révélée = la plus proche du 50/50
-      const isPerfect = r.deviation === 0; // « parfait » seulement si la salle est VRAIMENT coupée en deux
+      const noVotes = r.total === 0;              // aucun votant (tous partis) : pas de résultat exploitable
+      const pct = Math.max(0, Math.min(100, r.yesPercent || 0)); // borné : évite tout débordement de la jauge
+      const fillMod = pct >= 100 ? ' splitbar-fill--full' : pct <= 0 ? ' splitbar-fill--empty' : '';
+      const oui = Math.round(pct), non = 100 - oui; // % OUI / % NON — somme garantie = 100
+      // OUI à gauche, NON à droite. À l'unanimité on masque le côté à 0 % : « 0 % NON » flottant sur une barre
+      // 100 % magenta (sans zone bleue) paraîtrait orphelin — le côté gagnant suffit à tout dire.
+      const tags = noVotes
+        ? '<span class="splitbar-tag splitbar-tag--none">—</span>'
+        : (oui > 0 ? `<span class="splitbar-tag splitbar-tag--oui">${oui} % OUI</span>` : '')
+        + (non > 0 ? `<span class="splitbar-tag splitbar-tag--non">${non} % NON</span>` : '');
+      // Un 50/50 pile est mathématiquement IMPOSSIBLE avec un nombre impair de votants.
+      // On n'annonce « parfait » que si les votants sont en nombre pair ET exactement 50 % de oui.
+      const isPerfect = r.total > 0 && r.total % 2 === 0 && r.yesPercent === 50;
+      const isBest = i === total - 1 && !noVotes; // dernière révélée = la plus proche du 50/50
       const bestLabel = isPerfect ? 'Dilemme parfait de la manche' : 'Le plus proche du 50/50';
+      const ptsLabel = noVotes ? 'Aucun vote'
+                     : this.isBlind() ? 'Score masqué'   // à l'aveugle : les points sont attribués mais cachés
+                     : isPerfect ? 'Écart zéro — 50/50 parfait !'
+                     : `+${r.points} d’écart`;
       return `
         <div class="card reveal-pop ${isBest ? 'card--best' : ''}">
           <div class="counter">Proposition ${i + 1} / ${total}</div>
           ${isBest ? `<p class="reveal-best"><span class="pts">${bestLabel}</span></p>` : ''}
           <div class="quote">« Mais ${escapeHtml(r.text)} »</div>
-          <div class="splitbar" role="img" aria-label="${Math.round(r.yesPercent)} % de oui">
-            <div class="splitbar-fill" style="--pct:${r.yesPercent}%"></div>
+          <div class="splitbar" role="img" aria-label="${noVotes ? 'Aucun vote' : `${oui} % oui, ${non} % non`}">
+            <div class="splitbar-fill${fillMod}" style="--pct:${pct}%"></div>
             <div class="splitbar-mid"></div>
-            <div class="splitbar-label">${Math.round(r.yesPercent)} % OUI</div>
+            ${tags}
           </div>
-          <p class="pts-line"><span class="pts">${r.points === 0 ? 'Écart zéro — 50/50 parfait !' : `+${r.points} d’écart`}</span></p>
+          <p class="pts-line"><span class="pts">${ptsLabel}</span></p>
           <div class="author-line"><div class="author-title">${escapeHtml(r.title)}</div><div class="author-name">${escapeHtml(r.authorName)}</div></div>
           <div class="who-voted">
             <div class="col"><span class="h h--oui">Oui</span>${r.yes.map(escapeHtml).join('<br>') || '<span class="muted">Personne</span>'}</div>
@@ -1088,7 +1160,7 @@
       return `
         <div class="card">
           <h2 class="center" style="margin-bottom:18px;">Classement de la manche</h2>
-          ${this.renderLeaderboard(false)}
+          ${this.renderLeaderboard(false, this.isBlind())}
           ${this.hostControls(
             '<button class="btn btn--primary" id="btnNextRound">Manche suivante</button><button class="btn btn--secondary" id="btnFinish">Terminer la partie</button>',
             "L'hôte décide de la suite…")}
@@ -1139,8 +1211,8 @@
     }
 
     renderScreenPropose() {
-      const total = this.activeRoundPlayers().length;
-      const done = this.activeRoundPlayers().filter(id => this.proposals()[id]).length;
+      const total = this.liveRoundPlayers().length;
+      const done = this.liveRoundPlayers().filter(id => this.proposals()[id]).length;
       return this.renderScenarioCard(false) + this.renderWait({
         mark: false,
         title: 'Écrivez votre contrepartie sur vos téléphones',
@@ -1180,13 +1252,18 @@
     resultRows() {
       const props = this.proposals();
       const players = this.players();
+      const blind = this.isBlind();
       return (this.meta().order || []).map(authorId => {
         const tally = this.tallyFor(authorId);
         return {
           ...tally,
+          // À l'aveugle : aucun nom n'est envoyé au DOM (ni l'auteur, ni les votants). Les COMPTES restent
+          // ceux de tallyFor — donc le score (basé sur le nombre de oui/non) est strictement inchangé.
+          yes: blind ? tally.yes.map(() => 'Anonyme') : tally.yes,
+          no:  blind ? tally.no.map(() => 'Anonyme') : tally.no,
           authorId,
           text: props[authorId] ? props[authorId].text : '',
-          authorName: players[authorId] ? players[authorId].name : '???',
+          authorName: blind ? 'Anonyme' : (players[authorId] ? players[authorId].name : '???'),
           title: honoraryTitle(tally.yesPercent)
         };
       });
@@ -1209,7 +1286,7 @@
       return `
         <div class="card center">
           <h2 style="margin-bottom:18px;">Classement de la manche</h2>
-          ${this.renderLeaderboard(false)}
+          ${this.renderLeaderboard(false, this.isBlind())}
           <button class="btn btn--primary" id="btnNextRound">Manche suivante</button>
           <button class="btn btn--secondary" id="btnFinish">Terminer la partie</button>
         </div>`;
@@ -1223,10 +1300,11 @@
     }
 
     renderControllerPropose() {
+      const banner = this.renderBlindBanner();
       if (this.proposals()[this.uid]) {
-        return this.renderControllerWait("Proposition envoyée", "Regarde l'écran pour la suite.");
+        return banner + this.renderControllerWait("Proposition envoyée", "Regarde l'écran pour la suite.");
       }
-      return this.renderProposalForm(
+      return banner + this.renderProposalForm(
         '<div class="note">Le pouvoir est sur l\'écran — invente la pire contrepartie pour couper la salle en deux.</div>');
     }
 
@@ -1241,7 +1319,7 @@
       if (votes[author] && votes[author][this.uid] !== undefined) {
         return this.renderControllerWait("Voté", "Regarde l'écran, on passe à la suite.");
       }
-      return `
+      return this.renderBlindBanner() + `
         <div class="card center">
           <div class="counter">Proposition ${vi + 1} / ${order.length}</div>
           <p style="font-size:17px;">La contrepartie est sur l'écran.<br><strong>Tu l'acceptes ?</strong></p>
