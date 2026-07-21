@@ -16,7 +16,6 @@
           "hostId":     { ".validate": "newData.isString()" },
           "scored":     { ".validate": "newData.isNumber()" },
           "scenario":   { ".validate": "newData.isString() && newData.val().length <= 200" },
-          "secretRule": { ".validate": "newData.isString() ? newData.val().length <= 200 : newData.val() === null" },
           "tv":            { ".validate": "newData.isBoolean()" },
           "screenId":      { ".validate": "newData.isString()" },
           "revealIndex":   { ".validate": "newData.isNumber()" },
