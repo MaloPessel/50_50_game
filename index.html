@@ -416,6 +416,14 @@
   const CODE_LENGTH = 4;            // longueur du code de partie
   const BLIND_ROUND_CHANCE = 0.15;  // manche à l'aveugle = ~1 manche sur 7 (jamais à la 1re manche)
   const USED_SCENARIOS_MAX = 40;    // mémoire anti-répétition des scénarios
+  // Délais de grâce avant qu'une déconnexion ait des conséquences : le temps de changer d'appli, de
+  // répondre à un appel… et de revenir sans se faire éjecter du jeu.
+  // Hôte plus court : tant qu'il est absent, plus rien n'avance pour toute la table (personne d'autre
+  // ne peut déclencher les transitions automatiques tant qu'un nouvel hôte n'a pas pris le relais).
+  const HOST_GRACE_MS = 15000;
+  // Joueur plus long : sans conséquence pour les autres (l'hôte peut de toute façon forcer la suite
+  // à tout moment), donc autant laisser large — ça couvre un appel ou une pause.
+  const PLAYER_GRACE_MS = 30000;
   const COPY_FEEDBACK_MS = 1200;    // durée de l'état « COPIÉ » après un tap sur le code
 
   const SCENARIOS_BY_TIER = {
@@ -507,6 +515,7 @@
         this.render(); return;
       }
 
+      this.bindPresence();
       signInAnonymously(this.auth).catch(() => {
         this.fatal = "Connexion anonyme refusée. Active 'Anonyme' dans Firebase > Authentication > Sign-in method.";
         this.render();
@@ -531,6 +540,24 @@
           localStorage.removeItem('room5050');
         }
       } catch (e) { localStorage.removeItem('room5050'); }
+    }
+
+    // Firebase efface les onDisconnect programmés à chaque coupure de socket (onglet en arrière-plan,
+    // réseau qui flanche…). Sans ça, un joueur qui revient reste affiché "hors-ligne" indéfiniment :
+    // on écoute donc la reconnexion pour se remarquer en ligne et reprogrammer le onDisconnect.
+    bindPresence() {
+      onValue(this.rref('.info/connected'), async (snap) => {
+        if (snap.val() !== true || !this.code || !this.uid) return;
+        const code = this.code, uid = this.uid;
+        // On vérifie que le joueur existe encore avant de le republier : sinon un joueur kické (ou
+        // une room fermée) pendant qu'il était hors-ligne se réinscrirait tout seul à la reconnexion.
+        let exists = false;
+        try { exists = (await get(this.rref(`rooms/${code}/players/${uid}`))).exists(); } catch (e) { return; }
+        if (!exists || this.code !== code) return; // exclu, ou room quittée entre-temps
+        set(this.rref(`rooms/${code}/players/${uid}/connected`), true);
+        this._dcMode = null; // force le réarmement du onDisconnect ci-dessous
+        this.updateDisconnectHandler();
+      });
     }
 
     rref(path) { return ref(this.db, path); }
@@ -615,35 +642,68 @@
       this.unsub = onValue(this.roomRef(), (snap) => {
         if (!snap.exists()) { this.leaveLocal("La partie a été fermée."); return; }
         this.room = snap.val();
-        this.hostTick();                 // l'hôte fait avancer le jeu si besoin
-        this.updateDisconnectHandler();  // dernier connecté => suppression de la room en partant
-        this.render();
+        this.presenceTick();
       });
+
+      // Réévalue les conséquences de présence à intervalle régulier (migration d'hôte, exclusion de
+      // manche, nettoyage de room) : sans ça, rien ne se repasse tant qu'aucune écriture Firebase
+      // n'arrive pendant qu'un joueur est dans sa fenêtre de grâce (cf. recentlyConnected).
+      clearInterval(this._presenceInterval);
+      this._presenceInterval = setInterval(() => this.presenceTick(), 2000);
     }
 
-    // Recalcule, à chaque changement, ce qu'il faut faire si CET appareil se déconnecte.
-    // - Seul connecté  => programmer la suppression de TOUTE la room.
-    // - D'autres là    => se marquer simplement hors-ligne.
-    updateDisconnectHandler() {
+    presenceTick() {
+      this.hostTick();                 // l'hôte fait avancer le jeu si besoin
+      this.updateDisconnectHandler();  // dernier présent => suppression de la room en partant
+      this.render();
+    }
+
+    // Un joueur compte comme « présent » s'il est connecté, ou s'il l'était il y a moins de graceMs :
+    // encaisse les brèves coupures (appli en arrière-plan, réseau qui flanche, appel téléphonique…)
+    // sans migrer l'hôte ni exclure quelqu'un de la manche en cours. `lastSeen` est posé par le
+    // serveur (onDisconnect) au moment réel de la coupure, donc partagé par tous les appareils et
+    // insensible aux reloads — contrairement à un minuteur ou un cache purement local.
+    recentlyConnected(id, graceMs = PLAYER_GRACE_MS) {
+      const p = this.players()[id];
+      if (!p) return false;
+      if (p.connected) return true;
+      if (p.lastSeen == null) return false; // jamais vu connecté : pas de grâce à accorder
+      return (Date.now() - p.lastSeen) < graceMs;
+    }
+
+    // Recalcule ce qu'il faut faire si CET appareil se déconnecte.
+    // - Plus personne d'autre présent (connecté ou en grâce) => programmer la suppression de TOUTE la room.
+    // - Quelqu'un d'autre encore là (même en grâce)          => se marquer simplement hors-ligne, horodaté.
+    async updateDisconnectHandler() {
       if (!this.code || !this.uid) return;
       const me = this.players()[this.uid];
       if (!me) return;
-      const solo = this.connectedIds().length <= 1; // moi seul encore connecté
-      const mode = solo ? 'solo' : 'multi';
+      const players = this.players();
+      const othersPresent = Object.keys(players).some(id => id !== this.uid && this.recentlyConnected(id));
+      const mode = othersPresent ? 'multi' : 'solo';
       if (mode === this._dcMode) return;             // déjà dans le bon mode, on évite le spam réseau
       this._dcMode = mode;
 
-      const connRef = this.roomRef(`players/${this.uid}/connected`);
+      const playerRef = this.roomRef(`players/${this.uid}`);
       const roomRef = this.roomRef();
-      onDisconnect(connRef).cancel();
+      onDisconnect(playerRef).cancel();
       onDisconnect(roomRef).cancel();
-      if (solo) onDisconnect(roomRef).remove();      // ménage complet quand le dernier s'en va
-      else      onDisconnect(connRef).set(false);    // sinon, juste hors-ligne
+      if (mode === 'solo') {
+        // Les règles Firebase n'autorisent la suppression de la room qu'à son hôte officiel : on le
+        // devient si besoin avant d'armer, sinon l'armement est silencieusement refusé et la room
+        // resterait orpheline en base (cf. migration d'hôte dans hostTick, qui peut ne pas avoir eu
+        // le temps de s'acter côté serveur).
+        if (!this.isHost()) { try { await update(this.roomRef('meta'), { hostId: this.uid }); } catch (e) {} }
+        onDisconnect(roomRef).remove();                // ménage complet quand le dernier s'en va
+      } else {
+        onDisconnect(playerRef).update({ connected: false, lastSeen: serverTimestamp() });
+      }
     }
 
     leaveLocal(msg) {
       if (this.unsub) { this.unsub(); this.unsub = null; }
       this._dcMode = null;
+      clearInterval(this._presenceInterval); this._presenceInterval = null;
       localStorage.removeItem('room5050');
       this.code = null; this.room = null; this.error = msg || null; this.render();
     }
@@ -651,19 +711,20 @@
     async quitRoom() {
       feedback();
       if (this.code && this.uid) {
-        const others = this.connectedIds().filter(id => id !== this.uid);
-        const connRef = this.roomRef(`players/${this.uid}/connected`);
+        const players = this.players();
+        const others = Object.keys(players).filter(id => id !== this.uid && this.recentlyConnected(id));
+        const playerRef = this.roomRef(`players/${this.uid}`);
         const roomRef = this.roomRef();
         // On annule les actions de déconnexion : on fait le ménage nous-mêmes, maintenant.
-        try { await onDisconnect(connRef).cancel(); } catch (e) {}
+        try { await onDisconnect(playerRef).cancel(); } catch (e) {}
         try { await onDisconnect(roomRef).cancel(); } catch (e) {}
         try {
           if (others.length === 0) {
-            // Dernier joueur : on supprime toute la room (on devient hôte si besoin, pour passer les règles)
+            // Dernier joueur (encore présent ou en grâce) : on supprime toute la room (on devient hôte si besoin, pour passer les règles)
             if (!this.isHost()) { try { await update(this.roomRef('meta'), { hostId: this.uid }); } catch (e) {} }
             await remove(roomRef);
           } else {
-            await remove(this.roomRef(`players/${this.uid}`));
+            await remove(playerRef);
           }
         } catch (e) {}
       }
@@ -748,7 +809,7 @@
         // Migration d'hôte : si l'hôte est déconnecté, le 1er joueur connecté (ordre alphabétique d'uid) reprend la main
         const players = this.players();
         const hostId = this.meta().hostId;
-        const hostOk = hostId && players[hostId] && players[hostId].connected;
+        const hostOk = hostId && players[hostId] && this.recentlyConnected(hostId, HOST_GRACE_MS);
         if (!hostOk) {
           const candidate = this.connectedIds().sort()[0];
           if (candidate && candidate === this.uid) {
@@ -768,7 +829,7 @@
       }
     }
 
-    // Mode salon : avance automatiquement quand tous les joueurs CONNECTÉS ont voté la proposition courante
+    // Mode salon : avance automatiquement quand tous les joueurs présents (connectés ou en grâce) ont voté la proposition courante
     tvVoteTick() {
       const order = this.meta().order || [];
       const vi = this.meta().voteIndex || 0;
@@ -783,10 +844,10 @@
       }
     }
 
-    // Votants attendus pour une proposition : joueurs connectés de la manche, sauf l'auteur
+    // Votants attendus pour une proposition : joueurs présents (connectés ou en grâce) de la manche, sauf l'auteur
     currentVoters(author) {
       const p = this.players();
-      return this.roundPlayers().filter(id => p[id] && p[id].connected && id !== author);
+      return this.roundPlayers().filter(id => p[id] && this.recentlyConnected(id) && id !== author);
     }
 
     // Bouton "proposition suivante" de l'écran (force, pour un joueur AFK)
@@ -803,11 +864,12 @@
       const players = this.players();
       return this.roundPlayers().filter(id => players[id]); // encore présents (connectés ou non)
     }
-    // Joueurs de la manche encore présents ET connectés : ceux qu'on attend réellement (propositions, votes).
-    // Un déconnecté ne peut plus agir — l'attendre figerait la manche.
+    // Joueurs de la manche encore présents ET connectés (ou déconnectés depuis moins de PLAYER_GRACE_MS) :
+    // ceux qu'on attend réellement (propositions, votes). Passé la grâce, un déconnecté ne peut plus
+    // agir — l'attendre indéfiniment figerait la manche.
     liveRoundPlayers() {
       const players = this.players();
-      return this.roundPlayers().filter(id => players[id] && players[id].connected);
+      return this.roundPlayers().filter(id => players[id] && this.recentlyConnected(id));
     }
 
     allProposed() {
