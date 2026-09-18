@@ -19,7 +19,6 @@
           "tv":            { ".validate": "newData.isBoolean()" },
           "screenId":      { ".validate": "newData.isString()" },
           "revealIndex":   { ".validate": "newData.isNumber()" },
-          "revealAuthors": { ".validate": "newData.isBoolean()" },
           "blind":         { ".validate": "newData.isBoolean()" },
           "voteIndex":     { ".validate": "newData.isNumber()" },
           "createdAt":  { ".validate": true },

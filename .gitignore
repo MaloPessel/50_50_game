@@ -1,17 +1,21 @@
-# Artefacts du Firebase CLI (générés localement, à ne pas versionner)
+# Firebase CLI
 .firebase/
 firebase-debug.log
 firebase-debug.*.log
 database-debug.log
 .runtimeconfig.json
-.agents/
+
+# Outils / config IA (agents, skills, docs générées)
+.claude/
+docs/agents/
+CLAUDE.md
+CONTEXT.md
 skills-lock.json
 
-# OS
+# OS / éditeur
 .DS_Store
 Thumbs.db
-
-# Éditeurs
 .vscode/
 .idea/
 *.swp
+
