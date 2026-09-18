@@ -9,7 +9,7 @@
         ".write": "auth != null && ( (!data.exists() && newData.child('meta/hostId').val() === auth.uid && now > (root.child('throttle').child(auth.uid).exists() ? root.child('throttle').child(auth.uid).val() : 0) + 8000) || data.child('meta/hostId').val() === auth.uid )",
 
         "meta": {
-          ".write": "auth != null && ( data.child('hostId').val() === auth.uid || ( newData.child('hostId').val() === auth.uid && root.child('rooms').child($code).child('players').child(data.child('hostId').val()).child('connected').val() !== true ) )",
+          ".write": "auth != null && ( data.child('hostId').val() === auth.uid || ( newData.child('hostId').val() === auth.uid && root.child('rooms').child($code).child('players').child(auth.uid).exists() && root.child('rooms').child($code).child('players').child(data.child('hostId').val()).child('connected').val() !== true ) )",
           "phase":      { ".validate": "newData.isString() && newData.val().matches(/^(lobby|propose|vote|results|final)$/)" },
           "round":      { ".validate": "newData.isNumber()" },
           "spice":      { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 3" },
@@ -31,7 +31,7 @@
 
         "players": {
           "$uid": {
-            ".write": "auth != null && $uid === auth.uid",
+            ".write": "auth != null && $uid === auth.uid && ( data.exists() || root.child('rooms').child($code).child('meta/phase').val() === 'lobby' )",
             "name":      { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 16" },
             "connected": { ".validate": "newData.isBoolean()" },
             "lastSeen":  { ".validate": "newData.isNumber()" },

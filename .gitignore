@@ -1,0 +1,17 @@
+# Artefacts du Firebase CLI (générés localement, à ne pas versionner)
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+database-debug.log
+.runtimeconfig.json
+.agents/
+skills-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp
